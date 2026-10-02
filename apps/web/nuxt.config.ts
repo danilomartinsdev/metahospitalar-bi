@@ -9,7 +9,8 @@ export default defineNuxtConfig({
   // Permite um segundo servidor (E2E) rodar junto com o de dev sem disputar a pasta .nuxt.
   buildDir: process.env.NUXT_BUILD_DIR ?? '.nuxt',
   devtools: { enabled: false },
-  modules: ['@pinia/nuxt', 'shadcn-nuxt', '@nuxt/fonts'],
+  modules: ['@nuxt/ui', '@pinia/nuxt', 'shadcn-nuxt'],
+  colorMode: { storageKey: 'meta-bi-tema', classSuffix: '' },
   css: ['~/assets/css/main.css'],
   // Usa o código-fonte do pacote compartilhado (sem depender do build em dist/ durante o dev).
   alias: { '@meta-bi/shared': fileURLToPath(new URL('../../packages/shared/src/index.ts', import.meta.url)) },

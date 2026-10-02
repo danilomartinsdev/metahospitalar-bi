@@ -14,6 +14,7 @@
   "dependencies": {
     "@lucide/vue": "^1.49.0",
     "@meta-bi/shared": "workspace:*",
+    "@nuxt/ui": "^4.11.3",
     "@pinia/nuxt": "^1.0.2",
     "@tanstack/vue-query": "~5.103.3",
     "@vueuse/core": "^15.0.0",
@@ -33,6 +34,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@iconify-json/lucide": "^1.2.138",
     "@nuxt/fonts": "^0.14.0",
     "@playwright/test": "^1.63.0",
     "@tailwindcss/vite": "^4.3.3",

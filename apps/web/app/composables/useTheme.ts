@@ -1,11 +1,15 @@
-import { useColorMode } from '@vueuse/core';
-
-/** Tema claro/escuro/sistema; classe `dark` no <html>, preferência salva no navegador. */
+/*
+ * Tema claro/escuro/sistema delegando ao color-mode do Nuxt UI (não ao do @vueuse).
+ * API { mode, isDark, toggle } preservada — app.vue, BaseChart e ThemeToggle não mudam.
+ * O color-mode do @nuxtjs/color-mode persiste a preferência em localStorage `meta-bi-tema`.
+ */
 export function useTheme() {
-  const mode = useColorMode({ storageKey: 'meta-bi-tema', emitAuto: true });
-  const isDark = computed(() => mode.state.value === 'dark');
+  const colorMode = useColorMode();
+  const isDark = computed(() => colorMode.value === 'dark');
+
   function toggle() {
-    mode.value = isDark.value ? 'light' : 'dark';
+    colorMode.preference = isDark.value ? 'light' : 'dark';
   }
-  return { mode, isDark, toggle };
+
+  return { mode: computed(() => colorMode.preference), isDark, toggle };
 }

@@ -41,6 +41,16 @@
   --sidebar-border: rgb(255 255 255 / 0.08);
 
   --radius: 12px;
+
+  /* Cores semânticas do Nuxt UI → apontam para os tokens deste arquivo. */
+  --ui-primary: var(--primary);
+  --ui-primary-foreground: var(--primary-foreground);
+  --ui-success: var(--success);
+  --ui-warning: var(--warning);
+  --ui-error: var(--danger);
+  --ui-info: var(--highlight);
+  --ui-info-foreground: var(--highlight-foreground);
+  --ui-radius: var(--radius);
 }
 
 .dark {
@@ -79,4 +89,14 @@
   --sidebar-muted: #94a3b8;
   --sidebar-active: rgb(255 255 255 / 0.08);
   --sidebar-border: #1e2a44;
+
+  /* Cores semânticas do Nuxt UI (dark) → tokens deste arquivo. */
+  --ui-primary: var(--primary);
+  --ui-primary-foreground: var(--primary-foreground);
+  --ui-success: var(--success);
+  --ui-warning: var(--warning);
+  --ui-error: var(--danger);
+  --ui-info: var(--highlight);
+  --ui-info-foreground: var(--highlight-foreground);
+  --ui-radius: var(--radius);
 }
