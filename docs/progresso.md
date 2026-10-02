@@ -1,7 +1,7 @@
 # Progresso
 
-**Fase atual:** 4 — RBAC (próxima)
-**Concluídas:** 0 Contexto · 1 Fundação · 2 Dados (`fase-2-dados`) · 3 Dashboards (`fase-3-dashboards`)
+**Fase atual:** 4b — Migração UI para Nuxt UI v4 (`fase-4b-ui`, ADR 0007)
+**Concluídas:** 0 Contexto · 1 Fundação · 2 Dados · 3 Dashboards · 4 RBAC (`fase-4-rbac`)
 
 ### Fase 2 — Dados (feito)
 
@@ -20,6 +20,9 @@ Período e busca ficaram na barra de filtros de cada tela (não na topbar).
 Administração › Representantes — sem isso, % Público fica 0%. Tela de override de segmento por cliente: Fase 4.
 
 ## Pendências
+
+- [ ] **Migração UI → Nuxt UI v4** (fase-4b-ui, ADR 0007): fases 0–8 do plano; shell, admin, dashboards, auth; limpeza final de shadcn-vue/vue-sonner/vee-validate.
+- [ ] Tela de override de segmento por cliente (Fase 4, ainda não feita).
 
 - [ ] **Planilha real** em `fixtures/focco/ano-todo-ate-agora.xls` (gitignored) — necessária para validar o importador.
 - [ ] Gerar amostra anonimizada em `fixtures/focco/amostras/` a partir da planilha real.
@@ -61,6 +64,12 @@ Não implementar nada que dependa destes itens sem resposta do usuário.
 | 2026-10-02 | Removidos por não se encaixarem: agentes data-scientist e context-manager; skills senior-frontend, senior-architect, senior-backend. `/security-audit` reescrito (lia `.env*` e usava npm/bash) | .claude/             |
 
 ## Feito
+
+### Fase 4 — RBAC (feito)
+
+Usuários, papéis com permissões editáveis, escopo (todos/região/representantes), auditoria.
+Telas: Administração › Usuários, Papéis, Auditoria. Fix da revisão de autorização aplicado
+(`380ea16`); revisor-rbac e /code-review aprovados.
 
 ### Fase 1 — Fundação
 
