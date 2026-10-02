@@ -1,0 +1,58 @@
+# Regras de negócio
+
+> Itens marcados **[PENDENTE]** não podem ser implementados como regra fixa; ver
+> [../progresso.md](../progresso.md) › Decisões pendentes.
+
+## Região (derivada da UF)
+Constante em `packages/shared/src/constants/regioes.ts`.
+
+| Região | UFs |
+|---|---|
+| Norte | AC, AM, AP, PA, RO, RR, TO |
+| Nordeste | AL, BA, CE, MA, PB, PE, PI, RN, SE |
+| Centro-Oeste | DF, GO, MS, MT |
+| Sudeste | ES, MG, RJ, SP |
+| Sul | PR, RS, SC |
+| Exterior | EX (exportação) |
+
+UF fora da lista → erro de validação na linha da importação.
+
+## Representantes (= Gestores)
+- Cadastro: `codigo` (como vem do Focco, ex.: `BL REPR`), `nomeExibicao` (ex.: `BL REPR (BRUNA)`),
+  `segmentoPadrao` (ex.: MURILLO = Público), `ativo`.
+- Representante novo encontrado na importação é criado com `nomeExibicao = codigo`,
+  sem segmento **[PENDENTE: default]**, e listado na prévia.
+- Inativo continua aparecendo no histórico; só deixa de aparecer em listas de seleção.
+
+## Segmento
+- Valores: Público, Privado **[PENDENTE: há outros?]**.
+- Segmento efetivo de um pedido = `cliente.segmentoOverride` ?? `representante.segmentoPadrao`.
+- Calculado na consulta (não gravado no pedido), para que mudanças de cadastro reflitam no histórico.
+
+## Clientes
+- Chave de agrupamento: nome normalizado = remover acentos → maiúsculas → trim → colapsar espaços.
+  Ex.: `"  São  Camilo "` e `"SAO CAMILO"` → `SAO CAMILO`.
+- Nome original preservado (o mais recente importado é exibido).
+- Cliente novo = primeiro pedido no período analisado e nenhum pedido antes do período.
+- Recorrência = número de meses distintos com pedido no período.
+
+## Status PDV (POS PDV)
+- Cadastro: `codigo` (A, PE, AC...), `descricao`, `contaNoTotal` (bool), `cor` (token).
+- Significado de A/PE/AC e se PE conta no total vendido: **[PENDENTE]**.
+- Código desconhecido na importação → criado com `contaNoTotal = true` e sinalizado na prévia **[PENDENTE: confirmar default]**.
+
+## Metas
+- Mensais (ano, mês), em valor (Decimal), no total da empresa e por representante.
+- Meta total é cadastrada explicitamente (não é soma das metas por representante).
+- Só papéis com `metas.edit` alteram; alterações auditadas.
+
+## Histórico 2025
+- Vem do mesmo relatório Focco detalhado de 2025 → importação normal, mesmas regras.
+- Comparativos "ano anterior" usam os pedidos importados do ano anterior.
+
+## Datas e valores
+- Competência = mês de DT EMIS no fuso America/Sao_Paulo.
+- Valores em Decimal(14,2), arredondamento half-up a 2 casas na importação.
+
+## Fórmulas
+Ver [../dados/metricas-kpis.md](../dados/metricas-kpis.md).

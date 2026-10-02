@@ -1,0 +1,42 @@
+# Dependências e builds
+node_modules/
+dist/
+.output/
+.nuxt/
+.nitro/
+.cache/
+coverage/
+*.tsbuildinfo
+playwright-report/
+test-results/
+
+# Segredos
+.env
+.env.*
+!.env.example
+**/secrets/
+
+# Uploads e arquivos importados (guardados fora do webroot)
+uploads/
+storage/
+
+# Planilhas reais do Focco (dados de clientes) — só amostras anonimizadas são versionadas
+fixtures/focco/*
+!fixtures/focco/amostras/
+!fixtures/focco/README.md
+
+# Backups
+backups/
+*.dump
+
+# Claude Code — pessoal
+CLAUDE.local.md
+.claude/settings.local.json
+
+# IDE / SO
+.idea/
+.vscode/*
+!.vscode/extensions.json
+.DS_Store
+Thumbs.db
+*.log

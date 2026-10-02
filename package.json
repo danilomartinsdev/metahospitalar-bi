@@ -1,0 +1,16 @@
+{
+  "name": "meta-bi",
+  "version": "0.0.0",
+  "private": true,
+  "description": "BI Executivo — Meta Hospitalar",
+  "packageManager": "pnpm@12.8.1",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "db:up": "docker compose up -d --wait postgres",
+    "db:down": "docker compose down",
+    "db:logs": "docker compose logs -f postgres",
+    "hooks:test": "node --test .claude/hooks/*.test.mjs"
+  }
+}
