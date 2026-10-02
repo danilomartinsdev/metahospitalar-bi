@@ -18,6 +18,17 @@ const COR_CLASSE: Record<string, string> = {
   danger: 'bg-danger/15 text-danger',
 };
 
+const ROTULO_COR: Record<Cor, string> = {
+  muted: 'Cinza',
+  primary: 'Azul',
+  highlight: 'Verde-água',
+  success: 'Verde',
+  warning: 'Amarelo',
+  danger: 'Vermelho',
+};
+type Cor = (typeof CORES_STATUS)[number];
+const itensCor = CORES_STATUS.map((c) => ({ label: ROTULO_COR[c], value: c }));
+
 async function salvar(s: StatusPdv, dados: Parameters<typeof atualizar.mutateAsync>[0]['dados']) {
   try {
     await atualizar.mutateAsync({ id: s.id, dados });
@@ -77,18 +88,13 @@ async function salvar(s: StatusPdv, dados: Parameters<typeof atualizar.mutateAsy
                   />
                 </td>
                 <td class="px-3 py-2">
-                  <select
-                    class="h-9 rounded-md border bg-background px-2 text-sm"
-                    :value="s.cor"
+                  <USelect
+                    :model-value="s.cor as Cor"
+                    :items="itensCor"
+                    class="w-36"
                     :aria-label="`Cor de ${s.codigo}`"
-                    @change="
-                      salvar(s, {
-                        cor: ($event.target as HTMLSelectElement).value as (typeof CORES_STATUS)[number],
-                      })
-                    "
-                  >
-                    <option v-for="c in CORES_STATUS" :key="c" :value="c">{{ c }}</option>
-                  </select>
+                    @update:model-value="(v) => salvar(s, { cor: v })"
+                  />
                 </td>
                 <td class="px-5 py-2">
                   <input

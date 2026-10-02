@@ -106,14 +106,13 @@ async function enviar() {
         </div>
         <div class="space-y-2">
           <label for="u-papel" class="text-sm font-medium">Papel</label>
-          <select
+          <USelect
             id="u-papel"
             v-model="form.roleId"
-            required
-            class="h-9 w-full rounded-md border bg-background px-3 text-sm"
-          >
-            <option v-for="p in papeis.data.value" :key="p.id" :value="p.id">{{ p.nome }}</option>
-          </select>
+            :items="(papeis.data.value ?? []).map((p) => ({ label: p.nome, value: p.id }))"
+            class="w-full"
+            placeholder="Selecione o papel"
+          />
         </div>
 
         <fieldset class="space-y-2">

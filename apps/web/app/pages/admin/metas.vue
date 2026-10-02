@@ -54,9 +54,7 @@ async function salvar() {
 <template>
   <div class="mx-auto max-w-7xl space-y-6">
     <UiExtraPageHeader titulo="Metas" descricao="Metas mensais em R$: total da empresa e por representante.">
-      <select v-model.number="ano" class="h-9 rounded-md border bg-background px-3 text-sm" aria-label="Ano">
-        <option v-for="a in [anoAtual - 1, anoAtual, anoAtual + 1]" :key="a" :value="a">{{ a }}</option>
-      </select>
+      <USelect v-model="ano" :items="[anoAtual - 1, anoAtual, anoAtual + 1]" class="w-28" aria-label="Ano" />
       <UButton icon="i-lucide-save" label="Salvar" :loading="salvarMut.isPending.value" @click="salvar" />
     </UiExtraPageHeader>
 

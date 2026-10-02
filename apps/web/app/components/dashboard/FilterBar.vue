@@ -15,7 +15,9 @@ const status = useStatusQuery();
 
 const NOMES_MES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
 const rotuloMes = (m: string) => `${NOMES_MES[Number(m.slice(5)) - 1]}/${m.slice(2, 4)}`;
-const opcoesMes = computed(() => [...(meses.data.value ?? [])].reverse());
+const opcoesMes = computed(() =>
+  [...(meses.data.value ?? [])].reverse().map((m) => ({ label: rotuloMes(m), value: m })),
+);
 const de = computed(() => filtros.value.de ?? props.periodo?.de ?? '');
 const ate = computed(() => filtros.value.ate ?? props.periodo?.ate ?? '');
 
@@ -61,23 +63,23 @@ const opcoes = computed(() => ({
   <div class="flex flex-col gap-3 rounded-xl border bg-card p-3 lg:flex-row lg:items-center">
     <div v-if="!semPeriodo" class="flex flex-wrap items-center gap-2">
       <CalendarDays class="size-4 text-muted-foreground" aria-hidden="true" />
-      <select
-        class="h-8 rounded-md border bg-background px-2 text-sm"
+      <USelect
+        :model-value="de"
+        :items="opcoesMes"
+        size="sm"
+        class="w-28"
         aria-label="Mês inicial"
-        :value="de"
-        @change="mudarPeriodo('de', ($event.target as HTMLSelectElement).value)"
-      >
-        <option v-for="m in opcoesMes" :key="m" :value="m">{{ rotuloMes(m) }}</option>
-      </select>
+        @update:model-value="(v) => mudarPeriodo('de', String(v))"
+      />
       <span class="text-sm text-muted-foreground">até</span>
-      <select
-        class="h-8 rounded-md border bg-background px-2 text-sm"
+      <USelect
+        :model-value="ate"
+        :items="opcoesMes"
+        size="sm"
+        class="w-28"
         aria-label="Mês final"
-        :value="ate"
-        @change="mudarPeriodo('ate', ($event.target as HTMLSelectElement).value)"
-      >
-        <option v-for="m in opcoesMes" :key="m" :value="m">{{ rotuloMes(m) }}</option>
-      </select>
+        @update:model-value="(v) => mudarPeriodo('ate', String(v))"
+      />
       <UButton color="neutral" variant="ghost" size="sm" label="Último mês" @click="atalho('mes')" />
       <UButton color="neutral" variant="ghost" size="sm" label="Ano" @click="atalho('ano')" />
     </div>

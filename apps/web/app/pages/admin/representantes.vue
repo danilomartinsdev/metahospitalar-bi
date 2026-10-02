@@ -13,6 +13,13 @@ useHead({ title: 'Representantes — BI Meta Hospitalar' });
 const reps = useRepresentantesQuery();
 const atualizar = useAtualizarRepresentante();
 
+/** O USelect não aceita '' como valor: NENHUM representa "sem segmento definido". */
+const NENHUM = 'NENHUM';
+const itensSegmento = [
+  { label: 'Não definido', value: NENHUM },
+  ...SEGMENTOS.map((s) => ({ label: SEGMENTO_ROTULO[s], value: s })),
+];
+
 async function salvar(
   r: Representante,
   dados: Parameters<typeof atualizar.mutateAsync>[0]['dados'],
@@ -69,20 +76,15 @@ function salvarNome(r: Representante, e: Event) {
                   />
                 </td>
                 <td class="px-3 py-2">
-                  <select
-                    class="h-9 rounded-md border bg-background px-2 text-sm"
-                    :value="r.segmentoPadrao ?? ''"
+                  <USelect
+                    :model-value="r.segmentoPadrao ?? NENHUM"
+                    :items="itensSegmento"
+                    class="w-40"
                     :aria-label="`Segmento de ${r.codigo}`"
-                    @change="
-                      salvar(r, {
-                        segmentoPadrao: (($event.target as HTMLSelectElement).value ||
-                          null) as Segmento | null,
-                      })
+                    @update:model-value="
+                      (v) => salvar(r, { segmentoPadrao: (v === NENHUM ? null : v) as Segmento | null })
                     "
-                  >
-                    <option value="">Não definido</option>
-                    <option v-for="s in SEGMENTOS" :key="s" :value="s">{{ SEGMENTO_ROTULO[s] }}</option>
-                  </select>
+                  />
                 </td>
                 <td class="px-5 py-2">
                   <label class="inline-flex cursor-pointer items-center gap-2">

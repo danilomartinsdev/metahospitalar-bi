@@ -9,7 +9,7 @@ const { qs } = useFiltros();
 const q = useClientesQuery(qs);
 const filtro = ref<'todos' | 'novos' | 'recorrentes'>('todos');
 const pagina = ref(1);
-const POR_PAGINA = 25;
+const porPagina = ref(25);
 
 const lista = computed(() => {
   const r = q.data.value?.ranking ?? [];
@@ -20,10 +20,9 @@ const lista = computed(() => {
       : r;
 });
 const visiveis = computed(() =>
-  lista.value.slice((pagina.value - 1) * POR_PAGINA, pagina.value * POR_PAGINA),
+  lista.value.slice((pagina.value - 1) * porPagina.value, pagina.value * porPagina.value),
 );
-const paginas = computed(() => Math.max(1, Math.ceil(lista.value.length / POR_PAGINA)));
-watch([filtro, qs], () => (pagina.value = 1));
+watch([filtro, qs, porPagina], () => (pagina.value = 1));
 </script>
 
 <template>
@@ -79,7 +78,7 @@ watch([filtro, qs], () => (pagina.value = 1));
             </thead>
             <tbody class="divide-y">
               <tr v-for="(c, i) in visiveis" :key="c.chave">
-                <td class="num px-4 py-2.5 text-muted-foreground">{{ (pagina - 1) * POR_PAGINA + i + 1 }}</td>
+                <td class="num px-4 py-2.5 text-muted-foreground">{{ (pagina - 1) * porPagina + i + 1 }}</td>
                 <td class="px-3 py-2.5">
                   <span class="font-medium">{{ c.rotulo }}</span>
                   <UBadge v-if="c.novo" color="info" variant="soft" class="ml-2" label="novo" />
@@ -92,28 +91,12 @@ watch([filtro, qs], () => (pagina.value = 1));
             </tbody>
           </table>
         </div>
-        <div class="flex items-center justify-between border-t px-4 py-3 text-sm">
-          <span class="text-muted-foreground">{{ formatInt(lista.length) }} clientes</span>
-          <div class="flex items-center gap-2">
-            <button
-              type="button"
-              class="rounded-md border px-3 py-1 disabled:opacity-40"
-              :disabled="pagina === 1"
-              @click="pagina--"
-            >
-              Anterior
-            </button>
-            <span class="num">{{ pagina }} / {{ paginas }}</span>
-            <button
-              type="button"
-              class="rounded-md border px-3 py-1 disabled:opacity-40"
-              :disabled="pagina >= paginas"
-              @click="pagina++"
-            >
-              Próxima
-            </button>
-          </div>
-        </div>
+        <UiExtraPaginacaoBar
+          v-model:pagina="pagina"
+          v-model:por-pagina="porPagina"
+          :total="lista.length"
+          rotulo="clientes"
+        />
       </UiExtraEstadoBloco>
     </section>
   </div>

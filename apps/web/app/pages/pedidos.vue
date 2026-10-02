@@ -85,7 +85,6 @@ const COR: Record<string, string> = {
   danger: 'bg-danger/15 text-danger',
 };
 const total = computed(() => q.data.value?.meta.total ?? 0);
-const paginas = computed(() => Math.max(1, Math.ceil(total.value / pageSize.value)));
 </script>
 
 <template>
@@ -172,38 +171,14 @@ const paginas = computed(() => Math.max(1, Math.ceil(total.value / pageSize.valu
             </tbody>
           </table>
         </div>
-        <div class="flex flex-wrap items-center justify-between gap-3 border-t px-4 py-3 text-sm">
-          <span class="text-muted-foreground">
-            <span class="num">{{ formatInt(total) }}</span> pedidos
-          </span>
-          <div class="flex items-center gap-2">
-            <select
-              class="h-8 rounded-md border bg-background px-2"
-              :value="pageSize"
-              aria-label="Itens por página"
-              @change="navegar({ pageSize: ($event.target as HTMLSelectElement).value, page: 1 })"
-            >
-              <option v-for="n in [25, 50, 100]" :key="n" :value="n">{{ n }} por página</option>
-            </select>
-            <button
-              type="button"
-              class="rounded-md border px-3 py-1 disabled:opacity-40"
-              :disabled="page <= 1"
-              @click="navegar({ page: page - 1 })"
-            >
-              Anterior
-            </button>
-            <span class="num">{{ page }} / {{ paginas }}</span>
-            <button
-              type="button"
-              class="rounded-md border px-3 py-1 disabled:opacity-40"
-              :disabled="page >= paginas"
-              @click="navegar({ page: page + 1 })"
-            >
-              Próxima
-            </button>
-          </div>
-        </div>
+        <UiExtraPaginacaoBar
+          :pagina="page"
+          :por-pagina="pageSize"
+          :total="total"
+          rotulo="pedidos"
+          @update:pagina="(p) => navegar({ page: p })"
+          @update:por-pagina="(n) => navegar({ pageSize: n, page: 1 })"
+        />
       </UiExtraEstadoBloco>
     </section>
   </div>

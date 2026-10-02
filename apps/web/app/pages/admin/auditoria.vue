@@ -8,20 +8,27 @@ const route = useRoute();
 const router = useRouter();
 const filtro = (k: string) => (typeof route.query[k] === 'string' ? (route.query[k] as string) : '');
 const page = computed(() => Number(filtro('page')) || 1);
+const pageSize = computed(() => Number(filtro('pageSize')) || 50);
 const qs = computed(() => {
-  const p = new URLSearchParams({ page: String(page.value), pageSize: '50' });
+  const p = new URLSearchParams({ page: String(page.value), pageSize: String(pageSize.value) });
   for (const k of ['acao', 'de', 'ate']) if (filtro(k)) p.set(k, filtro(k));
   return p.toString();
 });
 const q = useAuditoriaQuery(qs);
 const acoes = useAcoesAuditoriaQuery();
-const paginas = computed(() => Math.max(1, Math.ceil((q.data.value?.meta.total ?? 0) / 50)));
 
 function definir(k: string, v: string | number) {
   const nova = { ...route.query, [k]: v ? String(v) : undefined };
   if (k !== 'page') nova.page = undefined;
   void router.replace({ query: nova });
 }
+
+/** O USelect não aceita '' como valor: "todas" é o item sem filtro. */
+const TODAS = 'todas';
+const itensAcao = computed(() => [
+  { label: 'Todas', value: TODAS },
+  ...(acoes.data.value ?? []).map((a) => ({ label: ROTULOS[a] ?? a, value: a })),
+]);
 
 const ROTULOS: Record<string, string> = {
   'login.sucesso': 'Login',
@@ -59,14 +66,13 @@ const resumo = (d: unknown) => (d && typeof d === 'object' ? JSON.stringify(d).s
     <div class="flex flex-wrap items-end gap-3 rounded-xl border bg-card p-3">
       <label class="space-y-1 text-xs text-muted-foreground">
         Ação
-        <select
-          class="block h-8 rounded-md border bg-background px-2 text-sm text-foreground"
-          :value="filtro('acao')"
-          @change="definir('acao', ($event.target as HTMLSelectElement).value)"
-        >
-          <option value="">Todas</option>
-          <option v-for="a in acoes.data.value" :key="a" :value="a">{{ ROTULOS[a] ?? a }}</option>
-        </select>
+        <USelect
+          :model-value="filtro('acao') || TODAS"
+          :items="itensAcao"
+          size="sm"
+          class="block w-56"
+          @update:model-value="(v) => definir('acao', v === TODAS ? '' : String(v))"
+        />
       </label>
       <label class="space-y-1 text-xs text-muted-foreground">
         De
@@ -129,28 +135,14 @@ const resumo = (d: unknown) => (d && typeof d === 'object' ? JSON.stringify(d).s
             </tbody>
           </table>
         </div>
-        <div class="flex items-center justify-between border-t px-4 py-3 text-sm">
-          <span class="num text-muted-foreground">{{ formatInt(q.data.value?.meta.total) }} registros</span>
-          <div class="flex items-center gap-2">
-            <button
-              type="button"
-              class="rounded-md border px-3 py-1 disabled:opacity-40"
-              :disabled="page <= 1"
-              @click="definir('page', page - 1)"
-            >
-              Anterior
-            </button>
-            <span class="num">{{ page }} / {{ paginas }}</span>
-            <button
-              type="button"
-              class="rounded-md border px-3 py-1 disabled:opacity-40"
-              :disabled="page >= paginas"
-              @click="definir('page', page + 1)"
-            >
-              Próxima
-            </button>
-          </div>
-        </div>
+        <UiExtraPaginacaoBar
+          :pagina="page"
+          :por-pagina="pageSize"
+          :total="q.data.value?.meta.total ?? 0"
+          rotulo="registros"
+          @update:pagina="(p) => definir('page', p)"
+          @update:por-pagina="(n) => definir('pageSize', n)"
+        />
       </UiExtraEstadoBloco>
     </section>
   </div>

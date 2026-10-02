@@ -10,21 +10,28 @@ useHead({ title: 'Segmento por cliente — BI Meta Hospitalar' });
 const busca = ref('');
 const buscaDebounced = refDebounced(busca, 350);
 const page = ref(1);
-watch(buscaDebounced, () => (page.value = 1));
+const pageSize = ref(25);
+watch([buscaDebounced, pageSize], () => (page.value = 1));
 const qs = computed(() =>
   new URLSearchParams({
     page: String(page.value),
-    pageSize: '25',
+    pageSize: String(pageSize.value),
     ...(buscaDebounced.value ? { busca: buscaDebounced.value } : {}),
   }).toString(),
 );
 const q = useClientesAdminQuery(qs);
 const atualizar = useAtualizarCliente();
-const paginas = computed(() => Math.max(1, Math.ceil((q.data.value?.meta.total ?? 0) / 25)));
+
+/** O USelect não aceita '' como valor: NENHUM representa "sem segmento definido". */
+const NENHUM = 'NENHUM';
+const itensSegmento = [
+  { label: 'Do representante', value: NENHUM },
+  ...SEGMENTOS.map((s) => ({ label: SEGMENTO_ROTULO[s], value: s })),
+];
 
 async function salvar(id: string, v: string) {
   try {
-    await atualizar.mutateAsync({ id, segmentoOverride: (v || null) as Segmento | null });
+    await atualizar.mutateAsync({ id, segmentoOverride: (v === NENHUM ? null : v) as Segmento | null });
     aviso.sucesso('Segmento salvo.');
   } catch (e) {
     aviso.erro(e, 'Não foi possível salvar.');
@@ -64,38 +71,24 @@ async function salvar(id: string, v: string) {
             <tr v-for="c in q.data.value?.data" :key="c.id">
               <td class="px-5 py-2">{{ c.nomeOriginal }}</td>
               <td class="px-5 py-2">
-                <select
-                  class="h-8 rounded-md border bg-background px-2 text-sm"
-                  :value="c.segmentoOverride ?? ''"
+                <USelect
+                  :model-value="c.segmentoOverride ?? NENHUM"
+                  :items="itensSegmento"
+                  size="sm"
+                  class="w-44"
                   :aria-label="`Segmento de ${c.nomeOriginal}`"
-                  @change="salvar(c.id, ($event.target as HTMLSelectElement).value)"
-                >
-                  <option value="">Do representante</option>
-                  <option v-for="s in SEGMENTOS" :key="s" :value="s">{{ SEGMENTO_ROTULO[s] }}</option>
-                </select>
+                  @update:model-value="(v) => salvar(c.id, String(v))"
+                />
               </td>
             </tr>
           </tbody>
         </table>
-        <div class="flex items-center justify-end gap-2 border-t px-4 py-3 text-sm">
-          <button
-            type="button"
-            class="rounded-md border px-3 py-1 disabled:opacity-40"
-            :disabled="page <= 1"
-            @click="page--"
-          >
-            Anterior
-          </button>
-          <span class="num">{{ page }} / {{ paginas }}</span>
-          <button
-            type="button"
-            class="rounded-md border px-3 py-1 disabled:opacity-40"
-            :disabled="page >= paginas"
-            @click="page++"
-          >
-            Próxima
-          </button>
-        </div>
+        <UiExtraPaginacaoBar
+          v-model:pagina="page"
+          v-model:por-pagina="pageSize"
+          :total="q.data.value?.meta.total ?? 0"
+          rotulo="clientes"
+        />
       </UiExtraEstadoBloco>
     </section>
   </div>

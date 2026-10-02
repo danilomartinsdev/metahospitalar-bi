@@ -21,7 +21,7 @@ Administração › Representantes — sem isso, % Público fica 0%. Tela de ove
 
 ## Pendências
 
-- [ ] **Migração UI → Nuxt UI v4** (fase-4b-ui, ADR 0007): fases 0–3 feitas (tema, shell, primitivos/overlays/toasts); faltam 4–8; shell, admin, dashboards, auth; limpeza final de shadcn-vue/vue-sonner/vee-validate.
+- [ ] **Migração UI → Nuxt UI v4** (fase-4b-ui, ADR 0007): fases 0–4 feitas (tema, shell, primitivos/overlays/toasts, tabelas/paginação/selects); faltam 5–8; shell, admin, dashboards, auth; limpeza final de shadcn-vue/vue-sonner/vee-validate.
 - [ ] Tela de override de segmento por cliente (Fase 4, ainda não feita).
 
 - [ ] **Planilha real** em `fixtures/focco/ano-todo-ate-agora.xls` (gitignored) — necessária para validar o importador.
