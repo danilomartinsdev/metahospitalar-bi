@@ -1,3 +1,18 @@
 packages:
-  - "apps/*"
-  - "packages/*"
+  - 'apps/*'
+  - 'packages/*'
+
+# Proteção de supply-chain: não instalar versões publicadas há menos de 1 dia.
+# Não adicione exceções (minimumReleaseAgeExclude) sem revisar o pacote.
+minimumReleaseAge: 1440
+
+# Dependências com scripts de instalação permitidos (binários nativos / engines)
+allowBuilds:
+  '@parcel/watcher': true
+  '@prisma/engines': true
+  '@swc/core': true
+  argon2: true
+  esbuild: true
+  prisma: true
+  unrs-resolver: true
+  vue-demi: true

@@ -1,4 +1,5 @@
-# Fase 0: só o Postgres (dev). Os serviços api, web e caddy entram na Fase 1 (ver docs/operacao/deploy.md).
+# Ambiente de desenvolvimento. Segredos vêm do .env (gere com `pnpm setup:env`).
+# Portas publicadas só em 127.0.0.1: nada fica acessível pela rede local.
 name: meta-bi
 
 services:
@@ -7,20 +8,35 @@ services:
     container_name: meta-bi-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-metabi}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-metabi_dev}
+      POSTGRES_USER: ${POSTGRES_USER:?defina POSTGRES_USER no .env (pnpm setup:env)}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?defina POSTGRES_PASSWORD no .env (pnpm setup:env)}
       POSTGRES_DB: ${POSTGRES_DB:-metabi}
+      POSTGRES_INITDB_ARGS: '--auth-host=scram-sha-256 --auth-local=scram-sha-256'
       TZ: America/Sao_Paulo
       PGTZ: America/Sao_Paulo
     ports:
-      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
+      - '127.0.0.1:${POSTGRES_PORT:-5432}:5432'
     volumes:
       - pgdata:/var/lib/postgresql/data
+      - ./docker/postgres/init:/docker-entrypoint-initdb.d:ro
+    security_opt:
+      - no-new-privileges:true
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      test: ['CMD-SHELL', 'pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"']
       interval: 5s
       timeout: 3s
       retries: 20
+
+  # Caixa de e-mail falsa para dev ("esqueci minha senha"): http://localhost:8025
+  mailpit:
+    image: axllent/mailpit:v1.27
+    container_name: meta-bi-mailpit
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:1025:1025'
+      - '127.0.0.1:8025:8025'
+    security_opt:
+      - no-new-privileges:true
 
 volumes:
   pgdata:
