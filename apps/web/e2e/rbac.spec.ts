@@ -1,0 +1,65 @@
+import { expect, type Page, test } from '@playwright/test';
+import { USUARIOS } from './global-setup';
+
+async function entrar(page: Page, email: string) {
+  await page.goto('/login');
+  await page.getByLabel('E-mail').fill(email);
+  await page.getByLabel('Senha', { exact: true }).fill(process.env.E2E_SENHA!);
+  await page.getByRole('button', { name: 'Entrar' }).click();
+  await expect(page.getByRole('heading', { name: 'Visão geral', level: 2 })).toBeVisible();
+}
+
+async function itensDoMenu(page: Page) {
+  const menu = page.getByRole('button', { name: 'Abrir menu' });
+  if (await menu.isVisible()) await menu.click();
+  const nav = page.getByRole('navigation', { name: 'Navegação principal' }).last();
+  await nav.getByRole('link', { name: /Visão geral/ }).waitFor();
+  const textos = await nav.getByRole('link').allInnerTexts();
+  await page.keyboard.press('Escape');
+  return textos.map((t) => t.trim());
+}
+
+test.describe('cada papel vê só o que pode', () => {
+  test('representante: análise sim, administração não; URL direta leva ao 403', async ({ page }) => {
+    await entrar(page, USUARIOS.representante);
+    const itens = await itensDoMenu(page);
+    expect(itens).toEqual(expect.arrayContaining(['Visão geral', 'Pedidos']));
+    for (const proibido of ['Importações', 'Usuários', 'Papéis', 'Auditoria', 'Metas']) {
+      expect(itens).not.toContain(proibido);
+    }
+    await page.goto('/admin/usuarios');
+    await expect(page).toHaveURL(/\/403$/);
+    await expect(page.getByRole('heading', { name: 'Você não tem acesso a esta página' })).toBeVisible();
+  });
+
+  test('admin vê administração completa', async ({ page }) => {
+    await entrar(page, USUARIOS.admin);
+    const itens = await itensDoMenu(page);
+    expect(itens).toEqual(
+      expect.arrayContaining(['Importações', 'Metas', 'Usuários', 'Papéis', 'Auditoria']),
+    );
+  });
+});
+
+test('admin cria usuário e recebe a senha provisória uma única vez', async ({ page }, info) => {
+  test.skip(info.project.name !== 'desktop', 'cria dados: roda uma vez só');
+  await entrar(page, USUARIOS.admin);
+  await page.goto('/admin/usuarios');
+  await page.getByRole('button', { name: 'Novo usuário' }).click();
+
+  const dialogo = page.getByRole('dialog');
+  await dialogo.getByLabel('Nome').fill('Pessoa E2E');
+  await dialogo.getByLabel('E-mail').fill(`e2e-${Date.now()}@metahospitalar.com.br`);
+  await dialogo.getByLabel('Papel').selectOption({ label: 'Visualizador' });
+  await dialogo.getByText('Todos os pedidos').click();
+  await dialogo.getByRole('button', { name: 'Salvar' }).click();
+
+  const credencial = page.getByRole('dialog', { name: 'Senha provisória' });
+  await expect(credencial).toBeVisible();
+  await expect(credencial.locator('code')).toHaveText(/^Meta.{10,}\d$/);
+  await credencial.getByRole('button', { name: 'Entendi' }).click();
+  await expect(page.getByRole('cell', { name: /Pessoa E2E/ }).first()).toBeVisible();
+
+  await page.goto('/admin/auditoria');
+  await expect(page.getByRole('cell', { name: 'Usuário criado' }).first()).toBeVisible();
+});

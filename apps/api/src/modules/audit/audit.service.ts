@@ -18,7 +18,13 @@ export type AcaoAuditada =
   | 'import.executado'
   | 'import.revertido'
   | 'cadastro.alterado'
-  | 'metas.alteradas';
+  | 'metas.alteradas'
+  | 'usuario.criado'
+  | 'usuario.alterado'
+  | 'usuario.senha-redefinida'
+  | 'papel.criado'
+  | 'papel.alterado'
+  | 'papel.removido';
 
 interface Registro {
   acao: AcaoAuditada;
