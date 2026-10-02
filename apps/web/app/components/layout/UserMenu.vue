@@ -1,17 +1,9 @@
 <script setup lang="ts">
-import { KeyRound, LogOut } from 'lucide-vue-next';
+import type { DropdownMenuItem } from '@nuxt/ui';
 import { Avatar, AvatarFallback } from '~/components/ui/avatar';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '~/components/ui/dropdown-menu';
-import { useAuthStore } from '~/stores/auth';
 
 const auth = useAuthStore();
+const router = useRouter();
 
 const iniciais = computed(() =>
   (auth.usuario?.nome ?? '?')
@@ -21,13 +13,37 @@ const iniciais = computed(() =>
     .map((p) => p[0]?.toUpperCase())
     .join(''),
 );
+
+const itens: DropdownMenuItem[][] = [
+  [
+    { type: 'label', label: auth.usuario?.nome ?? '?', class: 'font-normal' },
+    {
+      type: 'label',
+      label: auth.usuario?.email ?? '',
+      class: '-mt-2 truncate text-xs font-normal text-muted-foreground',
+    },
+  ],
+  [
+    {
+      label: 'Trocar senha',
+      icon: 'i-lucide-key-round',
+      onSelect: () => router.push('/trocar-senha'),
+    },
+    {
+      label: 'Sair',
+      icon: 'i-lucide-log-out',
+      onSelect: () => auth.logout(),
+    },
+  ],
+];
 </script>
 
 <template>
-  <DropdownMenu>
-    <DropdownMenuTrigger
-      class="flex items-center gap-3 rounded-lg p-1 pr-2 text-left hover:bg-accent focus-visible:outline-2"
+  <UDropdownMenu :items="itens" :ui="{ content: 'w-60' }">
+    <button
+      type="button"
       aria-label="Menu do usuário"
+      class="flex items-center gap-3 rounded-lg p-1 pr-2 text-left hover:bg-accent focus-visible:outline-2"
     >
       <Avatar class="size-8">
         <AvatarFallback class="bg-primary-soft text-xs font-semibold text-primary">{{
@@ -36,19 +52,8 @@ const iniciais = computed(() =>
       </Avatar>
       <span class="hidden leading-tight md:block">
         <span class="block text-sm font-medium">{{ auth.usuario?.nome }}</span>
-        <span class="block text-xs text-muted-foreground">{{ auth.usuario?.papel.nome }}</span>
+        <span class="block truncate text-xs text-muted-foreground">{{ auth.usuario?.papel.nome }}</span>
       </span>
-    </DropdownMenuTrigger>
-    <DropdownMenuContent align="end" class="w-60">
-      <DropdownMenuLabel class="font-normal">
-        <span class="block text-sm font-medium">{{ auth.usuario?.nome }}</span>
-        <span class="block truncate text-xs text-muted-foreground">{{ auth.usuario?.email }}</span>
-      </DropdownMenuLabel>
-      <DropdownMenuSeparator />
-      <DropdownMenuItem as-child>
-        <NuxtLink to="/trocar-senha"><KeyRound class="size-4" /> Trocar senha</NuxtLink>
-      </DropdownMenuItem>
-      <DropdownMenuItem @select="auth.logout()"><LogOut class="size-4" /> Sair</DropdownMenuItem>
-    </DropdownMenuContent>
-  </DropdownMenu>
+    </button>
+  </UDropdownMenu>
 </template>

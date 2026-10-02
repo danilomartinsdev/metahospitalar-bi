@@ -24,7 +24,9 @@ export default defineConfig({
   globalSetup: './e2e/global-setup.ts',
   fullyParallel: false,
   workers: 1,
-  // O servidor de dev compila sob demanda: o primeiro carregamento de cada rota é lento.
+  // O servidor de dev compila sob demanda: o primeiro carregamento de cada rota é lento (~20s
+  // após mudanças de config/dep). Testes desktop 1 a 3 morriam por 30s no cold start.
+  timeout: 90_000,
   expect: { timeout: 15_000 },
   retries: process.env.CI ? 1 : 0,
   reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',

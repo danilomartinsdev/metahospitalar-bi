@@ -17,7 +17,10 @@ function ativo(to: string) {
 </script>
 
 <template>
-  <nav aria-label="Navegação principal" class="flex h-full flex-col bg-sidebar text-sidebar-foreground">
+  <nav
+    aria-label="Navegação principal"
+    class="flex h-full w-full flex-col bg-sidebar text-sidebar-foreground"
+  >
     <NuxtLink
       to="/dashboard"
       class="flex h-16 shrink-0 items-center gap-3 border-b border-sidebar-border"
@@ -48,26 +51,34 @@ function ativo(to: string) {
         </p>
         <ul class="space-y-0.5">
           <li v-for="item in g.itens" :key="item.to">
-            <NuxtLink
-              :to="item.to"
-              :title="recolhida ? item.label : undefined"
-              :aria-current="ativo(item.to) ? 'page' : undefined"
-              class="flex h-10 items-center gap-3 rounded-lg px-3 text-sm transition-colors hover:bg-sidebar-active"
-              :class="[
-                ativo(item.to) ? 'bg-sidebar-active font-medium text-white' : 'text-sidebar-foreground/85',
-                recolhida && 'justify-center px-0',
-              ]"
-              @click="emit('navegou')"
+            <UTooltip
+              :text="item.label"
+              :content="{ side: 'right' }"
+              :delay-duration="0"
+              :disabled="!recolhida"
             >
-              <component :is="item.icon" class="size-[18px] shrink-0" aria-hidden="true" />
-              <span v-if="!recolhida" class="flex-1 truncate">{{ item.label }}</span>
-              <span
-                v-if="!recolhida && item.fase"
-                class="rounded-full bg-sidebar-active px-2 py-0.5 text-[10px] text-sidebar-muted"
+              <NuxtLink
+                :to="item.to"
+                :aria-current="ativo(item.to) ? 'page' : undefined"
+                class="flex h-10 items-center gap-3 rounded-lg px-3 text-sm transition-colors hover:bg-sidebar-active"
+                :class="[
+                  ativo(item.to)
+                    ? 'bg-sidebar-active font-medium text-sidebar-foreground'
+                    : 'text-sidebar-foreground/85',
+                  recolhida && 'justify-center px-0',
+                ]"
+                @click="emit('navegou')"
               >
-                em breve
-              </span>
-            </NuxtLink>
+                <component :is="item.icon" class="size-[18px] shrink-0" aria-hidden="true" />
+                <span v-if="!recolhida" class="flex-1 truncate">{{ item.label }}</span>
+                <span
+                  v-if="!recolhida && item.fase"
+                  class="rounded-full bg-sidebar-active px-2 py-0.5 text-[10px] text-sidebar-muted"
+                >
+                  em breve
+                </span>
+              </NuxtLink>
+            </UTooltip>
           </li>
         </ul>
       </div>
