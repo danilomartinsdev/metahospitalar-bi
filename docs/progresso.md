@@ -4,13 +4,16 @@
 **Próxima:** 1 — Fundação (monorepo, Docker completo, Prisma, design system, autenticação)
 
 ## Pendências
+
 - [ ] Usuário colocar a planilha real em `fixtures/focco/ano-todo-ate-agora.xls` (gitignored) e o protótipo HTML (onde guardar: `docs/produto/prototipo/`?) — necessário antes da Fase 2.
 - [ ] Gerar amostra anonimizada em `fixtures/focco/amostras/` a partir da planilha real (Fase 2).
 - [ ] Rodar `/memory` e confirmar a hierarquia de contexto (feito pelo usuário — comando interativo).
 - [ ] Criar a branch `main` no remoto e definir política de merge (PR por fase?).
 
 ## Decisões pendentes
+
 Não implementar nada que dependa destes itens sem resposta do usuário.
+
 1. **Status PDV (A, PE, AC):** significado de cada código e se pedidos **PE** contam no total vendido. Até a resposta, o cadastro de status terá a flag `contaNoTotal` configurável e os KPIs a respeitam.
 2. **SMTP:** servidor e remetente para "esqueci minha senha".
 3. **Escopo "por região":** um usuário com escopo de região vê todos os pedidos cuja UF pertence à região, independentemente do representante? (assumido sim, a confirmar)
@@ -27,18 +30,22 @@ Não implementar nada que dependa destes itens sem resposta do usuário.
    - Matriz de papéis padrão em docs/arquitetura/seguranca-rbac.md (rollback para Gestor comercial, cadastros só Admin).
 
 ## Decisões tomadas
-| Data | Decisão | Onde |
-|---|---|---|
-| 2026-10-02 | Gestor = Representante (mesma entidade; "Gestor" é o rótulo de UI) | glossario.md |
-| 2026-10-02 | Histórico 2025 vem do mesmo relatório Focco detalhado (importação normal) | regras-de-negocio.md |
-| 2026-10-02 | Planilha real fica fora do git; só amostra anonimizada é versionada | importacao-focco.md |
-| 2026-10-02 | Agentes/skills do claude-code-templates instalados no `.claude/` do projeto | CLAUDE.md |
-| 2026-10-02 | Hooks do Claude Code em Node (.mjs), exec form | ADR 0005 |
-| 2026-10-02 | Postgres sobe já na Fase 0 via `pnpm db:up` (pedido do usuário) | docker-compose.yml |
+
+| Data       | Decisão                                                                                                                                                                                         | Onde                 |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- |
+| 2026-10-02 | Gestor = Representante (mesma entidade; "Gestor" é o rótulo de UI)                                                                                                                              | glossario.md         |
+| 2026-10-02 | Histórico 2025 vem do mesmo relatório Focco detalhado (importação normal)                                                                                                                       | regras-de-negocio.md |
+| 2026-10-02 | Planilha real fica fora do git; só amostra anonimizada é versionada                                                                                                                             | importacao-focco.md  |
+| 2026-10-02 | Agentes/skills do claude-code-templates instalados no `.claude/` do projeto                                                                                                                     | CLAUDE.md            |
+| 2026-10-02 | Hooks do Claude Code em Node (.mjs), exec form                                                                                                                                                  | ADR 0005             |
+| 2026-10-02 | Postgres sobe já na Fase 0 via `pnpm db:up` (pedido do usuário)                                                                                                                                 | docker-compose.yml   |
+| 2026-10-02 | Projeto só JS/TS: scripts Python das skills removidos                                                                                                                                           | CLAUDE.md            |
+| 2026-10-02 | Removidos por não se encaixarem: agentes data-scientist e context-manager; skills senior-frontend, senior-architect, senior-backend. `/security-audit` reescrito (lia `.env*` e usava npm/bash) | .claude/             |
 
 ## Feito
 
 ### Fase 0 — Contexto
+
 - CLAUDE.md raiz e por pacote, REVIEW.md, README.md, .gitignore, .env.example, pnpm-workspace.yaml.
 - `.claude/`: settings.json (permissões + hooks), 8 rules, 3 skills do projeto, agente `revisor-rbac`,
   hooks Node (`protect-paths`, `format`, `session-context`) com testes.
@@ -51,11 +58,13 @@ Não implementar nada que dependa destes itens sem resposta do usuário.
 - docker-compose.yml com Postgres 16 (127.0.0.1:5432, volume `meta-bi_pgdata`).
 
 **Como testar**
+
 - `pnpm hooks:test` — testes dos hooks.
 - Pedir ao Claude para escrever em `.env` → deve ser bloqueado pelo hook.
 - `pnpm db:up` → container `meta-bi-postgres` healthy; `pnpm db:down` para parar.
 - `/memory` → CLAUDE.md raiz, glossário importado, rules `seguranca` e `git` sempre carregadas.
 
 **Observações**
+
 - `pnpm lint`/`typecheck`/`test` ainda não existem: não há código de aplicação (Fase 1).
 - Git Bash desta máquina falha ao iniciar; por isso hooks em Node e comandos via PowerShell.

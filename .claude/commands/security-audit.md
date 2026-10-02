@@ -1,81 +1,28 @@
 ---
-allowed-tools: Read, Bash, Grep, Glob
-argument-hint: [focus-area] | --full
-description: Perform comprehensive security assessment and vulnerability analysis
+allowed-tools: Read, Grep, Glob, Bash(pnpm audit *), Bash(git log *), PowerShell(pnpm audit *), PowerShell(git log *)
+argument-hint: [area] | --full
+description: Auditoria de segurança do projeto (dependências, auth, RBAC/escopo, entrada, segredos, infra)
 ---
 
-# Security Audit
+# Auditoria de segurança
 
-Perform comprehensive security assessment: $ARGUMENTS
+Foco: $ARGUMENTS (sem argumento = projeto inteiro)
 
-## Current Environment
+NUNCA leia `.env` ou arquivos de segredo — use `.env.example` para saber quais variáveis existem.
+Referências: `docs/arquitetura/seguranca-rbac.md`, `.claude/rules/seguranca.md`, `REVIEW.md`.
 
-- Dependency scan: !`npm audit --audit-level=moderate 2>/dev/null || pip check 2>/dev/null || echo "No package manager detected"`
-- Environment files: @.env* (if exists)
-- Security config: @.github/workflows/security.yml or @security/ (if exists)
-- Recent commits: !`git log --oneline --grep="security\|fix" -10`
+## Passos
 
-## Task
+1. **Dependências:** rode `pnpm audit --prod` e `pnpm audit`; liste vulnerabilidades altas/críticas com o caminho da dependência.
+2. **Autenticação:** argon2id, bloqueio após falhas, refresh rotativo com detecção de reuso, cookie httpOnly/secure/sameSite, expiração por inatividade, tokens nunca em localStorage, resposta neutra no "esqueci a senha".
+3. **Autorização e escopo:** todo endpoint com `@RequirePermission` (ou `@Public` explícito); pedidos só via `ScopedPedidosRepository`; export, dashboard e /print respeitam o escopo; IDs do cliente checados contra o escopo. Para uma revisão profunda, use o subagente `revisor-rbac`.
+4. **Entrada:** Zod em body/query/params; upload com validação de conteúdo real, limite de tamanho, fora do webroot.
+5. **Segredos:** procure segredos hardcoded (Grep por `password=`, `secret`, `BEGIN PRIVATE KEY`, tokens); confira `.gitignore`.
+6. **Erros e logs:** sem stack/SQL na resposta; logs sem senha, token ou conteúdo de planilha.
+7. **HTTP:** Helmet/CSP, CORS restrito a `WEB_ORIGIN`, rate limit (mais rígido em /auth), atributos de cookie.
+8. **Infra:** Dockerfiles (usuário não-root, imagem mínima), docker-compose (portas expostas só em 127.0.0.1 em dev), CI (permissões mínimas, sem segredos em log).
 
-Perform systematic security audit following these steps:
+## Relatório
 
-1. **Environment Setup**
-   - Identify the technology stack and framework
-   - Check for existing security tools and configurations
-   - Review deployment and infrastructure setup
-
-2. **Dependency Security**
-   - Scan all dependencies for known vulnerabilities
-   - Check for outdated packages with security issues
-   - Review dependency sources and integrity
-   - Use appropriate tools: `npm audit`, `pip check`, `cargo audit`, etc.
-
-3. **Authentication & Authorization**
-   - Review authentication mechanisms and implementation
-   - Check for proper session management
-   - Verify authorization controls and access restrictions
-   - Examine password policies and storage
-
-4. **Input Validation & Sanitization**
-   - Check all user input validation and sanitization
-   - Look for SQL injection vulnerabilities
-   - Identify potential XSS (Cross-Site Scripting) issues
-   - Review file upload security and validation
-
-5. **Data Protection**
-   - Identify sensitive data handling practices
-   - Check encryption implementation for data at rest and in transit
-   - Review data masking and anonymization practices
-   - Verify secure communication protocols (HTTPS, TLS)
-
-6. **Secrets Management**
-   - Scan for hardcoded secrets, API keys, and passwords
-   - Check for proper secrets management practices
-   - Review environment variable security
-   - Identify exposed configuration files
-
-7. **Error Handling & Logging**
-   - Review error messages for information disclosure
-   - Check logging practices for security events
-   - Verify sensitive data is not logged
-   - Assess error handling robustness
-
-8. **Infrastructure Security**
-   - Review containerization security (Docker, etc.)
-   - Check CI/CD pipeline security
-   - Examine cloud configuration and permissions
-   - Assess network security configurations
-
-9. **Security Headers & CORS**
-   - Check security headers implementation
-   - Review CORS configuration
-   - Verify CSP (Content Security Policy) settings
-   - Examine cookie security attributes
-
-10. **Reporting**
-    - Document all findings with severity levels (Critical, High, Medium, Low)
-    - Provide specific remediation steps for each issue
-    - Include code examples and file references
-    - Create an executive summary with key recommendations
-
-Use automated security scanning tools when available and provide manual review for complex security patterns.
+Achados por severidade (Crítico, Alto, Médio, Baixo), cada um com `arquivo:linha`, impacto e correção sugerida.
+Termine com um resumo executivo e o que foi verificado sem achados. Não edite arquivos.
