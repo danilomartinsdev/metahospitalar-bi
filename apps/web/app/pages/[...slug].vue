@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { Construction } from 'lucide-vue-next';
-import { Button } from '~/components/ui/button';
 import { NAV } from '~/components/layout/nav';
 
 const route = useRoute();
@@ -20,6 +19,6 @@ useHead({ title: () => `${item.value?.label ?? 'Página não encontrada'} — BI
       <h2 class="text-xl font-semibold">Página não encontrada</h2>
       <p class="text-sm text-muted-foreground">O endereço não existe ou foi movido.</p>
     </template>
-    <Button as-child variant="outline"><NuxtLink to="/dashboard">Voltar à visão geral</NuxtLink></Button>
+    <UButton to="/dashboard" color="neutral" variant="outline" label="Voltar à visão geral" />
   </div>
 </template>

@@ -50,6 +50,7 @@ test('visual: rotas âncora light/dark (desktop)', async ({ page }, info) => {
   await expect(page.locator('html')).toHaveClass(/dark/, { timeout: 5_000 });
   await expect(page).toHaveScreenshot('dashboard-dark.png', { maxDiffPixelRatio: 0.2 });
 
+  await definirTema(page, 'light');
   await page.goto('/admin/usuarios');
   await expect(page.getByRole('cell', { name: /admin@metahospitalar.com.br/ }).first()).toBeVisible({
     timeout: 20_000,

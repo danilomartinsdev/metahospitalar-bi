@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { CORES_STATUS } from '@meta-bi/shared';
 import { Info } from 'lucide-vue-next';
-import { toast } from 'vue-sonner';
-import { Input } from '~/components/ui/input';
 import { type StatusPdv, useAtualizarStatus, useStatusQuery } from '~/composables/api/useCadastros';
 
+const aviso = useAviso();
 definePageMeta({ titulo: 'Status PDV', permissao: 'cadastros.edit' });
 useHead({ title: 'Status PDV — BI Meta Hospitalar' });
 
@@ -22,9 +21,9 @@ const COR_CLASSE: Record<string, string> = {
 async function salvar(s: StatusPdv, dados: Parameters<typeof atualizar.mutateAsync>[0]['dados']) {
   try {
     await atualizar.mutateAsync({ id: s.id, dados });
-    toast.success('Salvo.');
-  } catch {
-    toast.error('Não foi possível salvar.');
+    aviso.sucesso('Salvo.');
+  } catch (e) {
+    aviso.erro(e, 'Não foi possível salvar.');
   }
 }
 </script>
@@ -65,9 +64,9 @@ async function salvar(s: StatusPdv, dados: Parameters<typeof atualizar.mutateAsy
                   }}</span>
                 </td>
                 <td class="px-3 py-2">
-                  <Input
+                  <UInput
                     :model-value="s.descricao"
-                    class="h-9 min-w-48"
+                    class="min-w-48"
                     :aria-label="`Descrição de ${s.codigo}`"
                     @blur="
                       (e: Event) => {

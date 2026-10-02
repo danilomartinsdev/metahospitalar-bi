@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import { SEGMENTO_ROTULO, SEGMENTOS, type Segmento } from '@meta-bi/shared';
 import { refDebounced } from '@vueuse/core';
-import { Search } from 'lucide-vue-next';
-import { toast } from 'vue-sonner';
-import { Input } from '~/components/ui/input';
 import { useAtualizarCliente, useClientesAdminQuery } from '~/composables/api/useAdmin';
 
+const aviso = useAviso();
 definePageMeta({ titulo: 'Segmento por cliente', permissao: 'cadastros.edit' });
 useHead({ title: 'Segmento por cliente — BI Meta Hospitalar' });
 
@@ -27,9 +25,9 @@ const paginas = computed(() => Math.max(1, Math.ceil((q.data.value?.meta.total ?
 async function salvar(id: string, v: string) {
   try {
     await atualizar.mutateAsync({ id, segmentoOverride: (v || null) as Segmento | null });
-    toast.success('Segmento salvo.');
-  } catch {
-    toast.error('Não foi possível salvar.');
+    aviso.sucesso('Segmento salvo.');
+  } catch (e) {
+    aviso.erro(e, 'Não foi possível salvar.');
   }
 }
 </script>
@@ -40,10 +38,13 @@ async function salvar(id: string, v: string) {
       titulo="Segmento por cliente"
       descricao="Por padrão o segmento vem do representante. Defina aqui só as exceções (ex.: cliente público atendido por representante privado)."
     />
-    <div class="relative max-w-sm">
-      <Search class="absolute left-3 top-2.5 size-4 text-muted-foreground" aria-hidden="true" />
-      <Input v-model="busca" class="pl-9" placeholder="Buscar cliente" aria-label="Buscar cliente" />
-    </div>
+    <UInput
+      v-model="busca"
+      icon="i-lucide-search"
+      class="w-full max-w-sm"
+      placeholder="Buscar cliente"
+      aria-label="Buscar cliente"
+    />
     <section class="rounded-xl border bg-card">
       <UiExtraEstadoBloco
         :carregando="q.isPending.value"

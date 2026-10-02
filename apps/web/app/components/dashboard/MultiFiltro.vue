@@ -1,14 +1,5 @@
 <script setup lang="ts">
-import { ChevronDown } from 'lucide-vue-next';
-import { Button } from '~/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '~/components/ui/dropdown-menu';
+import type { DropdownMenuItem } from '@nuxt/ui';
 
 const props = defineProps<{
   rotulo: string;
@@ -17,9 +8,9 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{ alterar: [valores: string[]] }>();
 
-function alternar(valor: string, marcado: boolean | 'indeterminate') {
+function alternar(valor: string, marcado: boolean) {
   const s = new Set(props.selecionados);
-  if (marcado === true) s.add(valor);
+  if (marcado) s.add(valor);
   else s.delete(valor);
   emit('alterar', [...s]);
 }
@@ -30,38 +21,32 @@ const resumo = computed(() => {
   }
   return `${props.rotulo} (${props.selecionados.length})`;
 });
+
+// onSelect com preventDefault mantém o menu aberto para marcar várias opções.
+const itens = computed<DropdownMenuItem[][]>(() => [
+  [{ type: 'label', label: props.rotulo }],
+  props.opcoes.map((o) => ({
+    type: 'checkbox' as const,
+    label: o.rotulo,
+    checked: props.selecionados.includes(o.valor),
+    onUpdateChecked: (v: boolean) => alternar(o.valor, v),
+    onSelect: (e: Event) => e.preventDefault(),
+  })),
+  ...(props.selecionados.length
+    ? [[{ label: 'Limpar', icon: 'i-lucide-x', onSelect: () => emit('alterar', []) }]]
+    : []),
+]);
 </script>
 
 <template>
-  <DropdownMenu>
-    <DropdownMenuTrigger as-child>
-      <Button variant="outline" size="sm" :class="selecionados.length ? 'border-primary text-primary' : ''">
-        <span class="max-w-36 truncate">{{ resumo }}</span>
-        <ChevronDown class="opacity-60" />
-      </Button>
-    </DropdownMenuTrigger>
-    <DropdownMenuContent align="start" class="max-h-80 w-60 overflow-y-auto">
-      <DropdownMenuLabel>{{ rotulo }}</DropdownMenuLabel>
-      <DropdownMenuSeparator />
-      <DropdownMenuCheckboxItem
-        v-for="o in opcoes"
-        :key="o.valor"
-        :model-value="selecionados.includes(o.valor)"
-        @select.prevent
-        @update:model-value="(v: boolean | 'indeterminate') => alternar(o.valor, v)"
-      >
-        {{ o.rotulo }}
-      </DropdownMenuCheckboxItem>
-      <template v-if="selecionados.length">
-        <DropdownMenuSeparator />
-        <button
-          type="button"
-          class="w-full px-2 py-1.5 text-left text-sm text-primary hover:underline"
-          @click="emit('alterar', [])"
-        >
-          Limpar
-        </button>
-      </template>
-    </DropdownMenuContent>
-  </DropdownMenu>
+  <UDropdownMenu :items="itens" :content="{ align: 'start' }" :ui="{ content: 'max-h-80 w-60' }">
+    <UButton
+      :color="selecionados.length ? 'primary' : 'neutral'"
+      variant="outline"
+      size="sm"
+      trailing-icon="i-lucide-chevron-down"
+      :ui="{ label: 'max-w-36 truncate' }"
+      :label="resumo"
+    />
+  </UDropdownMenu>
 </template>

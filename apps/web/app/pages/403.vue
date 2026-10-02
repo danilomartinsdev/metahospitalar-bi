@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ShieldAlert } from 'lucide-vue-next';
-import { Button } from '~/components/ui/button';
 
 definePageMeta({ titulo: 'Acesso negado' });
 useHead({ title: 'Acesso negado — BI Meta Hospitalar' });
@@ -13,6 +12,6 @@ useHead({ title: 'Acesso negado — BI Meta Hospitalar' });
     <p class="text-sm text-muted-foreground">
       Se precisar dela, peça ao administrador para ajustar seu perfil.
     </p>
-    <Button as-child><NuxtLink to="/dashboard">Voltar à visão geral</NuxtLink></Button>
+    <UButton to="/dashboard" label="Voltar à visão geral" />
   </div>
 </template>

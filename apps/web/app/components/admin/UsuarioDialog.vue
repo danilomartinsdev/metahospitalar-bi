@@ -6,23 +6,11 @@ import {
   type RegiaoEnum,
   type UsuarioAdmin,
 } from '@meta-bi/shared';
-import { Loader2 } from 'lucide-vue-next';
-import { toast } from 'vue-sonner';
-import { Button } from '~/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '~/components/ui/dialog';
-import { Input } from '~/components/ui/input';
-import { Label } from '~/components/ui/label';
-import type { ApiError } from '~/composables/api/useApi';
+import { mensagemErro } from '~/composables/api/useApi';
 import { usePapeisQuery, useSalvarUsuario } from '~/composables/api/useAdmin';
 import { useRepresentantesQuery } from '~/composables/api/useCadastros';
 
+const aviso = useAviso();
 const aberto = defineModel<boolean>('aberto', { required: true });
 const props = defineProps<{ usuario: UsuarioAdmin | null }>();
 const emit = defineEmits<{ criado: [email: string, senha: string] }>();
@@ -81,27 +69,24 @@ async function enviar() {
     const r = await salvar.mutateAsync({ id: props.usuario?.id, dados: dados as never });
     aberto.value = false;
     if (r.senhaProvisoria) emit('criado', r.usuario.email, r.senhaProvisoria);
-    else toast.success('Usuário atualizado.');
+    else aviso.sucesso('Usuário atualizado.');
   } catch (e) {
-    const err = e as ApiError;
-    erro.value = err.body?.details?.[0]?.message ?? err.message;
+    erro.value = mensagemErro(e);
   }
 }
 </script>
 
 <template>
-  <Dialog v-model:open="aberto">
-    <DialogContent class="max-h-[90dvh] overflow-y-auto sm:max-w-lg">
-      <DialogHeader>
-        <DialogTitle>{{ usuario ? 'Editar usuário' : 'Novo usuário' }}</DialogTitle>
-        <DialogDescription>
-          {{
-            usuario
-              ? 'Mudanças de papel e escopo valem na próxima ação do usuário.'
-              : 'Uma senha provisória será gerada e exibida uma única vez.'
-          }}
-        </DialogDescription>
-      </DialogHeader>
+  <UModal
+    v-model:open="aberto"
+    :title="usuario ? 'Editar usuário' : 'Novo usuário'"
+    :description="
+      usuario
+        ? 'Mudanças de papel e escopo valem na próxima ação do usuário.'
+        : 'Uma senha provisória será gerada e exibida uma única vez.'
+    "
+  >
+    <template #body>
 
       <form id="form-usuario" class="space-y-4" @submit.prevent="enviar">
         <p
@@ -112,15 +97,15 @@ async function enviar() {
           {{ erro }}
         </p>
         <div class="space-y-2">
-          <Label for="u-nome">Nome</Label>
-          <Input id="u-nome" v-model="form.nome" required minlength="2" />
+          <label for="u-nome" class="text-sm font-medium">Nome</label>
+          <UInput id="u-nome" v-model="form.nome" class="w-full" required minlength="2" />
         </div>
         <div class="space-y-2">
-          <Label for="u-email">E-mail</Label>
-          <Input id="u-email" v-model="form.email" type="email" required :disabled="!!usuario" />
+          <label for="u-email" class="text-sm font-medium">E-mail</label>
+          <UInput id="u-email" v-model="form.email" class="w-full" type="email" required :disabled="!!usuario" />
         </div>
         <div class="space-y-2">
-          <Label for="u-papel">Papel</Label>
+          <label for="u-papel" class="text-sm font-medium">Papel</label>
           <select
             id="u-papel"
             v-model="form.roleId"
@@ -188,13 +173,13 @@ async function enviar() {
           </div>
         </fieldset>
       </form>
+    </template>
 
-      <DialogFooter>
-        <Button variant="outline" @click="aberto = false">Cancelar</Button>
-        <Button type="submit" form="form-usuario" :disabled="salvar.isPending.value">
-          <Loader2 v-if="salvar.isPending.value" class="animate-spin" /> Salvar
-        </Button>
-      </DialogFooter>
-    </DialogContent>
-  </Dialog>
+    <template #footer>
+      <div class="flex w-full justify-end gap-2">
+        <UButton color="neutral" variant="outline" label="Cancelar" @click="aberto = false" />
+        <UButton type="submit" form="form-usuario" label="Salvar" :loading="salvar.isPending.value" />
+      </div>
+    </template>
+  </UModal>
 </template>

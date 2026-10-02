@@ -1,14 +1,12 @@
 <script setup lang="ts">
 import { SEGMENTO_ROTULO, SEGMENTOS, type Segmento } from '@meta-bi/shared';
-import { toast } from 'vue-sonner';
-import { Badge } from '~/components/ui/badge';
-import { Input } from '~/components/ui/input';
 import {
   type Representante,
   useAtualizarRepresentante,
   useRepresentantesQuery,
 } from '~/composables/api/useCadastros';
 
+const aviso = useAviso();
 definePageMeta({ titulo: 'Representantes', permissao: 'cadastros.edit' });
 useHead({ title: 'Representantes — BI Meta Hospitalar' });
 
@@ -22,9 +20,9 @@ async function salvar(
 ) {
   try {
     await atualizar.mutateAsync({ id: r.id, dados });
-    toast.success(msg);
-  } catch {
-    toast.error('Não foi possível salvar.');
+    aviso.sucesso(msg);
+  } catch (e) {
+    aviso.erro(e, 'Não foi possível salvar.');
   }
 }
 
@@ -62,9 +60,9 @@ function salvarNome(r: Representante, e: Event) {
               <tr v-for="r in reps.data.value" :key="r.id">
                 <td class="px-5 py-2 font-medium">{{ r.codigo }}</td>
                 <td class="px-3 py-2">
-                  <Input
+                  <UInput
                     :model-value="r.nomeExibicao"
-                    class="h-9 min-w-56"
+                    class="min-w-56"
                     :aria-label="`Nome de exibição de ${r.codigo}`"
                     @blur="salvarNome(r, $event)"
                     @keydown.enter="($event.target as HTMLInputElement).blur()"
@@ -94,9 +92,11 @@ function salvarNome(r: Representante, e: Event) {
                       :checked="r.ativo"
                       @change="salvar(r, { ativo: ($event.target as HTMLInputElement).checked })"
                     />
-                    <Badge :variant="r.ativo ? 'default' : 'secondary'">{{
-                      r.ativo ? 'Ativo' : 'Inativo'
-                    }}</Badge>
+                    <UBadge
+                      :color="r.ativo ? 'primary' : 'neutral'"
+                      :variant="r.ativo ? 'solid' : 'soft'"
+                      :label="r.ativo ? 'Ativo' : 'Inativo'"
+                    />
                   </label>
                 </td>
               </tr>

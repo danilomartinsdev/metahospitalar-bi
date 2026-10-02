@@ -1,13 +1,11 @@
 <script setup lang="ts">
 import type { AuthResposta } from '@meta-bi/shared';
 import { trocarSenhaSchema } from '@meta-bi/shared';
-import { Loader2 } from 'lucide-vue-next';
 import { useForm } from 'vee-validate';
-import { toast } from 'vue-sonner';
-import { Button } from '~/components/ui/button';
 import { useApi } from '~/composables/api/useApi';
 import { useAuthStore } from '~/stores/auth';
 
+const aviso = useAviso();
 const auth = useAuthStore();
 const obrigatoria = computed(() => auth.usuario?.trocarSenha === true);
 definePageMeta({ layout: 'auth' });
@@ -29,7 +27,7 @@ const salvar = handleSubmit(async (dados) => {
     // A troca revoga as outras sessões e devolve uma sessão nova.
     const r = await request<AuthResposta>('/auth/trocar-senha', { method: 'POST', body: dados });
     auth.aplicar(r);
-    toast.success('Senha alterada.');
+    aviso.sucesso('Senha alterada.');
     await navigateTo('/dashboard');
   } catch (e: unknown) {
     const code = (e as { code?: string }).code;
@@ -86,9 +84,7 @@ const salvar = handleSubmit(async (dados) => {
       autocomplete="new-password"
       :erro="errors.confirmacao"
     />
-    <Button type="submit" class="h-10 w-full" :disabled="isSubmitting">
-      <Loader2 v-if="isSubmitting" class="animate-spin" /> Salvar
-    </Button>
+    <UButton type="submit" size="lg" block class="h-10 justify-center" label="Salvar" :loading="isSubmitting" :disabled="isSubmitting" />
     <p v-if="!obrigatoria" class="text-center">
       <NuxtLink to="/dashboard" class="text-sm text-muted-foreground hover:text-foreground"
         >Cancelar</NuxtLink

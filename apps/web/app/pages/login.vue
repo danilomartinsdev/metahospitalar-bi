@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { loginSchema } from '@meta-bi/shared';
-import { Loader2 } from 'lucide-vue-next';
 import { useForm } from 'vee-validate';
-import { Button } from '~/components/ui/button';
 import { useAuthStore } from '~/stores/auth';
 
 definePageMeta({ layout: 'auth' });
@@ -80,8 +78,6 @@ const entrar = handleSubmit(async (dados) => {
       </template>
     </UiExtraFormField>
 
-    <Button type="submit" class="h-10 w-full" :disabled="isSubmitting">
-      <Loader2 v-if="isSubmitting" class="animate-spin" /> Entrar
-    </Button>
+    <UButton type="submit" size="lg" block class="h-10 justify-center" label="Entrar" :loading="isSubmitting" :disabled="isSubmitting" />
   </form>
 </template>

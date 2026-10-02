@@ -100,3 +100,28 @@
   --ui-info-foreground: var(--highlight-foreground);
   --ui-radius: var(--radius);
 }
+
+/*
+ * Neutros do Nuxt UI (texto/fundo/borda) → tokens. Resolvidos no <html>, então valem para
+ * light e dark sem duplicar; tokens.css vem depois de @nuxt/ui e vence o tema padrão dele.
+ */
+:root,
+.dark {
+  --ui-text-dimmed: var(--muted-foreground);
+  --ui-text-muted: var(--muted-foreground);
+  --ui-text-toned: var(--foreground);
+  --ui-text: var(--foreground);
+  --ui-text-highlighted: var(--foreground);
+  --ui-text-inverted: var(--background);
+
+  --ui-bg: var(--card);
+  --ui-bg-muted: var(--muted);
+  --ui-bg-elevated: var(--accent);
+  --ui-bg-accented: var(--muted);
+  --ui-bg-inverted: var(--foreground);
+
+  --ui-border: var(--border);
+  --ui-border-muted: var(--border);
+  --ui-border-accented: var(--input);
+  --ui-border-inverted: var(--foreground);
+}

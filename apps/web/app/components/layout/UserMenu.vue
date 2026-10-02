@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from '@nuxt/ui';
-import { Avatar, AvatarFallback } from '~/components/ui/avatar';
 
 const auth = useAuthStore();
 const router = useRouter();
@@ -45,11 +44,12 @@ const itens: DropdownMenuItem[][] = [
       aria-label="Menu do usuário"
       class="flex items-center gap-3 rounded-lg p-1 pr-2 text-left hover:bg-accent focus-visible:outline-2"
     >
-      <Avatar class="size-8">
-        <AvatarFallback class="bg-primary-soft text-xs font-semibold text-primary">{{
-          iniciais
-        }}</AvatarFallback>
-      </Avatar>
+      <UAvatar
+        :text="iniciais"
+        :alt="auth.usuario?.nome"
+        size="md"
+        :ui="{ root: 'bg-primary-soft', fallback: 'text-xs font-semibold text-primary' }"
+      />
       <span class="hidden leading-tight md:block">
         <span class="block text-sm font-medium">{{ auth.usuario?.nome }}</span>
         <span class="block truncate text-xs text-muted-foreground">{{ auth.usuario?.papel.nome }}</span>

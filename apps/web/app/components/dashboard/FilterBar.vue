@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { REGIAO_ENUM_ROTULO, REGIOES_ENUM, UFS } from '@meta-bi/shared';
 import { useDebounceFn } from '@vueuse/core';
-import { CalendarDays, Search, X } from 'lucide-vue-next';
-import { Button } from '~/components/ui/button';
-import { Input } from '~/components/ui/input';
+import { CalendarDays } from 'lucide-vue-next';
 import { useRepresentantesQuery, useStatusQuery } from '~/composables/api/useCadastros';
 import { useMesesQuery } from '~/composables/api/useDashboard';
 
@@ -80,8 +78,8 @@ const opcoes = computed(() => ({
       >
         <option v-for="m in opcoesMes" :key="m" :value="m">{{ rotuloMes(m) }}</option>
       </select>
-      <Button variant="ghost" size="sm" @click="atalho('mes')">Último mês</Button>
-      <Button variant="ghost" size="sm" @click="atalho('ano')">Ano</Button>
+      <UButton color="neutral" variant="ghost" size="sm" label="Último mês" @click="atalho('mes')" />
+      <UButton color="neutral" variant="ghost" size="sm" label="Ano" @click="atalho('ano')" />
     </div>
 
     <div class="flex flex-1 flex-wrap items-center gap-2 lg:justify-end">
@@ -115,17 +113,24 @@ const opcoes = computed(() => ({
         :selecionados="filtros.status"
         @alterar="(v) => definir({ status: v })"
       />
-      <div class="relative w-full sm:w-56">
-        <Search class="absolute left-2.5 top-2 size-4 text-muted-foreground" aria-hidden="true" />
-        <Input
-          v-model="busca"
-          class="h-8 pl-8"
-          placeholder="Cliente, pedido, CPR, representante"
-          aria-label="Buscar"
-          @update:model-value="(v) => buscar(String(v))"
-        />
-      </div>
-      <Button v-if="ativos" variant="ghost" size="sm" @click="limpar"><X /> Limpar ({{ ativos }})</Button>
+      <UInput
+        v-model="busca"
+        icon="i-lucide-search"
+        size="sm"
+        class="w-full sm:w-56"
+        placeholder="Cliente, pedido, CPR, representante"
+        aria-label="Buscar"
+        @update:model-value="(v) => buscar(String(v))"
+      />
+      <UButton
+        v-if="ativos"
+        color="neutral"
+        variant="ghost"
+        size="sm"
+        icon="i-lucide-x"
+        :label="`Limpar (${ativos})`"
+        @click="limpar"
+      />
     </div>
   </div>
 </template>

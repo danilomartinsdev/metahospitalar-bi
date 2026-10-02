@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { AlertCircle, Inbox } from 'lucide-vue-next';
-import { Button } from '~/components/ui/button';
 
 defineProps<{
   carregando?: boolean;
@@ -19,7 +18,7 @@ const emit = defineEmits<{ tentarDeNovo: [] }>();
   <div v-else-if="erro" class="flex flex-col items-center gap-3 p-10 text-center" role="alert">
     <AlertCircle class="size-8 text-danger" aria-hidden="true" />
     <p class="text-sm">Não foi possível carregar os dados.</p>
-    <Button variant="outline" size="sm" @click="emit('tentarDeNovo')">Tentar de novo</Button>
+    <UButton color="neutral" variant="outline" size="sm" label="Tentar de novo" @click="emit('tentarDeNovo')" />
   </div>
   <div v-else-if="vazio" class="flex flex-col items-center gap-2 p-10 text-center text-muted-foreground">
     <Inbox class="size-8" aria-hidden="true" />

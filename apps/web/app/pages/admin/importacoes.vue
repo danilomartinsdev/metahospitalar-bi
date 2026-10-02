@@ -1,17 +1,15 @@
 <script setup lang="ts">
 import type { PreviaImportacao } from '@meta-bi/shared';
-import { CheckCircle2, FileUp, Loader2, RotateCcw, TriangleAlert, Upload } from 'lucide-vue-next';
-import { toast } from 'vue-sonner';
-import { Badge } from '~/components/ui/badge';
-import { Button } from '~/components/ui/button';
+import { FileUp, Loader2, TriangleAlert, Upload } from 'lucide-vue-next';
 import {
   useConfirmarImportacao,
   useLotesQuery,
   usePreviaImportacao,
   useReverterLote,
 } from '~/composables/api/useCadastros';
-import type { ApiError } from '~/composables/api/useApi';
 
+const aviso = useAviso();
+const confirmarAcao = useConfirmacao();
 definePageMeta({ titulo: 'Importações', permissao: 'import.run' });
 useHead({ title: 'Importações — BI Meta Hospitalar' });
 
@@ -31,7 +29,7 @@ async function enviar(arquivo?: File) {
   try {
     previa.value = await previaMut.mutateAsync(arquivo);
   } catch (e) {
-    toast.error((e as ApiError).message ?? 'Não foi possível ler o arquivo.');
+    aviso.erro(e, 'Não foi possível ler o arquivo.');
   }
 }
 
@@ -47,26 +45,22 @@ async function confirmar() {
       hash: previa.value.hash,
       arquivoNome: previa.value.arquivoNome,
     });
-    toast.success(`Importação concluída: ${r.novos} novos, ${r.atualizados} atualizados.`);
+    aviso.sucesso(`Importação concluída: ${r.novos} novos, ${r.atualizados} atualizados.`);
     previa.value = null;
   } catch (e) {
-    toast.error((e as ApiError).message ?? 'Falha ao importar.');
+    aviso.erro(e, 'Falha ao importar.');
   }
 }
 
 async function reverter(id: string, nome: string) {
-  if (
-    !confirm(
-      `Desfazer a importação "${nome}"? Os pedidos criados por ela serão apagados e os alterados voltam ao estado anterior.`,
-    )
-  )
-    return;
-  try {
-    await reverterMut.mutateAsync(id);
-    toast.success('Importação desfeita.');
-  } catch (e) {
-    toast.error((e as ApiError).message ?? 'Não foi possível desfazer.');
-  }
+  const ok = await confirmarAcao({
+    titulo: `Desfazer a importação "${nome}"?`,
+    descricao: 'Os pedidos criados por ela serão apagados e os alterados voltam ao estado anterior.',
+    rotuloConfirmar: 'Desfazer importação',
+    perigo: true,
+    acao: () => reverterMut.mutateAsync(id),
+  });
+  if (ok) aviso.sucesso('Importação desfeita.');
 }
 
 const resumo = computed(() =>
@@ -133,7 +127,7 @@ const resumo = computed(() =>
             · total <span class="num">{{ formatBRL(previa.valorTotal) }}</span>
           </p>
         </div>
-        <Badge v-if="previa.jaImportado" variant="secondary">Este arquivo já foi importado</Badge>
+        <UBadge v-if="previa.jaImportado" color="neutral" variant="soft" label="Este arquivo já foi importado" />
       </div>
 
       <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -174,15 +168,14 @@ const resumo = computed(() =>
 
       <!-- 4. Confirmação -->
       <div class="flex flex-wrap justify-end gap-2">
-        <Button variant="outline" @click="previa = null">Cancelar</Button>
-        <Button
-          :disabled="confirmarMut.isPending.value || previa.novos + previa.atualizados === 0"
+        <UButton color="neutral" variant="outline" label="Cancelar" @click="previa = null" />
+        <UButton
+          icon="i-lucide-check-circle-2"
+          label="Confirmar importação"
+          :loading="confirmarMut.isPending.value"
+          :disabled="previa.novos + previa.atualizados === 0"
           @click="confirmar"
-        >
-          <Loader2 v-if="confirmarMut.isPending.value" class="animate-spin" />
-          <CheckCircle2 v-else />
-          Confirmar importação
-        </Button>
+        />
       </div>
     </section>
 
@@ -219,24 +212,26 @@ const resumo = computed(() =>
                 <td class="num px-3 py-3 text-right">{{ formatInt(l.atualizados) }}</td>
                 <td class="num px-3 py-3 text-right">{{ formatInt(l.erros) }}</td>
                 <td class="px-3 py-3">
-                  <Badge v-if="l.status === 'APLICADO'" class="bg-success/15 text-success">Aplicado</Badge>
-                  <Badge
+                  <UBadge v-if="l.status === 'APLICADO'" color="success" variant="soft" label="Aplicado" />
+                  <UBadge
                     v-else
-                    variant="secondary"
+                    color="neutral"
+                    variant="soft"
+                    label="Desfeito"
                     :title="l.revertidoPor ? `por ${l.revertidoPor.nome}` : ''"
-                    >Desfeito</Badge
-                  >
+                  />
                 </td>
                 <td class="px-5 py-3 text-right">
-                  <Button
+                  <UButton
                     v-if="l.status === 'APLICADO' && can('import.rollback')"
+                    color="neutral"
                     variant="ghost"
                     size="sm"
+                    icon="i-lucide-rotate-ccw"
+                    label="Desfazer"
                     :disabled="reverterMut.isPending.value"
                     @click="reverter(l.id, l.arquivoNome)"
-                  >
-                    <RotateCcw /> Desfazer
-                  </Button>
+                  />
                 </td>
               </tr>
             </tbody>

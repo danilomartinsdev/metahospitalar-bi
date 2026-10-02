@@ -1,13 +1,7 @@
 <script setup lang="ts">
-import { ArrowDown, ArrowUp, Columns3 } from 'lucide-vue-next';
+import type { DropdownMenuItem } from '@nuxt/ui';
+import { ArrowDown, ArrowUp } from 'lucide-vue-next';
 import { useLocalStorage } from '@vueuse/core';
-import { Button } from '~/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from '~/components/ui/dropdown-menu';
 import { usePedidosQuery } from '~/composables/api/useDashboard';
 
 definePageMeta({ titulo: 'Pedidos', permissao: 'pedidos.view' });
@@ -69,9 +63,18 @@ const visiveis = useLocalStorage<string[]>('meta-bi-colunas-pedidos', [
   'valor',
 ]);
 const colunas = computed(() => COLUNAS.filter((c) => visiveis.value.includes(c.k)));
-function alternarColuna(k: string, v: boolean | 'indeterminate') {
-  visiveis.value = v === true ? [...visiveis.value, k] : visiveis.value.filter((x) => x !== k);
+function alternarColuna(k: string, v: boolean) {
+  visiveis.value = v ? [...visiveis.value, k] : visiveis.value.filter((x) => x !== k);
 }
+const itensColunas = computed<DropdownMenuItem[]>(() =>
+  COLUNAS.map((c) => ({
+    type: 'checkbox' as const,
+    label: c.r,
+    checked: visiveis.value.includes(c.k),
+    onUpdateChecked: (v: boolean) => alternarColuna(c.k, v),
+    onSelect: (e: Event) => e.preventDefault(),
+  })),
+);
 
 const COR: Record<string, string> = {
   muted: 'bg-muted text-muted-foreground',
@@ -89,22 +92,9 @@ const paginas = computed(() => Math.max(1, Math.ceil(total.value / pageSize.valu
   <div class="mx-auto max-w-7xl space-y-6">
     <div class="flex flex-wrap items-end justify-between gap-3">
       <h2 class="text-2xl font-semibold">Pedidos</h2>
-      <DropdownMenu>
-        <DropdownMenuTrigger as-child>
-          <Button variant="outline" size="sm"><Columns3 /> Colunas</Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuCheckboxItem
-            v-for="c in COLUNAS"
-            :key="c.k"
-            :model-value="visiveis.includes(c.k)"
-            @select.prevent
-            @update:model-value="(v: boolean | 'indeterminate') => alternarColuna(c.k, v)"
-          >
-            {{ c.r }}
-          </DropdownMenuCheckboxItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+      <UDropdownMenu :items="itensColunas" :content="{ align: 'end' }">
+        <UButton color="neutral" variant="outline" size="sm" icon="i-lucide-columns-3" label="Colunas" />
+      </UDropdownMenu>
     </div>
 
     <DashboardFilterBar :periodo="q.data.value?.periodo" />

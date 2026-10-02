@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { Repeat, Sparkles, Users } from 'lucide-vue-next';
-import { Badge } from '~/components/ui/badge';
 import { useClientesQuery } from '~/composables/api/useDashboard';
 
 definePageMeta({ titulo: 'Clientes', permissao: 'dashboard.view' });
@@ -83,7 +82,7 @@ watch([filtro, qs], () => (pagina.value = 1));
                 <td class="num px-4 py-2.5 text-muted-foreground">{{ (pagina - 1) * POR_PAGINA + i + 1 }}</td>
                 <td class="px-3 py-2.5">
                   <span class="font-medium">{{ c.rotulo }}</span>
-                  <Badge v-if="c.novo" class="ml-2 bg-highlight/15 text-highlight">novo</Badge>
+                  <UBadge v-if="c.novo" color="info" variant="soft" class="ml-2" label="novo" />
                 </td>
                 <td class="num px-3 py-2.5 text-right">{{ formatBRL(c.total) }}</td>
                 <td class="num px-3 py-2.5 text-right">{{ formatInt(c.qtd) }}</td>

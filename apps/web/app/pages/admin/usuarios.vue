@@ -1,28 +1,11 @@
 <script setup lang="ts">
 import { REGIAO_ENUM_ROTULO, type UsuarioAdmin } from '@meta-bi/shared';
-import { Copy, KeyRound, LogOut, MoreHorizontal, Pencil, Plus, UserCheck, UserX } from 'lucide-vue-next';
-import { toast } from 'vue-sonner';
-import { Badge } from '~/components/ui/badge';
-import { Button } from '~/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '~/components/ui/dialog';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '~/components/ui/dropdown-menu';
-import type { ApiError } from '~/composables/api/useApi';
+import type { DropdownMenuItem } from '@nuxt/ui';
 import { useAcaoUsuario, useUsuariosQuery } from '~/composables/api/useAdmin';
 import { useAuthStore } from '~/stores/auth';
 
+const aviso = useAviso();
+const confirmar = useConfirmacao();
 definePageMeta({ titulo: 'Usuários', permissao: 'users.manage' });
 useHead({ title: 'Usuários — BI Meta Hospitalar' });
 
@@ -49,21 +32,58 @@ async function executar(
     'derrubar-sessoes': `Encerrar todas as sessões de ${u.nome}? Ele precisará entrar de novo.`,
     'redefinir-senha': `Gerar uma nova senha provisória para ${u.nome}? As sessões dele serão encerradas.`,
   } as const;
-  if (textos[tipo] && !confirm(textos[tipo]!)) return;
-  try {
-    const r = await acao.mutateAsync({ id: u.id, acao: tipo });
-    if (tipo === 'redefinir-senha' && r?.senhaProvisoria)
-      credencial.value = { email: u.email, senha: r.senhaProvisoria };
-    else toast.success('Feito.');
-  } catch (e) {
-    toast.error((e as ApiError).message);
+  const rotulos = {
+    desativar: 'Desativar',
+    reativar: 'Reativar',
+    'derrubar-sessoes': 'Encerrar sessões',
+    'redefinir-senha': 'Gerar senha',
+  } as const;
+  let senha: string | undefined;
+  const executarAcao = async () => {
+    senha = (await acao.mutateAsync({ id: u.id, acao: tipo }))?.senhaProvisoria;
+  };
+  if (textos[tipo]) {
+    const ok = await confirmar({
+      titulo: textos[tipo]!,
+      rotuloConfirmar: rotulos[tipo],
+      perigo: tipo === 'desativar',
+      acao: executarAcao,
+    });
+    if (!ok) return;
+  } else {
+    try {
+      await executarAcao();
+    } catch (e) {
+      aviso.erro(e);
+      return;
+    }
   }
+  if (tipo === 'redefinir-senha' && senha) credencial.value = { email: u.email, senha };
+  else aviso.sucesso('Feito.');
 }
 
 function copiar() {
   if (!credencial.value) return;
   void navigator.clipboard.writeText(credencial.value.senha);
-  toast.success('Senha copiada.');
+  aviso.sucesso('Senha copiada.');
+}
+
+function acoes(u: UsuarioAdmin): DropdownMenuItem[][] {
+  const grupos: DropdownMenuItem[][] = [
+    [
+      { label: 'Editar', icon: 'i-lucide-pencil', onSelect: () => abrir(u) },
+      { label: 'Redefinir senha', icon: 'i-lucide-key-round', onSelect: () => executar(u, 'redefinir-senha') },
+      { label: 'Encerrar sessões', icon: 'i-lucide-log-out', onSelect: () => executar(u, 'derrubar-sessoes') },
+    ],
+  ];
+  if (u.id !== auth.usuario?.id) {
+    grupos.push([
+      u.ativo
+        ? { label: 'Desativar', icon: 'i-lucide-user-x', color: 'error', onSelect: () => executar(u, 'desativar') }
+        : { label: 'Reativar', icon: 'i-lucide-user-check', onSelect: () => executar(u, 'reativar') },
+    ]);
+  }
+  return grupos;
 }
 
 const escopo = (u: UsuarioAdmin) =>
@@ -77,7 +97,7 @@ const escopo = (u: UsuarioAdmin) =>
 <template>
   <div class="mx-auto max-w-7xl space-y-6">
     <UiExtraPageHeader titulo="Usuários" descricao="Quem acessa o BI, com qual papel e quais dados pode ver.">
-      <Button @click="abrir(null)"><Plus /> Novo usuário</Button>
+      <UButton icon="i-lucide-plus" label="Novo usuário" @click="abrir(null)" />
     </UiExtraPageHeader>
 
     <section class="rounded-xl border bg-card">
@@ -109,41 +129,22 @@ const escopo = (u: UsuarioAdmin) =>
                 <td class="num whitespace-nowrap px-3 py-3">{{ formatDateTime(u.ultimoAcessoEm) }}</td>
                 <td class="px-3 py-3">
                   <div class="flex flex-wrap gap-1">
-                    <Badge v-if="!u.ativo" variant="secondary">Desativado</Badge>
-                    <Badge v-else-if="u.bloqueado" class="bg-warning/15 text-warning">Bloqueado</Badge>
-                    <Badge v-else class="bg-success/15 text-success">Ativo</Badge>
-                    <Badge v-if="u.trocarSenha && u.ativo" variant="outline">Troca de senha</Badge>
+                    <UBadge v-if="!u.ativo" color="neutral" variant="soft" label="Desativado" />
+                    <UBadge v-else-if="u.bloqueado" color="warning" variant="soft" label="Bloqueado" />
+                    <UBadge v-else color="success" variant="soft" label="Ativo" />
+                    <UBadge v-if="u.trocarSenha && u.ativo" color="neutral" variant="outline" label="Troca de senha" />
                   </div>
                 </td>
                 <td class="px-5 py-3 text-right">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger as-child>
-                      <Button variant="ghost" size="icon-sm" :aria-label="`Ações para ${u.nome}`"
-                        ><MoreHorizontal
-                      /></Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem @select="abrir(u)"><Pencil /> Editar</DropdownMenuItem>
-                      <DropdownMenuItem @select="executar(u, 'redefinir-senha')"
-                        ><KeyRound /> Redefinir senha</DropdownMenuItem
-                      >
-                      <DropdownMenuItem @select="executar(u, 'derrubar-sessoes')"
-                        ><LogOut /> Encerrar sessões</DropdownMenuItem
-                      >
-                      <template v-if="u.id !== auth.usuario?.id">
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem
-                          v-if="u.ativo"
-                          class="text-danger"
-                          @select="executar(u, 'desativar')"
-                          ><UserX /> Desativar</DropdownMenuItem
-                        >
-                        <DropdownMenuItem v-else @select="executar(u, 'reativar')"
-                          ><UserCheck /> Reativar</DropdownMenuItem
-                        >
-                      </template>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <UDropdownMenu :items="acoes(u)" :content="{ align: 'end' }">
+                    <UButton
+                      color="neutral"
+                      variant="ghost"
+                      size="sm"
+                      icon="i-lucide-ellipsis"
+                      :aria-label="`Ações para ${u.nome}`"
+                    />
+                  </UDropdownMenu>
                 </td>
               </tr>
             </tbody>
@@ -158,26 +159,28 @@ const escopo = (u: UsuarioAdmin) =>
       @criado="(email, senha) => (credencial = { email, senha })"
     />
 
-    <Dialog :open="!!credencial" @update:open="(v) => !v && (credencial = null)">
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Senha provisória</DialogTitle>
-          <DialogDescription
-            >Envie ao usuário por um canal seguro. Ela não será mostrada de novo e precisa ser trocada no
-            primeiro acesso.</DialogDescription
-          >
-        </DialogHeader>
+    <UModal
+      :open="!!credencial"
+      title="Senha provisória"
+      description="Envie ao usuário por um canal seguro. Ela não será mostrada de novo e precisa ser trocada no primeiro acesso."
+      @update:open="(v) => !v && (credencial = null)"
+    >
+      <template #body>
         <div class="space-y-2 rounded-lg border bg-muted/40 p-4">
           <p class="text-sm"><span class="text-muted-foreground">E-mail:</span> {{ credencial?.email }}</p>
           <p class="flex items-center justify-between gap-2">
             <code class="num rounded bg-background px-2 py-1 text-base font-semibold">{{
               credencial?.senha
             }}</code>
-            <Button variant="outline" size="sm" @click="copiar"><Copy /> Copiar</Button>
+            <UButton color="neutral" variant="outline" size="sm" icon="i-lucide-copy" label="Copiar" @click="copiar" />
           </p>
         </div>
-        <DialogFooter><Button @click="credencial = null">Entendi</Button></DialogFooter>
-      </DialogContent>
-    </Dialog>
+      </template>
+      <template #footer>
+        <div class="flex w-full justify-end">
+          <UButton label="Entendi" @click="credencial = null" />
+        </div>
+      </template>
+    </UModal>
   </div>
 </template>

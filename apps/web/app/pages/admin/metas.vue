@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import { Loader2, Save } from 'lucide-vue-next';
-import { toast } from 'vue-sonner';
-import { Button } from '~/components/ui/button';
 import { useMetasQuery, useRepresentantesQuery, useSalvarMetas } from '~/composables/api/useCadastros';
 
+const aviso = useAviso();
 definePageMeta({ titulo: 'Metas', permissao: 'metas.edit' });
 useHead({ title: 'Metas — BI Meta Hospitalar' });
 
@@ -46,9 +44,9 @@ async function salvar() {
   );
   try {
     await salvarMut.mutateAsync({ ano: ano.value, metas: lista });
-    toast.success('Metas salvas.');
+    aviso.sucesso('Metas salvas.');
   } catch (e) {
-    toast.error((e as { message?: string }).message ?? 'Verifique os valores digitados.');
+    aviso.erro(e, 'Verifique os valores digitados.');
   }
 }
 </script>
@@ -59,9 +57,7 @@ async function salvar() {
       <select v-model.number="ano" class="h-9 rounded-md border bg-background px-3 text-sm" aria-label="Ano">
         <option v-for="a in [anoAtual - 1, anoAtual, anoAtual + 1]" :key="a" :value="a">{{ a }}</option>
       </select>
-      <Button :disabled="salvarMut.isPending.value" @click="salvar">
-        <Loader2 v-if="salvarMut.isPending.value" class="animate-spin" /><Save v-else /> Salvar
-      </Button>
+      <UButton icon="i-lucide-save" label="Salvar" :loading="salvarMut.isPending.value" @click="salvar" />
     </UiExtraPageHeader>
 
     <section class="rounded-xl border bg-card">

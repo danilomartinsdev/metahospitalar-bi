@@ -1,7 +1,4 @@
 <script setup lang="ts">
-import { Input } from '~/components/ui/input';
-import { Label } from '~/components/ui/label';
-
 defineOptions({ inheritAttrs: false });
 const props = defineProps<{ id: string; label: string; erro?: string; dica?: string }>();
 const model = defineModel<string>();
@@ -13,14 +10,18 @@ const descricao = computed(() =>
 <template>
   <div class="space-y-2">
     <div class="flex items-center justify-between">
-      <Label :for="id">{{ label }}</Label>
+      <label :for="id" class="text-sm font-medium leading-none">{{ label }}</label>
       <slot name="acao" />
     </div>
-    <Input
+    <UInput
       :id="id"
       v-model="model"
       v-bind="$attrs"
-      class="h-10"
+      size="lg"
+      class="w-full"
+      :ui="{ base: 'h-10' }"
+      :color="erro ? 'error' : undefined"
+      :highlight="!!erro"
       :aria-invalid="erro ? 'true' : undefined"
       :aria-describedby="descricao"
     />

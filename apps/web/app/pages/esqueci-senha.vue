@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { esqueciSenhaSchema } from '@meta-bi/shared';
-import { Loader2, MailCheck } from 'lucide-vue-next';
+import { MailCheck } from 'lucide-vue-next';
 import { useForm } from 'vee-validate';
-import { Button } from '~/components/ui/button';
 
 definePageMeta({ layout: 'auth' });
 useHead({ title: 'Esqueci minha senha — BI Meta Hospitalar' });
@@ -59,9 +58,7 @@ const enviar = handleSubmit(async (dados) => {
       autocomplete="username"
       :erro="errors.email"
     />
-    <Button type="submit" class="h-10 w-full" :disabled="isSubmitting">
-      <Loader2 v-if="isSubmitting" class="animate-spin" /> Enviar link
-    </Button>
+    <UButton type="submit" size="lg" block class="h-10 justify-center" label="Enviar link" :loading="isSubmitting" :disabled="isSubmitting" />
     <p class="text-center">
       <NuxtLink to="/login" class="text-sm text-muted-foreground hover:text-foreground"
         >Voltar ao login</NuxtLink

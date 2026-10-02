@@ -1,13 +1,10 @@
 <script setup lang="ts">
 import { PERMISSION_LABELS, PERMISSIONS, type PapelAdmin, type Permission } from '@meta-bi/shared';
-import { Lock, Plus, Save, Trash2 } from 'lucide-vue-next';
-import { toast } from 'vue-sonner';
-import { Badge } from '~/components/ui/badge';
-import { Button } from '~/components/ui/button';
-import { Input } from '~/components/ui/input';
-import type { ApiError } from '~/composables/api/useApi';
+import { Lock } from 'lucide-vue-next';
 import { usePapeisQuery, useRemoverPapel, useSalvarPapel } from '~/composables/api/useAdmin';
 
+const aviso = useAviso();
+const confirmar = useConfirmacao();
 definePageMeta({ titulo: 'Papéis', permissao: 'users.manage' });
 useHead({ title: 'Papéis — BI Meta Hospitalar' });
 
@@ -41,31 +38,32 @@ async function gravar(p: PapelAdmin) {
   try {
     const r = await salvar.mutateAsync({ id: p.id, dados: rascunho.value[p.id]! });
     rascunho.value[p.id] = { nome: r.nome, permissoes: [...r.permissoes] };
-    toast.success(`Papel "${r.nome}" salvo. Vale na próxima ação de cada usuário.`);
+    aviso.sucesso(`Papel "${r.nome}" salvo. Vale na próxima ação de cada usuário.`);
   } catch (e) {
-    toast.error((e as ApiError).message);
+    aviso.erro(e);
   }
 }
 
 async function novo() {
-  const nome = prompt('Nome do novo papel:')?.trim();
-  if (!nome) return;
-  try {
-    await salvar.mutateAsync({ dados: { nome, permissoes: ['dashboard.view'] } });
-    toast.success('Papel criado.');
-  } catch (e) {
-    toast.error((e as ApiError).message);
-  }
+  const ok = await confirmar({
+    titulo: 'Novo papel',
+    descricao: 'Ele começa só com acesso à visão geral; marque as permissões depois.',
+    campo: { rotulo: 'Nome do papel', placeholder: 'Ex.: Supervisor regional' },
+    rotuloConfirmar: 'Criar papel',
+    acao: (nome) => salvar.mutateAsync({ dados: { nome, permissoes: ['dashboard.view'] } }),
+  });
+  if (ok) aviso.sucesso('Papel criado.');
 }
 
 async function apagar(p: PapelAdmin) {
-  if (!confirm(`Remover o papel "${p.nome}"?`)) return;
-  try {
-    await remover.mutateAsync(p.id);
-    toast.success('Papel removido.');
-  } catch (e) {
-    toast.error((e as ApiError).message);
-  }
+  const ok = await confirmar({
+    titulo: `Remover o papel "${p.nome}"?`,
+    descricao: 'Esta ação não pode ser desfeita.',
+    rotuloConfirmar: 'Remover',
+    perigo: true,
+    acao: () => remover.mutateAsync(p.id),
+  });
+  if (ok) aviso.sucesso('Papel removido.');
 }
 </script>
 
@@ -75,7 +73,7 @@ async function apagar(p: PapelAdmin) {
       titulo="Papéis e permissões"
       descricao="O que cada papel pode fazer. O escopo de dados é definido por usuário."
     >
-      <Button variant="outline" @click="novo"><Plus /> Novo papel</Button>
+      <UButton color="neutral" variant="outline" icon="i-lucide-plus" label="Novo papel" @click="novo" />
     </UiExtraPageHeader>
 
     <UiExtraEstadoBloco
@@ -91,16 +89,17 @@ async function apagar(p: PapelAdmin) {
         >
           <div class="flex items-start justify-between gap-2">
             <div class="min-w-0 flex-1">
-              <Input
+              <UInput
                 v-if="rascunho[p.id]"
                 v-model="rascunho[p.id]!.nome"
-                class="h-9 font-semibold"
+                class="w-full"
+                :ui="{ base: 'font-semibold' }"
                 :disabled="p.chave === 'admin'"
                 :aria-label="`Nome do papel ${p.nome}`"
               />
               <p class="mt-1 text-xs text-muted-foreground">{{ p.usuarios }} usuário(s)</p>
             </div>
-            <Badge v-if="p.sistema" variant="secondary">padrão</Badge>
+            <UBadge v-if="p.sistema" color="neutral" variant="soft" label="padrão" />
           </div>
 
           <p v-if="p.chave === 'admin'" class="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
@@ -126,13 +125,23 @@ async function apagar(p: PapelAdmin) {
           </ul>
 
           <div class="mt-4 flex justify-between gap-2 border-t pt-4">
-            <Button v-if="!p.sistema" variant="ghost" size="sm" class="text-danger" @click="apagar(p)"
-              ><Trash2 /> Remover</Button
-            >
+            <UButton
+              v-if="!p.sistema"
+              color="error"
+              variant="ghost"
+              size="sm"
+              icon="i-lucide-trash-2"
+              label="Remover"
+              @click="apagar(p)"
+            />
             <span v-else />
-            <Button size="sm" :disabled="!alterado(p) || salvar.isPending.value" @click="gravar(p)"
-              ><Save /> Salvar</Button
-            >
+            <UButton
+              size="sm"
+              icon="i-lucide-save"
+              label="Salvar"
+              :disabled="!alterado(p) || salvar.isPending.value"
+              @click="gravar(p)"
+            />
           </div>
         </section>
       </div>

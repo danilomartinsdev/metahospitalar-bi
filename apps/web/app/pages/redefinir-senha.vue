@@ -1,10 +1,8 @@
 <script setup lang="ts">
 import { redefinirSenhaSchema } from '@meta-bi/shared';
-import { Loader2 } from 'lucide-vue-next';
 import { useForm } from 'vee-validate';
-import { toast } from 'vue-sonner';
-import { Button } from '~/components/ui/button';
 
+const aviso = useAviso();
 definePageMeta({ layout: 'auth' });
 useHead({ title: 'Redefinir senha — BI Meta Hospitalar' });
 
@@ -23,7 +21,7 @@ const salvar = handleSubmit(async (dados) => {
   erro.value = null;
   try {
     await $fetch('/api/auth/redefinir-senha', { method: 'POST', body: dados });
-    toast.success('Senha redefinida. Entre com a nova senha.');
+    aviso.sucesso('Senha redefinida. Entre com a nova senha.');
     await navigateTo('/login');
   } catch {
     erro.value = 'Link inválido ou expirado. Peça um novo em "Esqueci minha senha".';
@@ -62,8 +60,6 @@ const salvar = handleSubmit(async (dados) => {
       autocomplete="new-password"
       :erro="errors.confirmacao"
     />
-    <Button type="submit" class="h-10 w-full" :disabled="isSubmitting || !token">
-      <Loader2 v-if="isSubmitting" class="animate-spin" /> Salvar nova senha
-    </Button>
+    <UButton type="submit" size="lg" block class="h-10 justify-center" label="Salvar nova senha" :loading="isSubmitting" :disabled="isSubmitting || !token" />
   </form>
 </template>

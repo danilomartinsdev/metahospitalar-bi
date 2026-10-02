@@ -46,3 +46,13 @@ export function useApi() {
 
   return { request };
 }
+
+/** Texto para o usuário a partir de um erro: detalhes de validação da API, a mensagem dela ou o padrão. */
+export function mensagemErro(e: unknown, padrao = 'Não foi possível concluir a ação.'): string {
+  if (e instanceof ApiError) {
+    const detalhes = e.body.details?.map((d) => d.message).filter(Boolean);
+    if (detalhes?.length) return detalhes.join(' ');
+    return e.body.message ?? padrao;
+  }
+  return padrao;
+}
