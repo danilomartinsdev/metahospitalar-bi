@@ -1,0 +1,48 @@
+import { z } from 'zod';
+
+const bool = z
+  .enum(['true', 'false'])
+  .default('false')
+  .transform((v) => v === 'true');
+
+/** Variáveis de ambiente validadas no boot — a API não sobe com configuração inválida. */
+export const envSchema = z.object({
+  NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
+  API_PORT: z.coerce.number().int().default(4318),
+  API_HOST: z.string().default('127.0.0.1'),
+  WEB_ORIGIN: z.url(),
+  APP_URL: z.url(),
+  DATABASE_URL: z.string().startsWith('postgresql://'),
+
+  JWT_ACCESS_SECRET: z.string().min(32, 'JWT_ACCESS_SECRET precisa de pelo menos 32 caracteres'),
+  JWT_ACCESS_TTL_SECONDS: z.coerce.number().int().positive().default(900),
+  REFRESH_TOKEN_TTL_DAYS: z.coerce.number().int().positive().default(7),
+  SESSION_IDLE_TIMEOUT_MIN: z.coerce.number().int().positive().default(30),
+  LOGIN_MAX_ATTEMPTS: z.coerce.number().int().positive().default(5),
+  LOGIN_LOCK_MINUTES: z.coerce.number().int().positive().default(15),
+  COOKIE_SECURE: bool,
+
+  SMTP_HOST: z.string().min(1),
+  SMTP_PORT: z.coerce.number().int().default(587),
+  SMTP_SECURE: bool,
+  SMTP_USER: z.string().optional().default(''),
+  SMTP_PASSWORD: z.string().optional().default(''),
+  SMTP_FROM: z.string().min(3),
+});
+
+export type Env = z.infer<typeof envSchema>;
+
+export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
+  const r = envSchema.safeParse(source);
+  if (!r.success) {
+    // Só nomes de variáveis e motivos — nunca os valores.
+    const detalhes = r.error.issues.map((i) => `  - ${i.path.join('.')}: ${i.message}`).join('\n');
+    throw new Error(`Configuração inválida (.env):\n${detalhes}`);
+  }
+  if (r.data.NODE_ENV === 'production' && !r.data.COOKIE_SECURE) {
+    throw new Error('Configuração inválida: COOKIE_SECURE deve ser true em produção.');
+  }
+  return r.data;
+}
+
+export const ENV = Symbol('ENV');

@@ -1,0 +1,294 @@
+// Modelo de dados — documentação em docs/dados/dicionario-de-dados.md (mantenha sincronizado).
+// Convenções: dinheiro Decimal(14,2); datas sem hora @db.Date; createdAt/updatedAt em toda tabela.
+
+generator client {
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  moduleFormat        = "esm"
+  importFileExtension = "js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Regiao {
+  NORTE
+  NORDESTE
+  CENTRO_OESTE
+  SUDESTE
+  SUL
+  EXTERIOR
+}
+
+enum Segmento {
+  PUBLICO
+  PRIVADO
+}
+
+enum EscopoTipo {
+  TODOS
+  REGIAO
+  REPRESENTANTES
+}
+
+enum LoteStatus {
+  APLICADO
+  REVERTIDO
+}
+
+enum LoteItemAcao {
+  CRIADO
+  ATUALIZADO
+}
+
+// ─── Acesso ────────────────────────────────────────────────────────────────
+
+model Usuario {
+  id               String     @id @default(uuid()) @db.Uuid
+  email            String     @unique
+  nome             String
+  senhaHash        String
+  roleId           String     @db.Uuid
+  ativo            Boolean    @default(true)
+  trocarSenha      Boolean    @default(true)
+  tentativasFalhas Int        @default(0)
+  bloqueadoAte     DateTime?
+  ultimoAcessoEm   DateTime?
+  escopoTipo       EscopoTipo @default(REPRESENTANTES)
+  escopoRegioes    Regiao[]   @default([])
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  role             Role                    @relation(fields: [roleId], references: [id])
+  representantes   UsuarioRepresentante[]
+  sessoes          Sessao[]
+  tokensSenha      TokenRedefinicaoSenha[]
+  tokensImpressao  TokenImpressao[]
+  auditoria        AuditLog[]
+  lotes            ImportLote[]            @relation("LoteUsuario")
+  lotesRevertidos  ImportLote[]            @relation("LoteRevertidoPor")
+
+  @@index([roleId])
+}
+
+model Role {
+  id          String           @id @default(uuid()) @db.Uuid
+  chave       String           @unique
+  nome        String
+  sistema     Boolean          @default(false) // papéis padrão não podem ser apagados
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  permissoes  RolePermission[]
+  usuarios    Usuario[]
+}
+
+model RolePermission {
+  roleId    String   @db.Uuid
+  permissao String // valores de PERMISSIONS em packages/shared
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissao])
+}
+
+model UsuarioRepresentante {
+  usuarioId       String        @db.Uuid
+  representanteId String        @db.Uuid
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  usuario         Usuario       @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  representante   Representante @relation(fields: [representanteId], references: [id], onDelete: Cascade)
+
+  @@id([usuarioId, representanteId])
+  @@index([representanteId])
+}
+
+/// Refresh tokens (rotativos). Só o hash é guardado.
+model Sessao {
+  id          String    @id @default(uuid()) @db.Uuid
+  usuarioId   String    @db.Uuid
+  tokenHash   String    @unique
+  familia     String    @db.Uuid // mesma família = mesma sessão de login; reuso revoga a família
+  expiraEm    DateTime
+  ultimoUsoEm DateTime  @default(now())
+  revogadaEm  DateTime?
+  substituidaEm DateTime?
+  ip          String?
+  userAgent   String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  usuario     Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId])
+  @@index([familia])
+}
+
+model TokenRedefinicaoSenha {
+  id        String    @id @default(uuid()) @db.Uuid
+  usuarioId String    @db.Uuid
+  tokenHash String    @unique
+  expiraEm  DateTime
+  usadoEm   DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  usuario   Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId])
+}
+
+model TokenImpressao {
+  id        String    @id @default(uuid()) @db.Uuid
+  usuarioId String    @db.Uuid
+  tokenHash String    @unique
+  filtros   Json
+  expiraEm  DateTime
+  usadoEm   DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  usuario   Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+
+  @@index([usuarioId])
+}
+
+model AuditLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  usuarioId  String?  @db.Uuid
+  acao       String
+  entidade   String?
+  entidadeId String?
+  detalhes   Json?
+  ip         String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  usuario    Usuario? @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([acao])
+  @@index([usuarioId])
+}
+
+// ─── Vendas ────────────────────────────────────────────────────────────────
+
+model Representante {
+  id             String                 @id @default(uuid()) @db.Uuid
+  codigo         String                 @unique
+  nomeExibicao   String
+  segmentoPadrao Segmento?
+  ativo          Boolean                @default(true)
+  createdAt      DateTime               @default(now())
+  updatedAt      DateTime               @updatedAt
+  pedidos        Pedido[]
+  metas          Meta[]
+  usuarios       UsuarioRepresentante[]
+}
+
+model Cliente {
+  id               String    @id @default(uuid()) @db.Uuid
+  nomeNormalizado  String    @unique
+  nomeOriginal     String
+  segmentoOverride Segmento?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  pedidos          Pedido[]
+}
+
+model StatusPdv {
+  id           String   @id @default(uuid()) @db.Uuid
+  codigo       String   @unique
+  descricao    String
+  contaNoTotal Boolean  @default(true)
+  cor          String   @default("muted") // nome de token do design system
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  pedidos      Pedido[]
+}
+
+model Pedido {
+  id              String        @id @default(uuid()) @db.Uuid
+  focoId          Int           @unique
+  numPedido       String
+  ordemCpr        String?
+  dtEmissao       DateTime      @db.Date
+  dtEntrega       DateTime?     @db.Date
+  competencia     DateTime      @db.Date // 1º dia do mês de dtEmissao
+  statusId        String        @db.Uuid
+  clienteId       String        @db.Uuid
+  representanteId String        @db.Uuid
+  uf              String        @db.Char(2)
+  regiao          Regiao
+  valor           Decimal       @db.Decimal(14, 2)
+  ultimoLoteId    String?       @db.Uuid
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  status          StatusPdv     @relation(fields: [statusId], references: [id])
+  cliente         Cliente       @relation(fields: [clienteId], references: [id])
+  representante   Representante @relation(fields: [representanteId], references: [id])
+  ultimoLote      ImportLote?   @relation(fields: [ultimoLoteId], references: [id], onDelete: SetNull)
+
+  @@index([dtEmissao])
+  @@index([competencia])
+  @@index([uf])
+  @@index([regiao])
+  @@index([representanteId])
+  @@index([clienteId])
+  @@index([statusId])
+}
+
+model Meta {
+  id              String         @id @default(uuid()) @db.Uuid
+  ano             Int
+  mes             Int
+  representanteId String?        @db.Uuid // null = meta total da empresa
+  valor           Decimal        @db.Decimal(14, 2)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  representante   Representante? @relation(fields: [representanteId], references: [id], onDelete: Cascade)
+
+  @@unique([ano, mes, representanteId])
+  @@index([representanteId])
+}
+
+// ─── Importação ────────────────────────────────────────────────────────────
+
+model ImportLote {
+  id             String           @id @default(uuid()) @db.Uuid
+  usuarioId      String           @db.Uuid
+  arquivoNome    String
+  arquivoHash    String
+  arquivoTamanho Int
+  arquivoPath    String
+  novos          Int              @default(0)
+  atualizados    Int              @default(0)
+  inalterados    Int              @default(0)
+  ignorados      Int              @default(0)
+  erros          Int              @default(0)
+  status         LoteStatus       @default(APLICADO)
+  revertidoEm    DateTime?
+  revertidoPorId String?          @db.Uuid
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  usuario        Usuario          @relation("LoteUsuario", fields: [usuarioId], references: [id])
+  revertidoPor   Usuario?         @relation("LoteRevertidoPor", fields: [revertidoPorId], references: [id])
+  itens          ImportLoteItem[]
+  pedidos        Pedido[]
+
+  @@index([createdAt])
+  @@index([arquivoHash])
+}
+
+model ImportLoteItem {
+  id               String       @id @default(uuid()) @db.Uuid
+  loteId           String       @db.Uuid
+  focoId           Int
+  acao             LoteItemAcao
+  snapshotAnterior Json?
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+  lote             ImportLote   @relation(fields: [loteId], references: [id], onDelete: Cascade)
+
+  @@index([loteId])
+  @@index([focoId])
+}
