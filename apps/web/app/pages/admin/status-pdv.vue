@@ -1,0 +1,110 @@
+<script setup lang="ts">
+import { CORES_STATUS } from '@meta-bi/shared';
+import { Info } from 'lucide-vue-next';
+import { toast } from 'vue-sonner';
+import { Input } from '~/components/ui/input';
+import { type StatusPdv, useAtualizarStatus, useStatusQuery } from '~/composables/api/useCadastros';
+
+definePageMeta({ titulo: 'Status PDV', permissao: 'cadastros.edit' });
+useHead({ title: 'Status PDV — BI Meta Hospitalar' });
+
+const status = useStatusQuery();
+const atualizar = useAtualizarStatus();
+const COR_CLASSE: Record<string, string> = {
+  muted: 'bg-muted text-muted-foreground',
+  primary: 'bg-primary-soft text-primary',
+  highlight: 'bg-highlight/15 text-highlight',
+  success: 'bg-success/15 text-success',
+  warning: 'bg-warning/15 text-warning',
+  danger: 'bg-danger/15 text-danger',
+};
+
+async function salvar(s: StatusPdv, dados: Parameters<typeof atualizar.mutateAsync>[0]['dados']) {
+  try {
+    await atualizar.mutateAsync({ id: s.id, dados });
+    toast.success('Salvo.');
+  } catch {
+    toast.error('Não foi possível salvar.');
+  }
+}
+</script>
+
+<template>
+  <div class="mx-auto max-w-4xl space-y-6">
+    <UiExtraPageHeader
+      titulo="Status PDV"
+      descricao="Significado de cada código da coluna POS PDV e se entra no total vendido."
+    />
+    <p class="flex items-start gap-2 rounded-lg border bg-primary-soft px-4 py-3 text-sm text-foreground">
+      <Info class="mt-0.5 size-4 shrink-0 text-primary" />
+      Decisão pendente: o significado de A, PE e AC e se pedidos PE contam no total. Até lá, todos contam.
+    </p>
+    <section class="rounded-xl border bg-card">
+      <UiExtraEstadoBloco
+        :carregando="status.isPending.value"
+        :erro="status.error.value"
+        :vazio="!status.data.value?.length"
+        texto-vazio="Nenhum status. Eles são criados automaticamente na importação."
+        @tentar-de-novo="status.refetch()"
+      >
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead class="bg-muted/50 text-left text-xs text-muted-foreground">
+              <tr>
+                <th class="px-5 py-3 font-medium">Código</th>
+                <th class="px-3 py-3 font-medium">Descrição</th>
+                <th class="px-3 py-3 font-medium">Cor</th>
+                <th class="px-5 py-3 font-medium">Conta no total</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y">
+              <tr v-for="s in status.data.value" :key="s.id">
+                <td class="px-5 py-2">
+                  <span class="rounded-full px-2.5 py-0.5 text-xs font-semibold" :class="COR_CLASSE[s.cor]">{{
+                    s.codigo
+                  }}</span>
+                </td>
+                <td class="px-3 py-2">
+                  <Input
+                    :model-value="s.descricao"
+                    class="h-9 min-w-48"
+                    :aria-label="`Descrição de ${s.codigo}`"
+                    @blur="
+                      (e: Event) => {
+                        const v = (e.target as HTMLInputElement).value.trim();
+                        if (v && v !== s.descricao) salvar(s, { descricao: v });
+                      }
+                    "
+                  />
+                </td>
+                <td class="px-3 py-2">
+                  <select
+                    class="h-9 rounded-md border bg-background px-2 text-sm"
+                    :value="s.cor"
+                    :aria-label="`Cor de ${s.codigo}`"
+                    @change="
+                      salvar(s, {
+                        cor: ($event.target as HTMLSelectElement).value as (typeof CORES_STATUS)[number],
+                      })
+                    "
+                  >
+                    <option v-for="c in CORES_STATUS" :key="c" :value="c">{{ c }}</option>
+                  </select>
+                </td>
+                <td class="px-5 py-2">
+                  <input
+                    type="checkbox"
+                    class="size-4 accent-primary"
+                    :checked="s.contaNoTotal"
+                    :aria-label="`${s.codigo} conta no total`"
+                    @change="salvar(s, { contaNoTotal: ($event.target as HTMLInputElement).checked })"
+                  />
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </UiExtraEstadoBloco>
+    </section>
+  </div>
+</template>

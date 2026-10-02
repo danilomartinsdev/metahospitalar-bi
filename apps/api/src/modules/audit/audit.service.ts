@@ -14,7 +14,11 @@ export type AcaoAuditada =
   | 'senha.redefinida'
   | 'usuario.desativado'
   | 'usuario.reativado'
-  | 'usuario.sessoes-derrubadas';
+  | 'usuario.sessoes-derrubadas'
+  | 'import.executado'
+  | 'import.revertido'
+  | 'cadastro.alterado'
+  | 'metas.alteradas';
 
 interface Registro {
   acao: AcaoAuditada;

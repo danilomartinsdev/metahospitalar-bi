@@ -1,0 +1,83 @@
+<HTML><HEAD><TITLE>Gerador de Relatórios Focco3i</TITLE></HEAD><BODY><b><center><h1>DASHBOARD_Extrator PDV</h1></center></b><br>
+<table border="1"><TR><td><b>ID</b></td><td><b>NUM PEDIDO</b></td><td><b>ORDEM CPR</b></td><td><b>DT EMIS</b></td><td><b>DT ENTREGA</b></td><td><b>POS PDV</b></td><td><b>CLIENTE</b></td><td><b>UF</b></td><td><b>REPRESENTANTE</b></td><td><b>VALOR</b></td><td><b>G TOTAL GERAL</b></td></TR>
+<TR><td>57517</td><td>1127</td><td></td><td>05/01/26</td><td>05/01/26</td><td>A</td><td>CLIENTE 001</td><td>MG</td><td>REP 001</td><td>3069,00</td><td></td></TR>
+<TR><td>57698</td><td>1142</td><td></td><td>08/01/26</td><td>23/02/26</td><td>A</td><td>CLIENTE 002</td><td>SP</td><td>MURILLO</td><td>75036,01</td><td></td></TR>
+<TR><td>57759</td><td>1151</td><td></td><td>09/01/26</td><td>23/01/26</td><td>A</td><td>CLIENTE 003</td><td>MG</td><td>REP 002</td><td>53571,87</td><td></td></TR>
+<TR><td>57917</td><td>1161</td><td></td><td>12/01/26</td><td>16/03/26</td><td>A</td><td>CLIENTE 004</td><td>AP</td><td>REP 003</td><td>39747,50</td><td></td></TR>
+<TR><td>58056</td><td>1173</td><td></td><td>15/01/26</td><td>16/03/26</td><td>A</td><td>CLIENTE 005</td><td>SP</td><td>MURILLO</td><td>30075,99</td><td></td></TR>
+<TR><td>58241</td><td>1185</td><td></td><td>19/01/26</td><td>19/01/26</td><td>A</td><td>CLIENTE 006</td><td>SE</td><td>REP 004</td><td>31195,09</td><td></td></TR>
+<TR><td>58416</td><td>1194</td><td></td><td>22/01/26</td><td>02/02/26</td><td>A</td><td>CLIENTE 007</td><td>MG</td><td>REP 002</td><td>21563,64</td><td></td></TR>
+<TR><td>58597</td><td>1204</td><td></td><td>23/01/26</td><td>23/02/26</td><td>A</td><td>CLIENTE 008</td><td>ES</td><td>REP 001</td><td>8788,53</td><td></td></TR>
+<TR><td>58777</td><td>1215</td><td></td><td>26/01/26</td><td>26/01/26</td><td>A</td><td>CLIENTE 009</td><td>SP</td><td>REP 005</td><td>32742,00</td><td></td></TR>
+<TR><td>58959</td><td>1227</td><td></td><td>29/01/26</td><td>16/03/26</td><td>A</td><td>CLIENTE 010</td><td>SC</td><td>REP 001</td><td>9903,70</td><td></td></TR>
+<TR><td>59119</td><td>1239</td><td></td><td>02/02/26</td><td>02/03/26</td><td>A</td><td>CLIENTE 011</td><td>SP</td><td>REP 005</td><td>1283,37</td><td></td></TR>
+<TR><td>59321</td><td>1253</td><td></td><td>05/02/26</td><td>05/02/26</td><td>A</td><td>CLIENTE 012</td><td>SP</td><td>REP 006</td><td>229784,40</td><td></td></TR>
+<TR><td>59457</td><td>1264</td><td></td><td>09/02/26</td><td>09/04/26</td><td>A</td><td>CLIENTE 004</td><td>AP</td><td>REP 003</td><td>11125,80</td><td></td></TR>
+<TR><td>59622</td><td>1278</td><td></td><td>10/02/26</td><td>25/03/26</td><td>A</td><td>CLIENTE 002</td><td>RJ</td><td>MURILLO</td><td>77943,02</td><td></td></TR>
+<TR><td>59730</td><td>1290</td><td></td><td>12/02/26</td><td>23/02/26</td><td>A</td><td>CLIENTE 013</td><td>RN</td><td>REP 001</td><td>11640,00</td><td></td></TR>
+<TR><td>59824</td><td>1299</td><td></td><td>13/02/26</td><td>13/02/26</td><td>A</td><td>CLIENTE 014</td><td>SE</td><td>REP 004</td><td>11264,76</td><td></td></TR>
+<TR><td>60144</td><td>1318</td><td></td><td>24/02/26</td><td>20/04/26</td><td>A</td><td>CLIENTE 015</td><td>MS</td><td>REP 007</td><td>34333,03</td><td></td></TR>
+<TR><td>60304</td><td>1328</td><td></td><td>27/02/26</td><td>15/05/26</td><td>A</td><td>CLIENTE 012</td><td>SP</td><td>REP 005</td><td>674,92</td><td></td></TR>
+<TR><td>60364</td><td>1337</td><td></td><td>02/03/26</td><td>05/03/26</td><td>A</td><td>CLIENTE 016</td><td>GO</td><td>REP 001</td><td>816,00</td><td></td></TR>
+<TR><td>60524</td><td>1350</td><td></td><td>04/03/26</td><td>04/05/26</td><td>A</td><td>CLIENTE 017</td><td>SP</td><td>REP 005</td><td>85156,80</td><td></td></TR>
+<TR><td>60704</td><td>1361</td><td></td><td>10/03/26</td><td>09/04/26</td><td>A</td><td>CLIENTE 018</td><td>SP</td><td>REP 001</td><td>2690,00</td><td></td></TR>
+<TR><td>60846</td><td>1374</td><td></td><td>12/03/26</td><td>08/05/26</td><td>A</td><td>CLIENTE 019</td><td>GO</td><td>REP 007</td><td>89341,40</td><td></td></TR>
+<TR><td>60965</td><td>1383</td><td></td><td>13/03/26</td><td>22/04/26</td><td>A</td><td>CLIENTE 002</td><td>RJ</td><td>MURILLO</td><td>144924,93</td><td></td></TR>
+<TR><td>61224</td><td>1400</td><td></td><td>18/03/26</td><td>09/04/26</td><td>A</td><td>CLIENTE 020</td><td>MG</td><td>REP 008</td><td>37064,69</td><td></td></TR>
+<TR><td>61364</td><td>1411</td><td></td><td>19/03/26</td><td>19/03/26</td><td>A</td><td>CLIENTE 021</td><td>PR</td><td>REP 001</td><td>22252,21</td><td></td></TR>
+<TR><td>61564</td><td>1421</td><td></td><td>24/03/26</td><td>20/05/26</td><td>A</td><td>CLIENTE 022</td><td>PR</td><td>REP 008</td><td>15096,00</td><td></td></TR>
+<TR><td>61683</td><td>1431</td><td></td><td>27/03/26</td><td>31/08/26</td><td>PE</td><td>CLIENTE 023</td><td>RJ</td><td>MURILLO</td><td>10946100,00</td><td></td></TR>
+<TR><td>61886</td><td>1443</td><td></td><td>31/03/26</td><td>01/06/26</td><td>A</td><td>CLIENTE 024</td><td>MG</td><td>REP 008</td><td>7927,20</td><td></td></TR>
+<TR><td>61987</td><td>1453</td><td></td><td>01/04/26</td><td>07/04/26</td><td>A</td><td>CLIENTE 025</td><td>GO</td><td>REP 001</td><td>4518,00</td><td></td></TR>
+<TR><td>62092</td><td>1462</td><td></td><td>06/04/26</td><td>06/04/26</td><td>A</td><td>CLIENTE 003</td><td>SP</td><td>REP 005</td><td>8704,38</td><td></td></TR>
+<TR><td>62284</td><td>1475</td><td></td><td>10/04/26</td><td>06/07/26</td><td>PE</td><td>CLIENTE 026</td><td>GO</td><td>REP 007</td><td>60588,00</td><td></td></TR>
+<TR><td>62385</td><td>1485</td><td></td><td>13/04/26</td><td>15/06/26</td><td>A</td><td>CLIENTE 004</td><td>ES</td><td>REP 008</td><td>130487,54</td><td></td></TR>
+<TR><td>62543</td><td>1496</td><td></td><td>15/04/26</td><td>26/04/26</td><td>A</td><td>CLIENTE 027</td><td>MS</td><td>REP 007</td><td>98751,73</td><td></td></TR>
+<TR><td>62703</td><td>1506</td><td></td><td>17/04/26</td><td>16/06/26</td><td>A</td><td>CLIENTE 028</td><td>SP</td><td>REP 001</td><td>22028,70</td><td></td></TR>
+<TR><td>62863</td><td>1523</td><td></td><td>23/04/26</td><td>23/06/26</td><td>A</td><td>CLIENTE 029</td><td>SP</td><td>REP 008</td><td>20827,80</td><td></td></TR>
+<TR><td>63084</td><td>1538</td><td></td><td>29/04/26</td><td>29/04/26</td><td>A</td><td>CLIENTE 030</td><td>SC</td><td>REP 008</td><td>7102,08</td><td></td></TR>
+<TR><td>63324</td><td>1553</td><td></td><td>06/05/26</td><td>06/05/26</td><td>A</td><td>CLIENTE 031</td><td>AL</td><td>REP 008</td><td>33200,13</td><td></td></TR>
+<TR><td>63446</td><td>1566</td><td></td><td>11/05/26</td><td>18/06/26</td><td>A</td><td>CLIENTE 032</td><td>DF</td><td>REP 007</td><td>8314,06</td><td></td></TR>
+<TR><td>63517</td><td>1584</td><td></td><td>03/08/26</td><td>03/08/26</td><td>A</td><td>CLIENTE 033</td><td>SP</td><td>MURILLO</td><td>6071,10</td><td></td></TR>
+<TR><td>63664</td><td>1631</td><td></td><td>15/05/26</td><td>15/07/26</td><td>A</td><td>CLIENTE 034</td><td>MA</td><td>REP 003</td><td>20021,04</td><td></td></TR>
+<TR><td>63848</td><td>1645</td><td></td><td>25/05/26</td><td>31/07/26</td><td>PE</td><td>CLIENTE 035</td><td>MG</td><td>REP 001</td><td>125860,00</td><td></td></TR>
+<TR><td>63908</td><td>1654</td><td></td><td>25/05/26</td><td>27/05/26</td><td>A</td><td>CLIENTE 036</td><td>GO</td><td>REP 007</td><td>11983,12</td><td></td></TR>
+<TR><td>63941</td><td>1664</td><td></td><td>26/05/26</td><td>27/07/26</td><td>A</td><td>CLIENTE 037</td><td>SC</td><td>MURILLO</td><td>32370,00</td><td></td></TR>
+<TR><td>63996</td><td>1678</td><td></td><td>26/05/26</td><td>17/06/26</td><td>A</td><td>CLIENTE 020</td><td>MG</td><td>REP 008</td><td>28728,40</td><td></td></TR>
+<TR><td>64026</td><td>1688</td><td></td><td>27/05/26</td><td>27/07/26</td><td>A</td><td>CLIENTE 038</td><td>PE</td><td>REP 009</td><td>114310,00</td><td></td></TR>
+<TR><td>64064</td><td>1698</td><td></td><td>27/05/26</td><td>26/06/26</td><td>A</td><td>CLIENTE 039</td><td>MG</td><td>REP 002</td><td>13997,80</td><td></td></TR>
+<TR><td>64085</td><td>1711</td><td></td><td>28/05/26</td><td>03/08/26</td><td>A</td><td>CLIENTE 040</td><td>SP</td><td>REP 005</td><td>51732,13</td><td></td></TR>
+<TR><td>64187</td><td>1720</td><td></td><td>29/05/26</td><td>29/05/26</td><td>A</td><td>CLIENTE 041</td><td>RJ</td><td>MURILLO</td><td>141463,32</td><td></td></TR>
+<TR><td>64208</td><td>1729</td><td></td><td>30/05/26</td><td>31/07/26</td><td>A</td><td>CLIENTE 042</td><td>SC</td><td>REP 008</td><td>45236,00</td><td></td></TR>
+<TR><td>64376</td><td>1741</td><td></td><td>03/06/26</td><td>03/08/26</td><td>A</td><td>CLIENTE 014</td><td>SE</td><td>REP 008</td><td>5377,86</td><td></td></TR>
+<TR><td>64525</td><td>1756</td><td></td><td>08/06/26</td><td>10/08/26</td><td>PE</td><td>CLIENTE 043</td><td>GO</td><td>REP 007</td><td>273933,56</td><td></td></TR>
+<TR><td>64626</td><td>1765</td><td></td><td>10/06/26</td><td>15/07/26</td><td>A</td><td>CLIENTE 044</td><td>DF</td><td>REP 007</td><td>9562,28</td><td></td></TR>
+<TR><td>64843</td><td>1778</td><td></td><td>15/06/26</td><td>17/08/26</td><td>A</td><td>CLIENTE 045</td><td>SP</td><td>REP 001</td><td>36205,20</td><td></td></TR>
+<TR><td>65064</td><td>1789</td><td></td><td>16/06/26</td><td>17/08/26</td><td>A</td><td>CLIENTE 046</td><td>SP</td><td>REP 008</td><td>2748,00</td><td></td></TR>
+<TR><td>65304</td><td>1799</td><td></td><td>18/06/26</td><td>14/09/26</td><td>A</td><td>CLIENTE 047</td><td>MG</td><td>REP 007</td><td>77198,00</td><td></td></TR>
+<TR><td>65503</td><td>1809</td><td></td><td>19/06/26</td><td>19/06/26</td><td>A</td><td>CLIENTE 048</td><td>PR</td><td>REP 001</td><td>468,93</td><td></td></TR>
+<TR><td>65744</td><td>1826</td><td></td><td>24/06/26</td><td>24/08/26</td><td>A</td><td>CLIENTE 049</td><td>DF</td><td>REP 005</td><td>29697,40</td><td></td></TR>
+<TR><td>65905</td><td>1837</td><td></td><td>25/06/26</td><td>25/06/26</td><td>A</td><td>CLIENTE 050</td><td>MG</td><td>MURILLO</td><td>7075,50</td><td></td></TR>
+<TR><td>66145</td><td>1851</td><td></td><td>30/06/26</td><td>30/07/26</td><td>A</td><td>CLIENTE 051</td><td>MT</td><td>REP 007</td><td>23100,00</td><td></td></TR>
+<TR><td>66344</td><td>1862</td><td></td><td>02/07/26</td><td>08/07/26</td><td>A</td><td>CLIENTE 052</td><td>GO</td><td>REP 001</td><td>7106,00</td><td></td></TR>
+<TR><td>66544</td><td>1872</td><td></td><td>07/07/26</td><td>08/09/26</td><td>A</td><td>CLIENTE 053</td><td>MG</td><td>REP 002</td><td>7319,94</td><td></td></TR>
+<TR><td>66744</td><td>1882</td><td></td><td>10/07/26</td><td>17/07/26</td><td>A</td><td>CLIENTE 054</td><td>GO</td><td>REP 007</td><td>13468,00</td><td></td></TR>
+<TR><td>66903</td><td>1892</td><td></td><td>13/07/26</td><td>15/07/26</td><td>A</td><td>CLIENTE 055</td><td>GO</td><td>REP 001</td><td>16253,06</td><td></td></TR>
+<TR><td>67124</td><td>1903</td><td></td><td>15/07/26</td><td>10/09/26</td><td>A</td><td>CLIENTE 056</td><td>GO</td><td>REP 007</td><td>13188,00</td><td></td></TR>
+<TR><td>67304</td><td>1913</td><td></td><td>20/07/26</td><td>21/09/26</td><td>A</td><td>CLIENTE 057</td><td>AL</td><td>REP 004</td><td>11407,76</td><td></td></TR>
+<TR><td>67483</td><td>1923</td><td></td><td>27/07/26</td><td>28/09/26</td><td>A</td><td>CLIENTE 058</td><td>SP</td><td>REP 008</td><td>212751,54</td><td></td></TR>
+<TR><td>67644</td><td>1933</td><td></td><td>28/07/26</td><td>28/09/26</td><td>PE</td><td>CLIENTE 059</td><td>PR</td><td>MURILLO</td><td>3966,69</td><td></td></TR>
+<TR><td>67846</td><td>1944</td><td></td><td>31/07/26</td><td>30/09/26</td><td>A</td><td>CLIENTE 060</td><td>BA</td><td>REP 008</td><td>4644,00</td><td></td></TR>
+<TR><td>68063</td><td>1955</td><td></td><td>05/08/26</td><td>07/10/26</td><td>A</td><td>CLIENTE 058</td><td>SP</td><td>REP 008</td><td>222363,00</td><td></td></TR>
+<TR><td>68206</td><td>1966</td><td></td><td>05/08/26</td><td>08/09/26</td><td>A</td><td>CLIENTE 061</td><td>GO</td><td>REP 007</td><td>10951,20</td><td></td></TR>
+<TR><td>68444</td><td>1979</td><td></td><td>12/08/26</td><td>21/08/26</td><td>A</td><td>CLIENTE 062</td><td>TO</td><td>REP 007</td><td>15404,16</td><td></td></TR>
+<TR><td>68526</td><td>1989</td><td></td><td>13/08/26</td><td>30/09/26</td><td>PE</td><td>CLIENTE 024</td><td>MG</td><td>MURILLO</td><td>944102,40</td><td></td></TR>
+<TR><td>68726</td><td>2000</td><td></td><td>17/08/26</td><td>13/10/26</td><td>AC</td><td>CLIENTE 063</td><td>DF</td><td>REP 007</td><td>170664,00</td><td></td></TR>
+<TR><td>68903</td><td>2012</td><td></td><td>21/08/26</td><td>22/10/26</td><td>A</td><td>CLIENTE 064</td><td>BA</td><td>REP 008</td><td>14462,50</td><td></td></TR>
+<TR><td>69165</td><td>2028</td><td></td><td>27/08/26</td><td>27/08/26</td><td>A</td><td>CLIENTE 002</td><td>DF</td><td>MURILLO</td><td>3286,04</td><td></td></TR>
+<TR><td>69404</td><td>2042</td><td></td><td>03/09/26</td><td>03/09/26</td><td>A</td><td>CLIENTE 065</td><td>DF</td><td>REP 001</td><td>10864,00</td><td></td></TR>
+<TR><td>69666</td><td>2056</td><td></td><td>09/09/26</td><td>30/09/26</td><td>A</td><td>CLIENTE 066</td><td>GO</td><td>REP 001</td><td>2639,00</td><td></td></TR>
+<TR><td>69864</td><td>2069</td><td></td><td>14/09/26</td><td>25/09/26</td><td>A</td><td>CLIENTE 067</td><td>SC</td><td>REP 007</td><td>943,48</td><td></td></TR>
+<TR><td>69984</td><td>2078</td><td></td><td>16/09/26</td><td>16/11/26</td><td>PE</td><td>CLIENTE 068</td><td>RN</td><td>REP 010</td><td>80953,20</td><td></td></TR>
+<TR><td>70204</td><td>2091</td><td></td><td>21/09/26</td><td>05/10/26</td><td>A</td><td>CLIENTE 002</td><td>MG</td><td>MURILLO</td><td>242054,90</td><td></td></TR>
+</table></BODY></HTML>

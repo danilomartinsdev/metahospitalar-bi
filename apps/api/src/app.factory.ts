@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import fastifyCookie from '@fastify/cookie';
 import fastifyHelmet from '@fastify/helmet';
+import fastifyMultipart from '@fastify/multipart';
 import fastifyRateLimit from '@fastify/rate-limit';
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
@@ -37,6 +38,9 @@ export async function configurarApp(app: NestFastifyApplication, env: Env): Prom
     contentSecurityPolicy: { directives: { defaultSrc: ["'none'"], frameAncestors: ["'none'"] } },
   });
   await app.register(fastifyCookie);
+  await app.register(fastifyMultipart, {
+    limits: { fileSize: env.IMPORT_MAX_FILE_MB * 1_048_576, files: 1, fields: 5 },
+  });
   await app.register(fastifyRateLimit, {
     global: true,
     max: 300,

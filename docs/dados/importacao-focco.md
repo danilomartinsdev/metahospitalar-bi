@@ -36,7 +36,8 @@ numérico = fim/ignorar (contada como "ignorada", não "erro").
 | CLIENTE | `clienteNome` | IGESP SA ... | obrigatório; agrupado pelo nome normalizado |
 | UF | `uf` | SP, EX | obrigatório; deve existir no mapa UF→região |
 | REPRESENTANTE | `representanteCodigo` | PPX, BL REPR | obrigatório; representante novo é criado e sinalizado |
-| VALOR G TOTAL GERAL | `valor` | 83575,74920002 | pt-BR → Decimal(14,2), half-up |
+| VALOR | `valor` | 83575,74920002 | pt-BR → Decimal(14,2), half-up (conversão por string, sem float) |
+| G TOTAL GERAL | — | (vazia) | ignorada; no relatório real é uma coluna separada e vazia |
 
 ### Conversões
 - Número pt-BR: remover `.` de milhar, trocar `,` por `.`, parsear como Decimal (nunca float),
@@ -72,3 +73,8 @@ numérico = fim/ignorar (contada como "ignorada", não "erro").
 - Validar conteúdo real (assinatura), não a extensão nem o MIME do navegador.
 - Limitar linhas (ex.: 50.000) e tamanho; rejeitar fórmulas/macros (só valores são lidos).
 - Nunca logar o conteúdo da planilha; logar só contagens e hash.
+
+## Arquivo real analisado (2026-10-02)
+HTML (Windows-1252) com título `DASHBOARD_Extrator PDV`, 11 colunas, 744 pedidos (05/01 a 30/09/2026), status A/PE/AC,
+20 representantes, 27 UFs (inclui EX), 413 nomes de cliente → 408 após normalização. Importado sem erros.
+Amostra anonimizada para testes: `node scripts/anonimizar-focco.mjs <real> fixtures/focco/amostras/amostra-anonimizada.xls 80`.

@@ -28,6 +28,9 @@ export const envSchema = z.object({
   SMTP_USER: z.string().optional().default(''),
   SMTP_PASSWORD: z.string().optional().default(''),
   SMTP_FROM: z.string().min(3),
+
+  UPLOAD_DIR: z.string().default('./storage/uploads'),
+  IMPORT_MAX_FILE_MB: z.coerce.number().positive().max(50).default(10),
 });
 
 export type Env = z.infer<typeof envSchema>;

@@ -13,6 +13,7 @@ import {
   Users,
   UserSquare2,
   Building2,
+  Tags,
 } from 'lucide-vue-next';
 
 export interface NavItem {
@@ -49,15 +50,15 @@ export const NAV: NavGroup[] = [
   {
     titulo: 'Administração',
     itens: [
-      { label: 'Importações', to: '/admin/importacoes', icon: FileUp, permissao: 'import.run', fase: 2 },
-      { label: 'Metas', to: '/admin/metas', icon: Target, permissao: 'metas.edit', fase: 2 },
+      { label: 'Importações', to: '/admin/importacoes', icon: FileUp, permissao: 'import.run' },
+      { label: 'Metas', to: '/admin/metas', icon: Target, permissao: 'metas.edit' },
       {
         label: 'Representantes',
         to: '/admin/representantes',
         icon: UserSquare2,
         permissao: 'cadastros.edit',
-        fase: 2,
       },
+      { label: 'Status PDV', to: '/admin/status-pdv', icon: Tags, permissao: 'cadastros.edit' },
       { label: 'Usuários', to: '/admin/usuarios', icon: Users, permissao: 'users.manage', fase: 4 },
       { label: 'Papéis', to: '/admin/papeis', icon: Shield, permissao: 'users.manage', fase: 4 },
       { label: 'Auditoria', to: '/admin/auditoria', icon: ScrollText, permissao: 'audit.view', fase: 4 },

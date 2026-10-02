@@ -1,4 +1,10 @@
-import type { EscopoTipo, Permission } from '@meta-bi/shared';
+import type { EscopoTipo, Permission, Regiao } from '@meta-bi/shared';
+
+export interface Escopo {
+  tipo: EscopoTipo;
+  regioes: Regiao[];
+  representanteIds: string[];
+}
 
 export interface UsuarioAutenticado {
   id: string;
@@ -7,6 +13,8 @@ export interface UsuarioAutenticado {
   papel: { chave: string; nome: string };
   permissoes: Permission[];
   escopoTipo: EscopoTipo;
+  /** Escopo de dados aplicado pelo ScopedPedidosRepository. Nunca exposto na resposta. */
+  escopo: Escopo;
   trocarSenha: boolean;
   /** Família de sessão (login) a que o access token pertence. */
   sessaoFamilia: string;
