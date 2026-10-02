@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { loginSchema } from '@meta-bi/shared';
-import { useForm } from 'vee-validate';
+import type { FormSubmitEvent } from '@nuxt/ui';
+import type { z } from 'zod';
 import { useAuthStore } from '~/stores/auth';
 
 definePageMeta({ layout: 'auth' });
@@ -12,12 +13,7 @@ const erroGeral = ref<string | null>(
   route.query.motivo === 'sessao-expirada' ? 'Sua sessão expirou. Entre novamente.' : null,
 );
 
-const { defineField, handleSubmit, errors, isSubmitting } = useForm({
-  validationSchema: toTypedSchema(loginSchema),
-  initialValues: { email: '', senha: '' },
-});
-const [email, emailAttrs] = defineField('email');
-const [senha, senhaAttrs] = defineField('senha');
+const estado = reactive({ email: '', senha: '' });
 
 const MENSAGENS: Record<string, string> = {
   INVALID_CREDENTIALS: 'E-mail ou senha incorretos.',
@@ -26,7 +22,7 @@ const MENSAGENS: Record<string, string> = {
   RATE_LIMITED: 'Muitas tentativas. Aguarde um minuto.',
 };
 
-const entrar = handleSubmit(async (dados) => {
+async function entrar({ data: dados }: FormSubmitEvent<z.output<typeof loginSchema>>) {
   erroGeral.value = null;
   try {
     const usuario = await auth.login(dados);
@@ -37,11 +33,11 @@ const entrar = handleSubmit(async (dados) => {
     const code = (e as { data?: { code?: string } }).data?.code;
     erroGeral.value = (code && MENSAGENS[code]) ?? 'Não foi possível entrar. Tente novamente.';
   }
-});
+}
 </script>
 
 <template>
-  <form class="space-y-5" novalidate @submit="entrar">
+  <UForm :schema="loginSchema" :state="estado" class="space-y-5" @submit="entrar">
     <h1 class="text-xl font-semibold">Entrar</h1>
 
     <p
@@ -53,23 +49,19 @@ const entrar = handleSubmit(async (dados) => {
     </p>
 
     <UiExtraFormField
-      id="email"
-      v-model="email"
-      v-bind="emailAttrs"
+      v-model="estado.email"
+      name="email"
       label="E-mail"
       type="email"
       autocomplete="username"
       inputmode="email"
-      :erro="errors.email"
     />
     <UiExtraFormField
-      id="senha"
-      v-model="senha"
-      v-bind="senhaAttrs"
+      v-model="estado.senha"
+      name="senha"
       label="Senha"
       type="password"
       autocomplete="current-password"
-      :erro="errors.senha"
     >
       <template #acao>
         <NuxtLink to="/esqueci-senha" class="text-xs font-medium text-primary hover:underline"
@@ -78,6 +70,6 @@ const entrar = handleSubmit(async (dados) => {
       </template>
     </UiExtraFormField>
 
-    <UButton type="submit" size="lg" block class="h-10 justify-center" label="Entrar" :loading="isSubmitting" :disabled="isSubmitting" />
-  </form>
+    <UButton type="submit" size="lg" block class="h-10 justify-center" label="Entrar" loading-auto />
+  </UForm>
 </template>

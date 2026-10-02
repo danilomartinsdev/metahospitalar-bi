@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { redefinirSenhaSchema } from '@meta-bi/shared';
-import { useForm } from 'vee-validate';
+import type { FormSubmitEvent } from '@nuxt/ui';
+import type { z } from 'zod';
 
 const aviso = useAviso();
 definePageMeta({ layout: 'auth' });
@@ -10,14 +11,9 @@ const route = useRoute();
 const token = typeof route.query.token === 'string' ? route.query.token : '';
 const erro = ref<string | null>(token ? null : 'Link inválido. Peça um novo em "Esqueci minha senha".');
 
-const { defineField, handleSubmit, errors, isSubmitting } = useForm({
-  validationSchema: toTypedSchema(redefinirSenhaSchema),
-  initialValues: { token, novaSenha: '', confirmacao: '' },
-});
-const [novaSenha, novaAttrs] = defineField('novaSenha');
-const [confirmacao, confAttrs] = defineField('confirmacao');
+const estado = reactive({ token, novaSenha: '', confirmacao: '' });
 
-const salvar = handleSubmit(async (dados) => {
+async function salvar({ data: dados }: FormSubmitEvent<z.output<typeof redefinirSenhaSchema>>) {
   erro.value = null;
   try {
     await $fetch('/api/auth/redefinir-senha', { method: 'POST', body: dados });
@@ -26,11 +22,11 @@ const salvar = handleSubmit(async (dados) => {
   } catch {
     erro.value = 'Link inválido ou expirado. Peça um novo em "Esqueci minha senha".';
   }
-});
+}
 </script>
 
 <template>
-  <form class="space-y-5" novalidate @submit="salvar">
+  <UForm :schema="redefinirSenhaSchema" :state="estado" class="space-y-5" @submit="salvar">
     <div class="space-y-1">
       <h1 class="text-xl font-semibold">Definir nova senha</h1>
       <p class="text-sm text-muted-foreground">Mínimo de 10 caracteres, com letras e números.</p>
@@ -43,23 +39,19 @@ const salvar = handleSubmit(async (dados) => {
       {{ erro }}
     </p>
     <UiExtraFormField
-      id="nova-senha"
-      v-model="novaSenha"
-      v-bind="novaAttrs"
+      v-model="estado.novaSenha"
+      name="novaSenha"
       label="Nova senha"
       type="password"
       autocomplete="new-password"
-      :erro="errors.novaSenha"
     />
     <UiExtraFormField
-      id="confirmacao"
-      v-model="confirmacao"
-      v-bind="confAttrs"
+      v-model="estado.confirmacao"
+      name="confirmacao"
       label="Confirme a nova senha"
       type="password"
       autocomplete="new-password"
-      :erro="errors.confirmacao"
     />
-    <UButton type="submit" size="lg" block class="h-10 justify-center" label="Salvar nova senha" :loading="isSubmitting" :disabled="isSubmitting || !token" />
-  </form>
+    <UButton type="submit" size="lg" block class="h-10 justify-center" label="Salvar nova senha" loading-auto :disabled="!token" />
+  </UForm>
 </template>

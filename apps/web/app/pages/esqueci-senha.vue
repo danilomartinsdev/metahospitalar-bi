@@ -1,20 +1,17 @@
 <script setup lang="ts">
 import { esqueciSenhaSchema } from '@meta-bi/shared';
 import { MailCheck } from 'lucide-vue-next';
-import { useForm } from 'vee-validate';
+import type { FormSubmitEvent } from '@nuxt/ui';
+import type { z } from 'zod';
 
 definePageMeta({ layout: 'auth' });
 useHead({ title: 'Esqueci minha senha — BI Meta Hospitalar' });
 
 const enviado = ref(false);
 const erro = ref<string | null>(null);
-const { defineField, handleSubmit, errors, isSubmitting } = useForm({
-  validationSchema: toTypedSchema(esqueciSenhaSchema),
-  initialValues: { email: '' },
-});
-const [email, emailAttrs] = defineField('email');
+const estado = reactive({ email: '' });
 
-const enviar = handleSubmit(async (dados) => {
+async function enviar({ data: dados }: FormSubmitEvent<z.output<typeof esqueciSenhaSchema>>) {
   erro.value = null;
   try {
     await $fetch('/api/auth/esqueci-senha', { method: 'POST', body: dados });
@@ -22,7 +19,7 @@ const enviar = handleSubmit(async (dados) => {
   } catch {
     erro.value = 'Não foi possível enviar agora. Tente novamente em instantes.';
   }
-});
+}
 </script>
 
 <template>
@@ -37,7 +34,7 @@ const enviar = handleSubmit(async (dados) => {
     >
   </div>
 
-  <form v-else class="space-y-5" novalidate @submit="enviar">
+  <UForm v-else :schema="esqueciSenhaSchema" :state="estado" class="space-y-5" @submit="enviar">
     <div class="space-y-1">
       <h1 class="text-xl font-semibold">Esqueci minha senha</h1>
       <p class="text-sm text-muted-foreground">Informe seu e-mail para receber um link de redefinição.</p>
@@ -50,19 +47,17 @@ const enviar = handleSubmit(async (dados) => {
       {{ erro }}
     </p>
     <UiExtraFormField
-      id="email"
-      v-model="email"
-      v-bind="emailAttrs"
+      v-model="estado.email"
+      name="email"
       label="E-mail"
       type="email"
       autocomplete="username"
-      :erro="errors.email"
     />
-    <UButton type="submit" size="lg" block class="h-10 justify-center" label="Enviar link" :loading="isSubmitting" :disabled="isSubmitting" />
+    <UButton type="submit" size="lg" block class="h-10 justify-center" label="Enviar link" loading-auto />
     <p class="text-center">
       <NuxtLink to="/login" class="text-sm text-muted-foreground hover:text-foreground"
         >Voltar ao login</NuxtLink
       >
     </p>
-  </form>
+  </UForm>
 </template>

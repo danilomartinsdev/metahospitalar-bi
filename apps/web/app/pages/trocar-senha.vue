@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import type { AuthResposta } from '@meta-bi/shared';
 import { trocarSenhaSchema } from '@meta-bi/shared';
-import { useForm } from 'vee-validate';
+import type { FormSubmitEvent } from '@nuxt/ui';
+import type { z } from 'zod';
 import { useApi } from '~/composables/api/useApi';
 import { useAuthStore } from '~/stores/auth';
 
@@ -13,15 +14,9 @@ useHead({ title: 'Trocar senha — BI Meta Hospitalar' });
 
 const { request } = useApi();
 const erro = ref<string | null>(null);
-const { defineField, handleSubmit, errors, isSubmitting } = useForm({
-  validationSchema: toTypedSchema(trocarSenhaSchema),
-  initialValues: { senhaAtual: '', novaSenha: '', confirmacao: '' },
-});
-const [senhaAtual, atualAttrs] = defineField('senhaAtual');
-const [novaSenha, novaAttrs] = defineField('novaSenha');
-const [confirmacao, confAttrs] = defineField('confirmacao');
+const estado = reactive({ senhaAtual: '', novaSenha: '', confirmacao: '' });
 
-const salvar = handleSubmit(async (dados) => {
+async function salvar({ data: dados }: FormSubmitEvent<z.output<typeof trocarSenhaSchema>>) {
   erro.value = null;
   try {
     // A troca revoga as outras sessões e devolve uma sessão nova.
@@ -34,11 +29,11 @@ const salvar = handleSubmit(async (dados) => {
     erro.value =
       code === 'INVALID_CREDENTIALS' ? 'A senha atual está incorreta.' : 'Não foi possível trocar a senha.';
   }
-});
+}
 </script>
 
 <template>
-  <form class="space-y-5" novalidate @submit="salvar">
+  <UForm :schema="trocarSenhaSchema" :state="estado" class="space-y-5" @submit="salvar">
     <div class="space-y-1">
       <h1 class="text-xl font-semibold">{{ obrigatoria ? 'Crie sua senha' : 'Trocar senha' }}</h1>
       <p class="text-sm text-muted-foreground">
@@ -57,34 +52,28 @@ const salvar = handleSubmit(async (dados) => {
       {{ erro }}
     </p>
     <UiExtraFormField
-      id="senha-atual"
-      v-model="senhaAtual"
-      v-bind="atualAttrs"
+      v-model="estado.senhaAtual"
+      name="senhaAtual"
       :label="obrigatoria ? 'Senha provisória' : 'Senha atual'"
       type="password"
       autocomplete="current-password"
-      :erro="errors.senhaAtual"
     />
     <UiExtraFormField
-      id="nova-senha"
-      v-model="novaSenha"
-      v-bind="novaAttrs"
+      v-model="estado.novaSenha"
+      name="novaSenha"
       label="Nova senha"
       type="password"
       autocomplete="new-password"
       dica="Mínimo de 10 caracteres, com letras e números."
-      :erro="errors.novaSenha"
     />
     <UiExtraFormField
-      id="confirmacao"
-      v-model="confirmacao"
-      v-bind="confAttrs"
+      v-model="estado.confirmacao"
+      name="confirmacao"
       label="Confirme a nova senha"
       type="password"
       autocomplete="new-password"
-      :erro="errors.confirmacao"
     />
-    <UButton type="submit" size="lg" block class="h-10 justify-center" label="Salvar" :loading="isSubmitting" :disabled="isSubmitting" />
+    <UButton type="submit" size="lg" block class="h-10 justify-center" label="Salvar" loading-auto />
     <p v-if="!obrigatoria" class="text-center">
       <NuxtLink to="/dashboard" class="text-sm text-muted-foreground hover:text-foreground"
         >Cancelar</NuxtLink
@@ -99,5 +88,5 @@ const salvar = handleSubmit(async (dados) => {
         Sair
       </button>
     </p>
-  </form>
+  </UForm>
 </template>
