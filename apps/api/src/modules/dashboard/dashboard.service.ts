@@ -211,13 +211,15 @@ export class DashboardService {
     ano: number,
   ): Promise<Map<number, Prisma.Decimal> | null> {
     let reps: string[] | null = null;
+    // Escopo por região não tem meta correspondente — e o filtro de gestor não pode abrir metas fora do escopo.
+    if (u.escopo.tipo === 'regiao') return null;
     if (u.escopo.tipo === 'representantes') {
       reps = f.gestor.length
         ? f.gestor.filter((g) => u.escopo.representanteIds.includes(g))
         : u.escopo.representanteIds;
     } else if (f.gestor.length) {
       reps = f.gestor;
-    } else if (u.escopo.tipo === 'regiao' || f.regiao.length || f.uf.length || f.segmento.length) {
+    } else if (f.regiao.length || f.uf.length || f.segmento.length) {
       return null;
     }
     const metas = await this.prisma.meta.findMany({

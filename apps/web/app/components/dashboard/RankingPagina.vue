@@ -5,7 +5,7 @@ import { barrasRankingOptions } from '~/utils/charts/options';
 
 const props = defineProps<{ dim: DimensaoRanking }>();
 const ABAS: { dim: DimensaoRanking; rotulo: string; coluna: string }[] = [
-  { dim: 'gestores', rotulo: 'Gestores', coluna: 'Gestor' },
+  { dim: 'gestores', rotulo: 'Representantes', coluna: 'Representante' },
   { dim: 'estados', rotulo: 'Estados', coluna: 'UF' },
   { dim: 'regioes', rotulo: 'Regiões', coluna: 'Região' },
 ];

@@ -66,6 +66,20 @@ export default tseslint.config(
           message: 'Acesse pedidos só via ScopedPedidosRepository (docs/arquitetura/seguranca-rbac.md).',
         },
       ],
+      'no-restricted-syntax': [
+        'error',
+        {
+          // Ex.: include: { cliente: { include: { pedidos: true } } } leria pedidos sem escopo.
+          selector: "Property[key.name='pedidos']",
+          message: 'Relação "pedidos" fora do ScopedPedidosRepository vaza dados sem escopo.',
+        },
+        {
+          selector:
+            'MemberExpression[property.name=/^\\$(queryRaw|queryRawUnsafe|executeRaw|executeRawUnsafe)$/]',
+          message:
+            'SQL cru ignora o escopo. Use o ScopedPedidosRepository (exceções precisam de eslint-disable justificado).',
+        },
+      ],
     },
   },
   prettier,

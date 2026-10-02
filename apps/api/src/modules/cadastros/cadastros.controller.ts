@@ -24,8 +24,8 @@ export class CadastrosController {
   /** Lista usada nos filtros (gestores) — qualquer usuário logado; códigos/nomes não são dado de venda. */
   @AuthenticatedOnly()
   @Get('representantes')
-  representantes() {
-    return this.service.representantes();
+  representantes(@CurrentUser() u: UsuarioAutenticado) {
+    return this.service.representantes(u);
   }
 
   @RequirePermission('cadastros.edit')

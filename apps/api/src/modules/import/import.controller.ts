@@ -2,18 +2,21 @@ import { Body, Controller, Get, HttpCode, HttpStatus, Param, ParseUUIDPipe, Post
 import type { FastifyRequest } from 'fastify';
 import { z } from 'zod';
 import { CurrentUser, RequirePermission } from '../../common/auth/decorators.js';
+import { exigirEscopoTodos } from '../../common/auth/privilegios.js';
 import type { UsuarioAutenticado } from '../../common/auth/types.js';
 import { ApiException } from '../../common/errors.js';
 import { ZodPipe } from '../../common/zod-validation.pipe.js';
 import { ImportService } from './import.service.js';
 
+/** O nome do arquivo vem da prévia guardada no servidor (o do cliente é ignorado). */
 const confirmarSchema = z.object({
   hash: z.string().regex(/^[a-f0-9]{64}$/),
-  arquivoNome: z.string().trim().min(1).max(200),
+  arquivoNome: z.string().max(200).optional(),
 });
 
 const ctx = (req: FastifyRequest) => ({ ip: req.ip, userAgent: req.headers['user-agent'] });
 
+/** Importação grava pedidos da base inteira: além da permissão, exige escopo "todos". */
 @Controller('import')
 export class ImportController {
   constructor(private readonly service: ImportService) {}
@@ -21,7 +24,8 @@ export class ImportController {
   @RequirePermission('import.run')
   @Post('previa')
   @HttpCode(200)
-  async previa(@Req() req: FastifyRequest) {
+  async previa(@Req() req: FastifyRequest, @CurrentUser() usuario: UsuarioAutenticado) {
+    exigirEscopoTodos(usuario);
     const arquivo = await req.file().catch(() => undefined);
     if (!arquivo) throw new ApiException(HttpStatus.BAD_REQUEST, 'VALIDATION', 'Envie um arquivo.');
     const buf = await arquivo.toBuffer().catch(() => {
@@ -31,7 +35,7 @@ export class ImportController {
         'Arquivo maior que o limite permitido.',
       );
     });
-    return this.service.previa(buf, arquivo.filename.slice(0, 200));
+    return this.service.previa(buf, arquivo.filename.slice(0, 200), usuario.id);
   }
 
   @RequirePermission('import.run')
@@ -42,12 +46,14 @@ export class ImportController {
     @CurrentUser() usuario: UsuarioAutenticado,
     @Req() req: FastifyRequest,
   ) {
-    return this.service.confirmar(dados.hash, dados.arquivoNome, usuario, ctx(req));
+    exigirEscopoTodos(usuario);
+    return this.service.confirmar(dados.hash, usuario, ctx(req));
   }
 
   @RequirePermission('import.run')
   @Get('lotes')
-  lotes() {
+  lotes(@CurrentUser() usuario: UsuarioAutenticado) {
+    exigirEscopoTodos(usuario);
     return this.service.listarLotes();
   }
 
@@ -59,6 +65,7 @@ export class ImportController {
     @CurrentUser() usuario: UsuarioAutenticado,
     @Req() req: FastifyRequest,
   ) {
+    exigirEscopoTodos(usuario);
     await this.service.reverter(id, usuario, ctx(req));
   }
 }

@@ -23,6 +23,7 @@ import type { FastifyRequest } from 'fastify';
 import { CurrentUser, RequirePermission } from '../../common/auth/decorators.js';
 import type { UsuarioAutenticado } from '../../common/auth/types.js';
 import { ApiException, Erros } from '../../common/errors.js';
+import { exigirAdmin, PERMISSOES_ADMINISTRATIVAS } from '../../common/auth/privilegios.js';
 import { ZodPipe } from '../../common/zod-validation.pipe.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { AuditService } from '../audit/audit.service.js';
@@ -62,6 +63,9 @@ export class PapeisController {
     @CurrentUser() u: UsuarioAutenticado,
     @Req() req: FastifyRequest,
   ) {
+    if (d.permissoes.some((p) => PERMISSOES_ADMINISTRATIVAS.includes(p))) {
+      exigirAdmin(u, 'Só um Admin pode conceder permissões administrativas.');
+    }
     const r = await this.prisma.role.create({
       data: {
         chave: `custom-${randomUUID().slice(0, 8)}`,
@@ -90,6 +94,16 @@ export class PapeisController {
   ) {
     const role = await this.prisma.role.findUnique({ where: { id }, include: { permissoes: true } });
     if (!role) throw Erros.naoEncontrado();
+    // Ninguém edita o próprio papel (evita autopromoção); permissões administrativas só por um Admin.
+    if (role.chave === u.papel.chave) {
+      throw new ApiException(HttpStatus.CONFLICT, 'CONFLICT', 'Você não pode alterar o papel que você usa.');
+    }
+    const concedeAdministrativa = d.permissoes.some(
+      (p) => PERMISSOES_ADMINISTRATIVAS.includes(p) && !role.permissoes.some((x) => x.permissao === p),
+    );
+    if (role.chave === 'admin' || concedeAdministrativa) {
+      exigirAdmin(u, 'Só um Admin pode alterar o papel Admin ou conceder permissões administrativas.');
+    }
     const permissoes = role.chave === 'admin' ? [...PERMISSIONS] : [...new Set(d.permissoes)];
     if (role.chave === 'admin' && d.permissoes.length !== PERMISSIONS.length) {
       throw new ApiException(HttpStatus.CONFLICT, 'CONFLICT', 'O papel Admin mantém todas as permissões.');

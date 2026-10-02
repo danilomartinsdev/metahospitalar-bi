@@ -36,7 +36,7 @@ export const NAV: NavGroup[] = [
     titulo: 'Análise',
     itens: [
       { label: 'Visão geral', to: '/dashboard', icon: LayoutDashboard, permissao: 'dashboard.view' },
-      { label: 'Gestores', to: '/dashboard/gestores', icon: Trophy, permissao: 'dashboard.view' },
+      { label: 'Representantes', to: '/dashboard/gestores', icon: Trophy, permissao: 'dashboard.view' },
       { label: 'Estados', to: '/dashboard/estados', icon: MapPinned, permissao: 'dashboard.view' },
       { label: 'Regiões', to: '/dashboard/regioes', icon: Map, permissao: 'dashboard.view' },
       { label: 'Clientes', to: '/dashboard/clientes', icon: Building2, permissao: 'dashboard.view' },
@@ -49,7 +49,7 @@ export const NAV: NavGroup[] = [
       { label: 'Importações', to: '/admin/importacoes', icon: FileUp, permissao: 'import.run' },
       { label: 'Metas', to: '/admin/metas', icon: Target, permissao: 'metas.edit' },
       {
-        label: 'Representantes',
+        label: 'Cadastro de representantes',
         to: '/admin/representantes',
         icon: UserSquare2,
         permissao: 'cadastros.edit',

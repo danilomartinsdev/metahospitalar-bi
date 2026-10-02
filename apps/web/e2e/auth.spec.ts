@@ -19,7 +19,8 @@ async function abrirMenuSeCelular(page: Page) {
 
 test('rota protegida sem login leva ao login', async ({ page }) => {
   await page.goto('/dashboard');
-  await expect(page).toHaveURL(/\/login\?r=(%2F|\/)dashboard/);
+  // Primeiro carregamento da suíte: o servidor de dev ainda compila os módulos (pode passar de 15 s).
+  await expect(page).toHaveURL(/\/login\?r=(%2F|\/)dashboard/, { timeout: 90_000 });
 });
 
 test('senha errada mostra mensagem genérica', async ({ page }) => {

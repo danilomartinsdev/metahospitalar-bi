@@ -13,8 +13,10 @@ export class CadastrosService {
     private readonly audit: AuditService,
   ) {}
 
-  representantes() {
+  /** Usuário com escopo por representante só enxerga os seus (lista usada no filtro de gestor). */
+  representantes(u: UsuarioAutenticado) {
     return this.prisma.representante.findMany({
+      where: u.escopo.tipo === 'representantes' ? { id: { in: u.escopo.representanteIds } } : {},
       orderBy: { nomeExibicao: 'asc' },
       select: { id: true, codigo: true, nomeExibicao: true, segmentoPadrao: true, ativo: true },
     });

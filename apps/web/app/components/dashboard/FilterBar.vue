@@ -98,7 +98,7 @@ const opcoes = computed(() => ({
         @alterar="(v) => definir({ uf: v })"
       />
       <DashboardMultiFiltro
-        rotulo="Gestor"
+        rotulo="Representante"
         :opcoes="opcoes.gestor"
         :selecionados="filtros.gestor"
         @alterar="(v) => definir({ gestor: v })"
@@ -120,7 +120,7 @@ const opcoes = computed(() => ({
         <Input
           v-model="busca"
           class="h-8 pl-8"
-          placeholder="Cliente, pedido, CPR, gestor"
+          placeholder="Cliente, pedido, CPR, representante"
           aria-label="Buscar"
           @update:model-value="(v) => buscar(String(v))"
         />

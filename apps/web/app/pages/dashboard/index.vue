@@ -97,7 +97,7 @@ const SEGMENTO: Record<string, string> = { PUBLICO: 'Público', PRIVADO: 'Privad
           v-for="c in [
             { n: v.contagens.estados, r: 'estados' },
             { n: v.contagens.regioes, r: 'regiões' },
-            { n: v.contagens.gestores, r: 'gestores' },
+            { n: v.contagens.gestores, r: 'representantes' },
             { n: v.contagens.clientes, r: 'clientes' },
           ]"
           :key="c.r"
@@ -168,7 +168,7 @@ const SEGMENTO: Record<string, string> = { PUBLICO: 'Público', PRIVADO: 'Privad
       <section class="grid gap-4 lg:grid-cols-3 lg:gap-6">
         <div class="rounded-xl border bg-card p-5 lg:col-span-2">
           <div class="flex items-center justify-between">
-            <h3 class="text-sm font-medium text-muted-foreground">Top 10 gestores</h3>
+            <h3 class="text-sm font-medium text-muted-foreground">Top 10 representantes</h3>
             <NuxtLink
               :to="{ path: '/dashboard/gestores', query: $route.query }"
               class="text-xs font-medium text-primary hover:underline"
@@ -183,7 +183,7 @@ const SEGMENTO: Record<string, string> = { PUBLICO: 'Público', PRIVADO: 'Privad
           <ChartsBaseChart
             v-else-if="v"
             altura="320px"
-            rotulo="Ranking dos 10 gestores com maior volume de vendas"
+            rotulo="Ranking dos 10 representantes com maior volume de vendas"
             :opcoes="(t) => barrasRankingOptions(v!.topGestores, t)"
           />
         </div>

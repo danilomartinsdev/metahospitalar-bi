@@ -215,6 +215,114 @@ describe('escopo por região e mudança de escopo', () => {
   });
 });
 
+describe('correções da revisão de RBAC', () => {
+  async function gerenteDeUsuarios() {
+    // Papel personalizado com users.manage, mas que não é Admin.
+    const papelRh = await ctx.prisma.role.create({
+      data: {
+        chave: 'rh',
+        nome: 'RH',
+        permissoes: { create: [{ permissao: 'users.manage' }, { permissao: 'dashboard.view' }] },
+      },
+    });
+    const u = await criarUsuario(ctx.prisma, { email: 'rh@meta.com' });
+    await ctx.prisma.usuario.update({ where: { id: u.id }, data: { roleId: papelRh.id } });
+    return { token: (await login(ctx.app, 'rh@meta.com')).body.accessToken as string, papelRh, u };
+  }
+
+  it('escopo por região não recebe metas de representantes via filtro de gestor', async () => {
+    await importarAmostra(admin);
+    const rep = await ctx.prisma.representante.findFirstOrThrow();
+    await ctx.prisma.meta.create({
+      data: { ano: 2026, mes: 1, representanteId: rep.id, valor: '123456.00' },
+    });
+    const u = await criarUsuario(ctx.prisma, { email: 'reg@meta.com', papel: 'visualizador' });
+    await ctx.prisma.usuario.update({
+      where: { id: u.id },
+      data: { escopoTipo: 'REGIAO', escopoRegioes: ['SUL'] },
+    });
+    const t = (await login(ctx.app, 'reg@meta.com')).body.accessToken;
+    const v = await req('GET', `/api/dashboard/visao-geral?de=2026-01&ate=2026-12&gestor=${rep.id}`, t);
+    expect(v.body.evolucao.meses.every((m: { meta: string | null }) => m.meta === null)).toBe(true);
+  });
+
+  it('quem tem users.manage sem ser Admin não promove ninguém a Admin nem altera Admins', async () => {
+    const { token } = await gerenteDeUsuarios();
+    const adminRole = await papel('admin');
+    const novo = await req('POST', '/api/usuarios', token, {
+      nome: 'Infiltrado',
+      email: 'x@meta.com',
+      roleId: adminRole,
+      escopoTipo: 'todos',
+    });
+    expect(novo.status).toBe(403);
+    const adm = await ctx.prisma.usuario.findUniqueOrThrow({ where: { email: 'admin@meta.com' } });
+    expect((await req('POST', `/api/usuarios/${adm.id}/desativar`, token)).status).toBe(403);
+    expect((await req('POST', `/api/usuarios/${adm.id}/redefinir-senha`, token)).status).toBe(403);
+  });
+
+  it('ninguém edita o próprio papel nem concede permissões administrativas sem ser Admin', async () => {
+    const { token, papelRh, u } = await gerenteDeUsuarios();
+    const proprio = await req('PATCH', `/api/papeis/${papelRh.id}`, token, {
+      nome: 'RH',
+      permissoes: ['users.manage', 'audit.view', 'import.run'],
+    });
+    expect(proprio.status).toBe(409);
+    const outro = await req('PATCH', `/api/papeis/${await papel('visualizador')}`, token, {
+      nome: 'Visualizador',
+      permissoes: ['dashboard.view', 'audit.view'],
+    });
+    expect(outro.status).toBe(403);
+    expect(
+      (await req('POST', '/api/papeis', token, { nome: 'Super', permissoes: ['users.manage'] })).status,
+    ).toBe(403);
+    // Nem trocar o próprio escopo.
+    const esc = await req('PATCH', `/api/usuarios/${u.id}`, token, {
+      nome: 'RH',
+      roleId: papelRh.id,
+      escopoTipo: 'regiao',
+      escopoRegioes: ['SUL'],
+    });
+    expect(esc.status).toBe(409);
+  });
+
+  it('metas e importação exigem escopo "todos"; representante inexistente na meta é 400', async () => {
+    const g = await criarUsuario(ctx.prisma, { email: 'gr@meta.com', papel: 'gestor-comercial' });
+    await ctx.prisma.usuario.update({
+      where: { id: g.id },
+      data: { escopoTipo: 'REGIAO', escopoRegioes: ['SUL'] },
+    });
+    const t = (await login(ctx.app, 'gr@meta.com')).body.accessToken;
+    expect((await req('GET', '/api/metas?ano=2026', t)).status).toBe(403);
+    expect((await req('GET', '/api/import/lotes', t)).status).toBe(403);
+    const r = await req('PUT', '/api/metas', admin, {
+      ano: 2026,
+      metas: [{ mes: 1, representanteId: '00000000-0000-4000-8000-000000000000', valor: '10' }],
+    });
+    expect(r.status).toBe(400);
+  });
+
+  it('não confirma prévia enviada por outro usuário', async () => {
+    const b = '----outro';
+    const payload = Buffer.concat([
+      Buffer.from(`--${b}\r\nContent-Disposition: form-data; name="arquivo"; filename="a.xls"\r\n\r\n`),
+      fs.readFileSync(AMOSTRA),
+      Buffer.from(`\r\n--${b}--\r\n`),
+    ]);
+    const p = (
+      await ctx.app.inject({
+        method: 'POST',
+        url: '/api/import/previa',
+        payload,
+        headers: { authorization: `Bearer ${admin}`, 'content-type': `multipart/form-data; boundary=${b}` },
+      })
+    ).json();
+    await criarUsuario(ctx.prisma, { email: 'g2@meta.com', papel: 'gestor-comercial' });
+    const g2 = (await login(ctx.app, 'g2@meta.com')).body.accessToken;
+    expect((await req('POST', '/api/import/confirmar', g2, { hash: p.hash })).status).toBe(404);
+  });
+});
+
 describe('auditoria', () => {
   it('lista com filtros e paginação, sem expor dados sensíveis', async () => {
     await login(ctx.app, 'admin@meta.com', 'senha-errada-123');

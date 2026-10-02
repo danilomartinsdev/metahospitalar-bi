@@ -1,10 +1,11 @@
 # Glossário
+
 - **Focco3i** — ERP da Meta Hospitalar; origem dos pedidos.
 - **PDV** — Pedido de Venda no Focco. "Extrator PDV" é o relatório exportado.
 - **POS PDV** — posição/status do pedido (A, PE, AC); significado configurável (pendente).
 - **CPR / Ordem CPR** — ordem de compra do cliente; texto livre (ex.: `163625`, `2026NE124`).
 - **NE** — Nota de Empenho (órgão público); aparece dentro da Ordem CPR.
-- **Representante = Gestor** — mesma entidade: o código da coluna REPRESENTANTE (PPX, MURILLO, BL REPR). Na UI chama-se "Gestor".
+- **Representante (= "gestor" no código)** — o código da coluna REPRESENTANTE (PPX, MURILLO, BL REPR). Na UI chama-se "Representante"; no código/API o nome interno continua `gestor` (ex.: filtro `?gestor=`, ranking `gestores`).
 - **Segmento** — Público ou Privado; padrão vem do representante, pode ser sobrescrito por cliente.
 - **Região** — derivada da UF; `EX` (exportação) → região "Exterior".
 - **Competência** — mês/ano da data de emissão (DT EMIS).

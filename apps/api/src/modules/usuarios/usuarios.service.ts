@@ -2,8 +2,9 @@ import { randomBytes } from 'node:crypto';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import type { EscopoTipo, UsuarioAdmin, UsuarioAtualizar, UsuarioCriar } from '@meta-bi/shared';
 import { ApiException, Erros } from '../../common/errors.js';
+import { exigirAdmin } from '../../common/auth/privilegios.js';
 import type { ContextoRequisicao, UsuarioAutenticado } from '../../common/auth/types.js';
-import type { EscopoTipo as EscopoEnum, Prisma } from '../../generated/prisma/client.js';
+import type { EscopoTipo as EscopoEnum, Prisma, Regiao } from '../../generated/prisma/client.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { AuditService } from '../audit/audit.service.js';
 import { SenhaService } from '../auth/senha.service.js';
@@ -85,14 +86,31 @@ export class UsuariosService {
     return {
       escopoTipo: ESCOPO_DB[d.escopoTipo],
       // Só guarda o que vale para o tipo escolhido.
-      escopoRegioes: (d.escopoTipo === 'regiao'
-        ? (d.escopoRegioes ?? [])
-        : []) as Prisma.UsuarioCreateInput['escopoRegioes'],
+      escopoRegioes: (d.escopoTipo === 'regiao' ? (d.escopoRegioes ?? []) : []) as Regiao[],
       representanteIds: d.escopoTipo === 'representantes' ? [...new Set(d.representanteIds ?? [])] : [],
     };
   }
 
+  /**
+   * Evita escalonamento: só um Admin cria/promove/altera Admins. Quem tem users.manage
+   * sem ser Admin gerencia apenas usuários que não são Admin e não pode promover ninguém a Admin.
+   */
+  private async protegerAdmins(alvoId: string | null, novoRoleId: string | null, quem: UsuarioAutenticado) {
+    const chaves = await this.prisma.role.findMany({
+      where: {
+        OR: [
+          ...(novoRoleId ? [{ id: novoRoleId }] : []),
+          ...(alvoId ? [{ usuarios: { some: { id: alvoId } } }] : []),
+        ],
+      },
+      select: { chave: true },
+    });
+    if (chaves.some((c) => c.chave === 'admin'))
+      exigirAdmin(quem, 'Só um Admin pode criar, promover ou alterar Admins.');
+  }
+
   async criar(d: UsuarioCriar, admin: UsuarioAutenticado, ctx: ContextoRequisicao) {
+    await this.protegerAdmins(null, d.roleId, admin);
     const esc = this.dadosEscopo(d);
     await this.validarReferencias(d.roleId, esc.representanteIds);
     if (await this.prisma.usuario.findUnique({ where: { email: d.email }, select: { id: true } })) {
@@ -124,12 +142,34 @@ export class UsuariosService {
   }
 
   async atualizar(id: string, d: UsuarioAtualizar, admin: UsuarioAutenticado, ctx: ContextoRequisicao) {
-    const atual = await this.prisma.usuario.findUnique({ where: { id }, select: { roleId: true } });
+    const atual = await this.prisma.usuario.findUnique({
+      where: { id },
+      select: {
+        roleId: true,
+        escopoTipo: true,
+        escopoRegioes: true,
+        role: { select: { chave: true } },
+        representantes: { select: { representanteId: true } },
+      },
+    });
     if (!atual) throw Erros.naoEncontrado();
-    if (id === admin.id && d.roleId !== atual.roleId) {
-      throw new ApiException(HttpStatus.CONFLICT, 'CONFLICT', 'Você não pode alterar o próprio papel.');
-    }
     const esc = this.dadosEscopo(d);
+    const mudouEscopo =
+      esc.escopoTipo !== atual.escopoTipo ||
+      [...esc.escopoRegioes].sort().join() !== [...atual.escopoRegioes].sort().join() ||
+      [...esc.representanteIds].sort().join() !==
+        atual.representantes
+          .map((r) => r.representanteId)
+          .sort()
+          .join();
+    if (id === admin.id && (d.roleId !== atual.roleId || mudouEscopo)) {
+      throw new ApiException(
+        HttpStatus.CONFLICT,
+        'CONFLICT',
+        'Você não pode alterar o próprio papel nem o próprio escopo.',
+      );
+    }
+    await this.protegerAdmins(id, d.roleId, admin);
     await this.validarReferencias(d.roleId, esc.representanteIds);
     const u = await this.prisma.$transaction(async (tx) => {
       await tx.usuarioRepresentante.deleteMany({ where: { usuarioId: id } });
@@ -151,10 +191,18 @@ export class UsuariosService {
       entidade: 'Usuario',
       entidadeId: id,
       detalhes: {
-        papel: u.role.chave,
-        escopo: d.escopoTipo,
-        regioes: esc.escopoRegioes,
-        representantes: esc.representanteIds,
+        antes: {
+          papel: atual.role.chave,
+          escopo: atual.escopoTipo,
+          regioes: atual.escopoRegioes,
+          representantes: atual.representantes.map((r) => r.representanteId),
+        },
+        depois: {
+          papel: u.role.chave,
+          escopo: esc.escopoTipo,
+          regioes: esc.escopoRegioes,
+          representantes: esc.representanteIds,
+        },
       },
       ctx,
     });
@@ -164,6 +212,7 @@ export class UsuariosService {
   /** Admin redefine a senha: gera provisória, exige troca e derruba as sessões do usuário. */
   async redefinirSenha(id: string, admin: UsuarioAutenticado, ctx: ContextoRequisicao) {
     await this.existe(id);
+    await this.protegerAdmins(id, null, admin);
     const senha = senhaProvisoria();
     await this.prisma.usuario.update({
       where: { id },
@@ -190,6 +239,7 @@ export class UsuariosService {
       throw new ApiException(HttpStatus.CONFLICT, 'CONFLICT', 'Você não pode desativar o próprio usuário.');
     }
     await this.existe(id);
+    await this.protegerAdmins(id, null, admin);
     await this.prisma.usuario.update({ where: { id }, data: { ativo: false } });
     const sessoes = await this.sessoes.revogarTodas(id);
     await this.audit.registrar({
@@ -204,6 +254,7 @@ export class UsuariosService {
 
   async reativar(id: string, admin: UsuarioAutenticado, ctx: ContextoRequisicao) {
     await this.existe(id);
+    await this.protegerAdmins(id, null, admin);
     await this.prisma.usuario.update({
       where: { id },
       data: { ativo: true, tentativasFalhas: 0, bloqueadoAte: null },
@@ -219,6 +270,7 @@ export class UsuariosService {
 
   async derrubarSessoes(id: string, admin: UsuarioAutenticado, ctx: ContextoRequisicao) {
     await this.existe(id);
+    await this.protegerAdmins(id, null, admin);
     const sessoes = await this.sessoes.revogarTodas(id);
     await this.audit.registrar({
       acao: 'usuario.sessoes-derrubadas',

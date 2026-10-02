@@ -54,7 +54,7 @@ const COLUNAS = [
   { k: 'status', r: 'Status' },
   { k: 'cliente', r: 'Cliente', ordem: 'cliente' },
   { k: 'uf', r: 'UF', ordem: 'uf' },
-  { k: 'gestor', r: 'Gestor', ordem: 'representante' },
+  { k: 'gestor', r: 'Representante', ordem: 'representante' },
   { k: 'segmento', r: 'Segmento' },
   { k: 'ordemCpr', r: 'Ordem CPR' },
   { k: 'valor', r: 'Valor', ordem: 'valor', num: true },

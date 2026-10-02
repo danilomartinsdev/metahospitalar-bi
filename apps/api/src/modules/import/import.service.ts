@@ -38,12 +38,18 @@ export class ImportService {
   }
 
   /** Etapas 2 e 3: parse, validação e prévia. Guarda o arquivo original (fora do webroot). */
-  async previa(buf: Buffer, arquivoNome: string): Promise<PreviaImportacao> {
+  async previa(buf: Buffer, arquivoNome: string, usuarioId: string): Promise<PreviaImportacao> {
     const hash = createHash('sha256').update(buf).digest('hex');
     const analise = await this.analisar(buf, hash, arquivoNome);
     await fs.mkdir(path.resolve(this.env.UPLOAD_DIR), { recursive: true });
     await fs.writeFile(this.caminho(hash), buf, { mode: 0o600 });
+    // A prévia pertence a quem enviou: o confirmar só aceita o mesmo usuário (e usa o nome original guardado).
+    await fs.writeFile(this.caminhoMeta(hash, usuarioId), JSON.stringify({ arquivoNome }), { mode: 0o600 });
     return analise.previa;
+  }
+
+  private caminhoMeta(hash: string, usuarioId: string) {
+    return path.resolve(this.env.UPLOAD_DIR, `${hash}.${usuarioId}.json`);
   }
 
   private async analisar(buf: Buffer, hash: string, arquivoNome: string): Promise<Analise> {
@@ -157,8 +163,19 @@ export class ImportService {
   }
 
   /** Etapas 4 e 5: confirma e grava tudo numa transação, criando um lote reversível. */
-  async confirmar(hash: string, arquivoNome: string, usuario: UsuarioAutenticado, ctx: ContextoRequisicao) {
+  async confirmar(hash: string, usuario: UsuarioAutenticado, ctx: ContextoRequisicao) {
     if (!/^[a-f0-9]{64}$/.test(hash)) throw Erros.naoEncontrado();
+    const meta = await fs
+      .readFile(this.caminhoMeta(hash, usuario.id), 'utf8')
+      .then((t) => JSON.parse(t) as { arquivoNome: string })
+      .catch(() => {
+        throw new ApiException(
+          HttpStatus.NOT_FOUND,
+          'NOT_FOUND',
+          'Prévia não encontrada. Envie o arquivo de novo.',
+        );
+      });
+    const arquivoNome = meta.arquivoNome;
     const buf = await fs.readFile(this.caminho(hash)).catch(() => {
       throw new ApiException(HttpStatus.NOT_FOUND, 'NOT_FOUND', 'Prévia expirada. Envie o arquivo de novo.');
     });

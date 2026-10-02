@@ -38,7 +38,7 @@ function salvarNome(r: Representante, e: Event) {
   <div class="mx-auto max-w-5xl space-y-6">
     <UiExtraPageHeader
       titulo="Representantes"
-      descricao="Gestores vindos do Focco. Ajuste o nome de exibição, o segmento padrão e se estão ativos."
+      descricao="Representantes vindos do Focco. Ajuste o nome de exibição, o segmento padrão e se estão ativos."
     />
     <section class="rounded-xl border bg-card">
       <UiExtraEstadoBloco
