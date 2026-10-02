@@ -12,6 +12,7 @@ import { MailModule } from './modules/mail/mail.module.js';
 import { UsuariosModule } from './modules/usuarios/usuarios.module.js';
 import { CadastrosModule } from './modules/cadastros/cadastros.module.js';
 import { ImportModule } from './modules/import/import.module.js';
+import { DashboardModule } from './modules/dashboard/dashboard.module.js';
 import { PedidosModule } from './modules/pedidos/pedidos.module.js';
 import { PrismaModule } from './prisma/prisma.module.js';
 
@@ -49,6 +50,7 @@ const dev = process.env.NODE_ENV !== 'production';
     PedidosModule,
     CadastrosModule,
     ImportModule,
+    DashboardModule,
   ],
   controllers: [HealthController],
   providers: [

@@ -26,22 +26,25 @@ export class ScopedPedidosRepository {
 
   findMany<A extends Prisma.PedidoFindManyArgs>(
     u: UsuarioAutenticado,
-    args: Prisma.SelectSubset<A, Prisma.PedidoFindManyArgs>,
-  ) {
+    args: A,
+  ): Promise<Prisma.PedidoGetPayload<A>[]> {
     const a = args as Prisma.PedidoFindManyArgs;
-    return this.prisma.pedido.findMany({ ...a, where: { AND: [this.whereEscopo(u), a.where ?? {}] } } as A);
+    return this.prisma.pedido.findMany({
+      ...a,
+      where: { AND: [this.whereEscopo(u), a.where ?? {}] },
+    }) as unknown as Promise<Prisma.PedidoGetPayload<A>[]>;
   }
 
   count(u: UsuarioAutenticado, where: Prisma.PedidoWhereInput = {}) {
     return this.prisma.pedido.count({ where: { AND: [this.whereEscopo(u), where] } });
   }
 
-  aggregate(
-    u: UsuarioAutenticado,
-    where: Prisma.PedidoWhereInput,
-    args: Omit<Prisma.PedidoAggregateArgs, 'where'>,
-  ) {
-    return this.prisma.pedido.aggregate({ ...args, where: { AND: [this.whereEscopo(u), where] } });
+  async ultimaCompetencia(u: UsuarioAutenticado, where: Prisma.PedidoWhereInput): Promise<Date | null> {
+    const r = await this.prisma.pedido.aggregate({
+      where: { AND: [this.whereEscopo(u), where] },
+      _max: { competencia: true },
+    });
+    return r._max.competencia;
   }
 
   groupBy<K extends Prisma.PedidoScalarFieldEnum>(

@@ -4,3 +4,4 @@ export * from './schemas/auth.js';
 export * from './schemas/erro.js';
 export * from './schemas/importacao.js';
 export * from './schemas/cadastros.js';
+export * from './schemas/dashboard.js';
