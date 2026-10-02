@@ -12,7 +12,7 @@ async function entrar(page: Page, email: string, s = senha()) {
 
 async function abrirMenuSeCelular(page: Page) {
   // Espera o layout renderizar antes de decidir se é celular (botão de menu visível).
-  await page.getByRole('heading', { name: /Olá/ }).waitFor();
+  await page.getByRole('heading', { name: 'Visão geral', level: 2 }).waitFor();
   const menu = page.getByRole('button', { name: 'Abrir menu' });
   if (await menu.isVisible()) await menu.click();
 }
@@ -31,7 +31,8 @@ test('senha errada mostra mensagem genérica', async ({ page }) => {
 test('admin entra, vê o dashboard e o menu completo, e sai', async ({ page }) => {
   await entrar(page, USUARIOS.admin);
   await expect(page).toHaveURL(/\/dashboard$/);
-  await expect(page.getByRole('heading', { name: /Olá, Administrador/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Visão geral', level: 2 })).toBeVisible();
+  await expect(page.getByText('Admin', { exact: true }).first()).toBeAttached();
 
   await abrirMenuSeCelular(page);
   const nav = page.getByRole('navigation', { name: 'Navegação principal' }).last();
@@ -41,7 +42,7 @@ test('admin entra, vê o dashboard e o menu completo, e sai', async ({ page }) =
 
   // A sessão sobrevive a um recarregamento (refresh silencioso via cookie httpOnly).
   await page.reload();
-  await expect(page.getByRole('heading', { name: /Olá, Administrador/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Visão geral', level: 2 })).toBeVisible();
 
   await page.getByRole('button', { name: 'Menu do usuário' }).click();
   await page.getByRole('menuitem', { name: 'Sair' }).click();
@@ -82,7 +83,7 @@ test('primeiro acesso obriga a trocar a senha antes de usar o sistema', async ({
   await page.getByLabel('Confirme a nova senha').fill('GestorNovo2026');
   await page.getByRole('button', { name: 'Salvar' }).click();
   await expect(page).toHaveURL(/\/dashboard$/);
-  await expect(page.getByRole('heading', { name: /Olá, Gestor/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Visão geral', level: 2 })).toBeVisible();
 });
 
 test('esqueci minha senha confirma o envio sem revelar se o e-mail existe', async ({ page }) => {

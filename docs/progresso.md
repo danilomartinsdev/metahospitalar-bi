@@ -1,7 +1,23 @@
 # Progresso
 
-**Fase atual:** 2 — Dados (branch `fase-2-dados`)
-**Concluídas:** 0 — Contexto · 1 — Fundação (branch `fase-1-fundacao`)
+**Fase atual:** 4 — RBAC (próxima)
+**Concluídas:** 0 Contexto · 1 Fundação · 2 Dados (`fase-2-dados`) · 3 Dashboards (`fase-3-dashboards`)
+
+### Fase 2 — Dados (feito)
+
+Importador (HTML/xls/xlsx/csv) com prévia, lotes e rollback; cadastros de representantes, status PDV e clientes;
+metas. Planilha real: 744 pedidos, 0 erros, reimportação sem duplicar. Amostra anonimizada em `fixtures/focco/amostras/`.
+
+### Fase 3 — Dashboards (feito)
+
+Visão geral, rankings (gestores/estados/regiões), clientes, pedidos paginados; filtros na URL.
+Aceite: agosto/2026 = 65 pedidos, R$ 6.049.414,77, ticket R$ 93.067,92 — igual ao cálculo manual
+(`apps/api/test/agosto-2026.spec.ts`). Testes de escopo provam que representante não vê dados de outros.
+Variação "vs. período anterior" = mesmo número de meses imediatamente antes (para 1 mês, é o mês anterior).
+Período e busca ficaram na barra de filtros de cada tela (não na topbar).
+
+**Pendente de configuração (dados, não código):** segmento dos representantes (ex.: MURILLO = Público) em
+Administração › Representantes — sem isso, % Público fica 0%. Tela de override de segmento por cliente: Fase 4.
 
 ## Pendências
 

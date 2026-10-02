@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CalendarDays, Menu, PanelLeft, Search } from 'lucide-vue-next';
+import { Menu, PanelLeft } from 'lucide-vue-next';
 import { Button } from '~/components/ui/button';
 
 defineProps<{ titulo?: string }>();
@@ -26,19 +26,6 @@ const emit = defineEmits<{ 'alternar-sidebar': []; 'abrir-menu': [] }>();
     <h1 v-if="titulo" class="truncate text-base font-semibold md:text-lg">{{ titulo }}</h1>
 
     <div class="ml-auto flex items-center gap-1 md:gap-2">
-      <!-- Período e busca global ganham comportamento na Fase 3 (filtros na URL). -->
-      <Button
-        variant="outline"
-        size="sm"
-        class="hidden gap-2 sm:inline-flex"
-        disabled
-        title="Disponível na Fase 3"
-      >
-        <CalendarDays class="size-4" /> Período
-      </Button>
-      <Button variant="ghost" size="icon" aria-label="Busca global (em breve)" disabled>
-        <Search class="size-[18px]" />
-      </Button>
       <LayoutThemeToggle />
       <LayoutUserMenu />
     </div>

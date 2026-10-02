@@ -1,0 +1,30 @@
+<script setup lang="ts">
+import type { EChartsOption } from 'echarts';
+import { BarChart, LineChart, PieChart } from 'echarts/charts';
+import { GridComponent, LegendComponent, TooltipComponent } from 'echarts/components';
+import { use } from 'echarts/core';
+import { CanvasRenderer } from 'echarts/renderers';
+import VChart from 'vue-echarts';
+import { lerTema, type TemaGrafico } from '~/utils/charts/palette';
+
+use([CanvasRenderer, BarChart, LineChart, PieChart, GridComponent, TooltipComponent, LegendComponent]);
+
+const props = defineProps<{
+  /** Função pura de utils/charts que recebe o tema atual. */
+  opcoes: (tema: TemaGrafico) => EChartsOption;
+  altura?: string;
+  rotulo: string;
+}>();
+
+const { isDark } = useTheme();
+const tema = ref<TemaGrafico>(lerTema());
+// Relê os tokens quando o tema muda (a classe .dark já foi aplicada no próximo tick).
+watch(isDark, () => nextTick(() => (tema.value = lerTema())));
+const option = computed(() => props.opcoes(tema.value));
+</script>
+
+<template>
+  <div role="img" :aria-label="rotulo" :style="{ height: altura ?? '280px' }">
+    <VChart :option="option" autoresize class="size-full" />
+  </div>
+</template>
