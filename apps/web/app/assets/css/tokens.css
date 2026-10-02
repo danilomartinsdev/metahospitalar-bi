@@ -1,0 +1,82 @@
+/*
+ * Tokens do design system — ÚNICO lugar com valores de cor.
+ * Fonte: docs/design/design-system.md. Nomes compatíveis com shadcn-vue.
+ * Obs.: no shadcn, "accent" é a superfície de hover; o teal da marca é --highlight.
+ */
+:root {
+  --primary: #1d5fa8;
+  --primary-foreground: #ffffff;
+  --primary-strong: #0f2a4a;
+  --primary-strong-foreground: #e2e8f0;
+  --primary-soft: #eef4fb;
+  --highlight: #0d9488;
+  --highlight-foreground: #ffffff;
+
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
+  --secondary: #f1f5f9;
+  --secondary-foreground: #0f172a;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --accent: #eef4fb;
+  --accent-foreground: #0f2a4a;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #1d5fa8;
+
+  --success: #16a34a;
+  --warning: #f59e0b;
+  --danger: #dc2626;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+
+  --sidebar: #0f2a4a;
+  --sidebar-foreground: #e2e8f0;
+  --sidebar-muted: #94a3b8;
+  --sidebar-active: rgb(255 255 255 / 0.1);
+  --sidebar-border: rgb(255 255 255 / 0.08);
+
+  --radius: 12px;
+}
+
+.dark {
+  --primary: #3b82d6;
+  --primary-foreground: #ffffff;
+  --primary-strong: #0b1220;
+  --primary-strong-foreground: #e2e8f0;
+  --primary-soft: #13233d;
+  --highlight: #2dd4bf;
+  --highlight-foreground: #0b1220;
+
+  --background: #0b1220;
+  --foreground: #e2e8f0;
+  --card: #111a2e;
+  --card-foreground: #e2e8f0;
+  --popover: #111a2e;
+  --popover-foreground: #e2e8f0;
+  --secondary: #1e2a44;
+  --secondary-foreground: #e2e8f0;
+  --muted: #1e2a44;
+  --muted-foreground: #94a3b8;
+  --accent: #13233d;
+  --accent-foreground: #e2e8f0;
+  --border: #1e2a44;
+  --input: #1e2a44;
+  --ring: #3b82d6;
+
+  --success: #4ade80;
+  --warning: #fbbf24;
+  --danger: #f87171;
+  --destructive: #f87171;
+  --destructive-foreground: #0b1220;
+
+  --sidebar: #0b1220;
+  --sidebar-foreground: #e2e8f0;
+  --sidebar-muted: #94a3b8;
+  --sidebar-active: rgb(255 255 255 / 0.08);
+  --sidebar-border: #1e2a44;
+}

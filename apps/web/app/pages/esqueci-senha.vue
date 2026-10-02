@@ -1,0 +1,71 @@
+<script setup lang="ts">
+import { esqueciSenhaSchema } from '@meta-bi/shared';
+import { Loader2, MailCheck } from 'lucide-vue-next';
+import { useForm } from 'vee-validate';
+import { Button } from '~/components/ui/button';
+
+definePageMeta({ layout: 'auth' });
+useHead({ title: 'Esqueci minha senha — BI Meta Hospitalar' });
+
+const enviado = ref(false);
+const erro = ref<string | null>(null);
+const { defineField, handleSubmit, errors, isSubmitting } = useForm({
+  validationSchema: toTypedSchema(esqueciSenhaSchema),
+  initialValues: { email: '' },
+});
+const [email, emailAttrs] = defineField('email');
+
+const enviar = handleSubmit(async (dados) => {
+  erro.value = null;
+  try {
+    await $fetch('/api/auth/esqueci-senha', { method: 'POST', body: dados });
+    enviado.value = true;
+  } catch {
+    erro.value = 'Não foi possível enviar agora. Tente novamente em instantes.';
+  }
+});
+</script>
+
+<template>
+  <div v-if="enviado" class="space-y-4 text-center">
+    <MailCheck class="mx-auto size-10 text-highlight" aria-hidden="true" />
+    <h1 class="text-xl font-semibold">Verifique seu e-mail</h1>
+    <p class="text-sm text-muted-foreground">
+      Se houver uma conta com esse e-mail, enviamos um link para redefinir a senha. O link vale por 1 hora.
+    </p>
+    <NuxtLink to="/login" class="inline-block text-sm font-medium text-primary hover:underline"
+      >Voltar ao login</NuxtLink
+    >
+  </div>
+
+  <form v-else class="space-y-5" novalidate @submit="enviar">
+    <div class="space-y-1">
+      <h1 class="text-xl font-semibold">Esqueci minha senha</h1>
+      <p class="text-sm text-muted-foreground">Informe seu e-mail para receber um link de redefinição.</p>
+    </div>
+    <p
+      v-if="erro"
+      class="rounded-lg border border-danger/30 bg-danger/10 px-3 py-2 text-sm text-danger"
+      role="alert"
+    >
+      {{ erro }}
+    </p>
+    <UiExtraFormField
+      id="email"
+      v-model="email"
+      v-bind="emailAttrs"
+      label="E-mail"
+      type="email"
+      autocomplete="username"
+      :erro="errors.email"
+    />
+    <Button type="submit" class="h-10 w-full" :disabled="isSubmitting">
+      <Loader2 v-if="isSubmitting" class="animate-spin" /> Enviar link
+    </Button>
+    <p class="text-center">
+      <NuxtLink to="/login" class="text-sm text-muted-foreground hover:text-foreground"
+        >Voltar ao login</NuxtLink
+      >
+    </p>
+  </form>
+</template>
