@@ -53,7 +53,8 @@ const SECRET_PATTERNS = [
   },
   {
     re: new RegExp(
-      String.raw`\b(JWT_ACCESS_SECRET|POSTGRES_PASSWORD|SMTP_PASSWORD)\s*[=:]\s*['"]?(?!__GERADO__|\$\{|\$\$|${EXAMPLE})[^\s'"]{8,}`,
+      // Valor literal (termina em espaço, aspas, vírgula ou fim de linha) — ignora código como `z.string()`.
+      String.raw`\b(JWT_ACCESS_SECRET|POSTGRES_PASSWORD|SMTP_PASSWORD)\s*[=:]\s*['"]?(?!__GERADO__|\$\{|\$\$|${EXAMPLE})[^\s'"()]{8,}(?=['"\s,;]|$)`,
     ),
     why: 'segredo de ambiente com valor',
   },
