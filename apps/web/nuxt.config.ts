@@ -6,6 +6,8 @@ const apiTarget = process.env.API_PROXY_TARGET ?? 'http://127.0.0.1:4318';
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
   ssr: false,
+  // Permite um segundo servidor (E2E) rodar junto com o de dev sem disputar a pasta .nuxt.
+  buildDir: process.env.NUXT_BUILD_DIR ?? '.nuxt',
   devtools: { enabled: false },
   modules: ['@pinia/nuxt', 'shadcn-nuxt', '@nuxt/fonts'],
   css: ['~/assets/css/main.css'],

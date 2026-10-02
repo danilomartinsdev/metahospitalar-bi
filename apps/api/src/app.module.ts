@@ -19,16 +19,18 @@ const dev = process.env.NODE_ENV !== 'production';
     LoggerModule.forRoot({
       pinoHttp: {
         level: process.env.NODE_ENV === 'test' ? 'silent' : dev ? 'debug' : 'info',
-        genReqId: (req, res) => {
-          const id = (req.headers['x-request-id'] as string | undefined)?.slice(0, 64) ?? randomUUID();
-          res.setHeader('x-request-id', id);
-          return id;
+        // O id vem do Fastify (genReqId em app.factory.ts); o header x-request-id é devolvido no onSend.
+        genReqId: (req) => String((req as { id?: string }).id ?? randomUUID()),
+        // Loga só o essencial: nunca headers (Authorization, Cookie), corpo ou query completa.
+        serializers: {
+          req: (req: { id: string; method: string; url: string }) => ({
+            id: req.id,
+            method: req.method,
+            url: req.url.split('?')[0],
+          }),
+          res: (res: { statusCode: number }) => ({ statusCode: res.statusCode }),
         },
-        // Nunca logar credenciais, tokens ou cookies.
-        redact: {
-          paths: ['req.headers.authorization', 'req.headers.cookie', 'res.headers["set-cookie"]'],
-          censor: '[oculto]',
-        },
+        redact: { paths: ['req.headers', 'res.headers'], remove: true },
         transport:
           dev && process.env.NODE_ENV !== 'test'
             ? { target: 'pino-pretty', options: { singleLine: true } }

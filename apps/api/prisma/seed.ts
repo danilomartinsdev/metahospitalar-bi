@@ -60,7 +60,15 @@ async function main() {
 
   const informada = process.env.SEED_SENHA_INICIAL;
   const senha = informada ?? `Meta${randomBytes(9).toString('base64url')}1`;
-  const trocarSenha = process.env.SEED_TROCAR_SENHA !== 'false';
+  // SEED_TROCAR_SENHA: "true" (padrão), "false" ou lista de e-mails que devem trocar a senha (E2E).
+  const cfgTroca = process.env.SEED_TROCAR_SENHA ?? 'true';
+  const precisaTrocar = (email: string) =>
+    cfgTroca.includes('@')
+      ? cfgTroca
+          .split(',')
+          .map((e) => e.trim())
+          .includes(email)
+      : cfgTroca !== 'false';
   const senhaHash = await argon2.hash(senha, {
     type: argon2.argon2id,
     memoryCost: 19_456,
@@ -74,7 +82,14 @@ async function main() {
     const existe = await prisma.usuario.findUnique({ where: { email: u.email } });
     if (existe) continue;
     await prisma.usuario.create({
-      data: { email: u.email, nome: u.nome, roleId: role.id, senhaHash, trocarSenha, escopoTipo: u.escopo },
+      data: {
+        email: u.email,
+        nome: u.nome,
+        roleId: role.id,
+        senhaHash,
+        trocarSenha: precisaTrocar(u.email),
+        escopoTipo: u.escopo,
+      },
     });
     criados++;
   }

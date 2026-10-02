@@ -2,8 +2,10 @@
 apps/api/src/generated/
 node_modules/
 dist/
+dist-e2e/
 .output/
 .nuxt/
+.nuxt-e2e/
 .nitro/
 .cache/
 coverage/
