@@ -6,7 +6,21 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { readStdinJson, projectDir } from './lib.mjs';
 
-const PRETTIER_EXT = new Set(['.ts', '.mts', '.cts', '.js', '.mjs', '.cjs', '.vue', '.json', '.css', '.md', '.yaml', '.yml', '.html']);
+const PRETTIER_EXT = new Set([
+  '.ts',
+  '.mts',
+  '.cts',
+  '.js',
+  '.mjs',
+  '.cjs',
+  '.vue',
+  '.json',
+  '.css',
+  '.md',
+  '.yaml',
+  '.yml',
+  '.html',
+]);
 const ESLINT_EXT = new Set(['.ts', '.mts', '.cts', '.js', '.mjs', '.cjs', '.vue']);
 
 function bin(root, name) {
@@ -25,7 +39,11 @@ const root = projectDir(input);
 if (!filePath || !fs.existsSync(filePath)) process.exit(0);
 
 const abs = path.resolve(root, filePath);
-if (abs.includes(`${path.sep}node_modules${path.sep}`)) process.exit(0);
+const rel = path.relative(root, abs);
+// Só formata arquivos do projeto (ignora scratchpad, temporários e dependências).
+if (rel.startsWith('..') || path.isAbsolute(rel) || abs.includes(`${path.sep}node_modules${path.sep}`)) {
+  process.exit(0);
+}
 const ext = path.extname(abs).toLowerCase();
 const problems = [];
 

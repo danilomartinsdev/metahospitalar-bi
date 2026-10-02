@@ -1,6 +1,6 @@
 # apps/web — Frontend Nuxt 4 (SPA, ssr: false)
 
-Rodar: `pnpm --filter web dev` (porta 3000, proxy /api → 3001)
+Rodar: `pnpm --filter web dev` (porta 4317, proxy /api → 4318)
 Status: código começa na Fase 1.
 
 - pages/ define rotas; layouts: default (sidebar), auth, print (PDF)

@@ -55,7 +55,7 @@ Não implementar nada que dependa destes itens sem resposta do usuário.
   `code-review` usa o comando nativo do Claude Code.
 - docs/ completo (produto, dados, arquitetura, ADRs 0001–0005, design, operação em esqueleto).
 - Logos baixados em `apps/web/public/brand/`.
-- docker-compose.yml com Postgres 16 (127.0.0.1:5432, volume `meta-bi_pgdata`).
+- docker-compose.yml com Postgres 16 (127.0.0.1:5517, volume `meta-bi_pgdata`).
 
 **Como testar**
 

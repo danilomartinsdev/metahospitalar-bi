@@ -1,0 +1,41 @@
+export const REGIOES = ['Norte', 'Nordeste', 'Centro-Oeste', 'Sudeste', 'Sul', 'Exterior'] as const;
+export type Regiao = (typeof REGIOES)[number];
+
+/** UF → região. "EX" = exportação → "Exterior". Ver docs/produto/regras-de-negocio.md. */
+export const UF_REGIAO = {
+  AC: 'Norte',
+  AM: 'Norte',
+  AP: 'Norte',
+  PA: 'Norte',
+  RO: 'Norte',
+  RR: 'Norte',
+  TO: 'Norte',
+  AL: 'Nordeste',
+  BA: 'Nordeste',
+  CE: 'Nordeste',
+  MA: 'Nordeste',
+  PB: 'Nordeste',
+  PE: 'Nordeste',
+  PI: 'Nordeste',
+  RN: 'Nordeste',
+  SE: 'Nordeste',
+  DF: 'Centro-Oeste',
+  GO: 'Centro-Oeste',
+  MS: 'Centro-Oeste',
+  MT: 'Centro-Oeste',
+  ES: 'Sudeste',
+  MG: 'Sudeste',
+  RJ: 'Sudeste',
+  SP: 'Sudeste',
+  PR: 'Sul',
+  RS: 'Sul',
+  SC: 'Sul',
+  EX: 'Exterior',
+} as const satisfies Record<string, Regiao>;
+
+export type UF = keyof typeof UF_REGIAO;
+export const UFS = Object.keys(UF_REGIAO) as UF[];
+
+export function regiaoDaUf(uf: string): Regiao | undefined {
+  return (UF_REGIAO as Record<string, Regiao>)[uf.trim().toUpperCase()];
+}

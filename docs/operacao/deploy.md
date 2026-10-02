@@ -8,7 +8,7 @@ automático e proxy `/api`). Volumes: `pgdata`, `storage` (uploads), `backups`.
 
 ## Hoje (Fase 0)
 Só o Postgres de desenvolvimento: `pnpm db:up` / `pnpm db:down`
-(container `meta-bi-postgres`, `127.0.0.1:5432`, volume `meta-bi_pgdata`).
+(container `meta-bi-postgres`, `127.0.0.1:5517`, volume `meta-bi_pgdata`).
 
 ## Checklist de deploy (rascunho)
 - [ ] DNS apontando para o servidor; portas 80/443 liberadas.

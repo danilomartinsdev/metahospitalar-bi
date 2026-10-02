@@ -1,0 +1,13 @@
+node_modules
+dist
+.output
+.nuxt
+coverage
+pnpm-lock.yaml
+apps/api/prisma/migrations
+apps/api/src/generated
+apps/web/app/components/ui
+.claude/skills/*/data
+.claude/skills/*/scripts
+playwright-report
+test-results

@@ -1,4 +1,5 @@
 # Dependências e builds
+apps/api/src/generated/
 node_modules/
 dist/
 .output/
@@ -40,3 +41,7 @@ CLAUDE.local.md
 .DS_Store
 Thumbs.db
 *.log
+
+# Só o lockfile do pnpm é usado
+package-lock.json
+yarn.lock

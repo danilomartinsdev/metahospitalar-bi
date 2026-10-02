@@ -1,6 +1,6 @@
 # apps/api — Backend NestJS (Fastify) + Prisma
 
-Rodar: `pnpm db:up` e depois `pnpm --filter api dev` (porta 3001, prefixo /api)
+Rodar: `pnpm db:up` e depois `pnpm --filter api dev` (porta 4318, prefixo /api)
 Status: código começa na Fase 1.
 
 - src/main.ts — bootstrap Fastify, Helmet, CORS, rate limit, Pino
