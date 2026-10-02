@@ -1,14 +1,16 @@
 # Progresso
 
-**Fase atual:** 0 — Contexto (branch `fase-0-contexto`) · concluída, aguardando revisão do usuário
-**Próxima:** 1 — Fundação (monorepo, Docker completo, Prisma, design system, autenticação)
+**Fase atual:** 2 — Dados (branch `fase-2-dados`)
+**Concluídas:** 0 — Contexto · 1 — Fundação (branch `fase-1-fundacao`)
 
 ## Pendências
 
-- [ ] Usuário colocar a planilha real em `fixtures/focco/ano-todo-ate-agora.xls` (gitignored) e o protótipo HTML (onde guardar: `docs/produto/prototipo/`?) — necessário antes da Fase 2.
-- [ ] Gerar amostra anonimizada em `fixtures/focco/amostras/` a partir da planilha real (Fase 2).
-- [ ] Rodar `/memory` e confirmar a hierarquia de contexto (feito pelo usuário — comando interativo).
-- [ ] Criar a branch `main` no remoto e definir política de merge (PR por fase?).
+- [ ] **Planilha real** em `fixtures/focco/ano-todo-ate-agora.xls` (gitignored) — necessária para validar o importador.
+- [ ] Gerar amostra anonimizada em `fixtures/focco/amostras/` a partir da planilha real.
+- [ ] Rodar `/memory` e confirmar a hierarquia de contexto (comando interativo, usuário).
+- [ ] Default branch do GitHub ainda é `fase-0-contexto` (trocar para `main` em Settings ou autenticar o `gh`).
+- [ ] Subir a stack de produção (`docker-compose.prod.yml`) de ponta a ponta — imagens já compilam (Fase 6).
+- [ ] Primeira execução da CI no GitHub.
 
 ## Decisões pendentes
 
@@ -43,6 +45,17 @@ Não implementar nada que dependa destes itens sem resposta do usuário.
 | 2026-10-02 | Removidos por não se encaixarem: agentes data-scientist e context-manager; skills senior-frontend, senior-architect, senior-backend. `/security-audit` reescrito (lia `.env*` e usava npm/bash) | .claude/             |
 
 ## Feito
+
+### Fase 1 — Fundação
+
+- Monorepo pnpm (shared/api/web), TS estrito, ESLint/Prettier, pre-commit anti-segredos.
+- API NestJS 12 + Prisma 7: schema completo, auth (argon2id, bloqueio, refresh rotativo com detecção de reuso,
+  inatividade, troca obrigatória, esqueci/redefinir senha via Mailpit), guard seguro por padrão, auditoria.
+- Web Nuxt 4 SPA: tokens light/dark, layout com sidebar, telas de autenticação, dashboard provisório.
+- Testes: 8 shared + 6 web + 23 integração API (Postgres real) + 11 E2E (desktop e celular).
+- Docker de produção (API, Caddy com SPA e CSP) e CI no GitHub Actions. Ajustes de versão: ADR 0006.
+
+**Como testar:** `pnpm db:up` · `pnpm dev` → http://localhost:4317 · `pnpm test` · `pnpm test:e2e`.
 
 ### Fase 0 — Contexto
 

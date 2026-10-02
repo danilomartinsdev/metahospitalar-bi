@@ -21,7 +21,7 @@ function ativo(to: string) {
     <NuxtLink
       to="/dashboard"
       class="flex h-16 shrink-0 items-center gap-3 border-b border-sidebar-border"
-      :class="recolhida ? 'justify-center px-2' : 'px-5'"
+      :class="recolhida ? 'justify-center px-2' : 'px-6'"
       @click="emit('navegou')"
     >
       <img
@@ -34,7 +34,7 @@ function ativo(to: string) {
         v-else
         src="/brand/logo-meta-hospitalar.webp"
         alt="Meta Hospitalar"
-        class="h-9 w-auto brightness-0 invert"
+        class="h-8 w-auto brightness-0 invert"
       />
     </NuxtLink>
 

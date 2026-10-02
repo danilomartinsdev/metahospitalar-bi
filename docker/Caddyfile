@@ -1,0 +1,28 @@
+# SITE_ADDRESS: domínio público em produção (HTTPS automático) ou ":80" para teste local.
+{$SITE_ADDRESS::80} {
+	encode zstd gzip
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "no-referrer"
+		Permissions-Policy "camera=(), microphone=(), geolocation=()"
+		Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
+		-Server
+	}
+
+	# API: só o prefixo /api vai para o backend (rede interna do compose).
+	handle /api/* {
+		reverse_proxy api:4318
+	}
+
+	# SPA: arquivos estáticos com fallback para index.html.
+	handle {
+		root * /srv
+		@assets path /_nuxt/*
+		header @assets Cache-Control "public, max-age=31536000, immutable"
+		try_files {path} /index.html
+		file_server
+	}
+}
