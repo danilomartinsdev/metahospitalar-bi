@@ -44,10 +44,7 @@ const entrar = handleSubmit(async (dados) => {
 
 <template>
   <form class="space-y-5" novalidate @submit="entrar">
-    <div class="space-y-1">
-      <h1 class="text-xl font-semibold">Entrar</h1>
-      <p class="text-sm text-muted-foreground">Use seu e-mail corporativo.</p>
-    </div>
+    <h1 class="text-xl font-semibold">Entrar</h1>
 
     <p
       v-if="erroGeral"
