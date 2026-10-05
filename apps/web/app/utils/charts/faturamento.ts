@@ -64,14 +64,20 @@ export function evolucaoFaturamentoOptions(m: FaturamentoResumo['mensal'], t: Te
   };
 }
 
-/** Barras de Fatura DRE por dia ou por semana dentro do período. */
+/** Altura do gráfico de barras horizontais: uma linha por dia/semana, para todos os rótulos aparecerem. */
+export const alturaBarrasFaturamento = (n: number) => `${Math.max(240, n * 24 + 40)}px`;
+
+/**
+ * Barras horizontais de Fatura DRE por dia ou por semana: dias/semanas no eixo vertical (o primeiro em
+ * cima), valores no horizontal e o valor escrito no fim de cada barra.
+ */
 export function barrasFaturamentoOptions(
   pontos: { rotulo: string; dica: string; valor: number }[],
   t: TemaGrafico,
 ): EChartsOption {
   return {
     ...base(t),
-    grid: { left: 8, right: 8, top: 12, bottom: 8, containLabel: true },
+    grid: { left: 8, right: 64, top: 8, bottom: 8, containLabel: true },
     tooltip: {
       ...tooltip(t),
       axisPointer: { type: 'shadow' },
@@ -81,14 +87,15 @@ export function barrasFaturamentoOptions(
         return ponto ? `${ponto.dica}<br/><b>${formatBRL(ponto.valor)}</b>` : '';
       },
     },
-    xAxis: {
+    yAxis: {
       type: 'category',
+      inverse: true,
       data: pontos.map((p) => p.rotulo),
       axisLine: { lineStyle: { color: t.borda } },
-      axisLabel: { color: t.textoSuave, hideOverlap: true },
+      axisLabel: { color: t.texto, interval: 0 },
       axisTick: { show: false },
     },
-    yAxis: eixoValor(t),
+    xAxis: { ...eixoValor(t), splitLine: { lineStyle: { color: t.borda } } },
     series: [
       {
         type: 'bar',
@@ -96,9 +103,16 @@ export function barrasFaturamentoOptions(
         // Dias com valor negativo (só devolução) ficam na cor de alerta.
         itemStyle: {
           color: (p: { value: unknown }) => (Number(p.value) < 0 ? t.categorica[3]! : t.primaria),
-          borderRadius: [3, 3, 0, 0],
+          borderRadius: [0, 3, 3, 0],
         },
-        barMaxWidth: 24,
+        barMaxWidth: 16,
+        label: {
+          show: true,
+          position: 'right',
+          color: t.textoSuave,
+          fontSize: 11,
+          formatter: (p) => (Number(p.value) === 0 ? '' : formatCompact(p.value as number)),
+        },
       },
     ],
   };

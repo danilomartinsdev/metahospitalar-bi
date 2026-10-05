@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import { ArrowDownLeft, CalendarClock, DollarSign, Receipt, Truck } from 'lucide-vue-next';
 import { useFaturamentoResumoQuery } from '~/composables/api/useFaturamento';
-import { barrasFaturamentoOptions, evolucaoFaturamentoOptions } from '~/utils/charts/faturamento';
+import {
+  alturaBarrasFaturamento,
+  barrasFaturamentoOptions,
+  evolucaoFaturamentoOptions,
+} from '~/utils/charts/faturamento';
 import { anoAnterior, deslocarMes, periodoCurto, periodoPorExtenso } from '~/utils/periodo';
 
 // Faturamento: domínio separado dos pedidos (relatório diário do Focco). Não altera outras telas.
@@ -98,52 +102,67 @@ const pontoDia = (d: { data: string; dre: string }) => {
   };
 };
 
-// "Por dia": um mês por vez (padrão: o último mês do período).
+// Filtro de mês (vale para "Por dia" e "Por semana"; padrão: o último mês do período).
+// "Por semana" aceita também o período inteiro.
+const PERIODO = 'periodo';
 const mesesDoPeriodo = computed(() => [...new Set((r.value?.diario ?? []).map((d) => d.data.slice(0, 7)))]);
-const mesDia = ref<string>();
+const mesSel = ref<string>();
 watch(
   mesesDoPeriodo,
   (ms) => {
-    if (!mesDia.value || !ms.includes(mesDia.value)) mesDia.value = ms.at(-1);
+    if (!mesSel.value || (mesSel.value !== PERIODO && !ms.includes(mesSel.value))) mesSel.value = ms.at(-1);
   },
   { immediate: true },
 );
-const opcoesMesDia = computed(() =>
-  [...mesesDoPeriodo.value]
+const opcoesMesGrafico = computed(() => [
+  ...(visao.value === 'semana' ? [{ label: 'Todo o período', value: PERIODO }] : []),
+  ...[...mesesDoPeriodo.value]
     .reverse()
     .map((m) => ({ label: `${MESES_EXTENSO[Number(m.slice(5)) - 1]} de ${m.slice(0, 4)}`, value: m })),
+]);
+// "Por dia" não tem "Todo o período": volta para o último mês.
+watch(visao, (v) => {
+  if (v === 'dia' && mesSel.value === PERIODO) mesSel.value = mesesDoPeriodo.value.at(-1);
+});
+const diasDoMes = computed(() =>
+  (r.value?.diario ?? []).filter((d) => mesSel.value === PERIODO || d.data.startsWith(mesSel.value ?? '')),
 );
 
-// "Por semana": todas as semanas do período ou os dias de uma semana escolhida.
+// "Por semana": as semanas do mês escolhido (contando só os dias dele, para o total bater com o do mês)
+// ou os dias de uma semana. As semanas são identificadas pelas datas, não pelo número do relatório.
 const TODAS = 'todas';
 const chaveSemana = (s: { ano: number; semana: number }) => `${s.ano}-${s.semana}`;
 const semanaSel = ref<string>(TODAS);
-watch(qs, () => (semanaSel.value = TODAS));
-/** Semanas do período com o primeiro e o último dia (as semanas são identificadas pelas datas, não pelo número). */
-const semanas = computed(() =>
-  (r.value?.semanal ?? []).map((s) => {
-    const fim =
-      (r.value?.diario ?? []).filter((d) => chaveSemana(d) === chaveSemana(s)).at(-1)?.data ?? s.inicio;
-    return { ...s, fim, intervalo: `${ddmm(s.inicio)} a ${ddmm(fim)}/${fim.slice(0, 4)}` };
-  }),
-);
+watch([qs, mesSel], () => (semanaSel.value = TODAS));
+const semanas = computed(() => {
+  const grupos = new Map<string, { chave: string; inicio: string; fim: string; dre: number }>();
+  for (const d of diasDoMes.value) {
+    const k = chaveSemana(d);
+    const g = grupos.get(k) ?? { chave: k, inicio: d.data, fim: d.data, dre: 0 };
+    g.fim = d.data;
+    g.dre += Number(d.dre);
+    grupos.set(k, g);
+  }
+  return [...grupos.values()].map((g) => ({
+    ...g,
+    intervalo: `${ddmm(g.inicio)} a ${ddmm(g.fim)}/${g.fim.slice(0, 4)}`,
+  }));
+});
 const opcoesSemana = computed(() => [
   { label: 'Todas as semanas', value: TODAS },
-  ...[...semanas.value].reverse().map((s) => ({ label: s.intervalo, value: chaveSemana(s) })),
+  ...semanas.value.map((s) => ({ label: s.intervalo, value: s.chave })),
 ]);
 
 const pontos = computed(() => {
-  if (!r.value) return [];
-  if (visao.value === 'dia')
-    return r.value.diario.filter((d) => d.data.startsWith(mesDia.value ?? '')).map(pontoDia);
+  if (visao.value === 'dia') return diasDoMes.value.map(pontoDia);
   if (semanaSel.value !== TODAS) {
-    return r.value.diario.filter((d) => chaveSemana(d) === semanaSel.value).map(pontoDia);
+    return diasDoMes.value.filter((d) => chaveSemana(d) === semanaSel.value).map(pontoDia);
   }
-  // Cada barra = uma semana, rotulada pela data em que ela começa.
+  // Cada barra = uma semana, rotulada pelo intervalo de datas.
   return semanas.value.map((s) => ({
-    rotulo: ddmm(s.inicio),
+    rotulo: s.intervalo.slice(0, 13),
     dica: `Semana de ${s.intervalo}`,
-    valor: Number(s.dre),
+    valor: s.dre,
   }));
 });
 /** Total do que está no gráfico (só para leitura; os totais oficiais vêm da API em Decimal). */
@@ -254,22 +273,23 @@ const atalho = (tipo: 'ano' | 'mes') => {
             <UTabs v-model="visao" :items="ABAS" :content="false" size="xs" aria-label="Agrupar por" />
           </div>
           <div class="mt-3 flex flex-wrap items-center justify-between gap-2">
-            <USelect
-              v-if="visao === 'dia'"
-              v-model="mesDia"
-              :items="opcoesMesDia"
-              size="sm"
-              class="w-52"
-              aria-label="Mês do gráfico por dia"
-            />
-            <USelect
-              v-else
-              v-model="semanaSel"
-              :items="opcoesSemana"
-              size="sm"
-              class="w-64"
-              aria-label="Semana do gráfico"
-            />
+            <div class="flex flex-wrap gap-2">
+              <USelect
+                v-model="mesSel"
+                :items="opcoesMesGrafico"
+                size="sm"
+                class="w-48"
+                aria-label="Mês do gráfico"
+              />
+              <USelect
+                v-if="visao === 'semana'"
+                v-model="semanaSel"
+                :items="opcoesSemana"
+                size="sm"
+                class="w-52"
+                aria-label="Semana do gráfico"
+              />
+            </div>
             <span v-if="pontos.length" class="text-xs text-muted-foreground">
               Total: <b class="num text-foreground">{{ formatBRL(totalPontos) }}</b>
             </span>
@@ -281,7 +301,7 @@ const atalho = (tipo: 'ano' | 'mes') => {
           <ChartsBaseChart
             v-else
             class="mt-2"
-            altura="300px"
+            :altura="alturaBarrasFaturamento(pontos.length)"
             :rotulo="`Fatura DRE ${visao === 'dia' ? 'por dia' : 'por semana'} no período`"
             :opcoes="(t) => barrasFaturamentoOptions(pontos, t)"
           />

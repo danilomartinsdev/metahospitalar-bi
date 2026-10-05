@@ -44,7 +44,7 @@ describe('barrasFaturamentoOptions', () => {
       ],
       TEMA_CLARO,
     );
-    expect((o.xAxis as { data: string[] }).data).toEqual(['08/01', '09/01']);
+    expect((o.yAxis as { data: string[] }).data).toEqual(['08/01', '09/01']);
     const fmt = (o.tooltip as { formatter: (p: unknown) => string }).formatter;
     expect(fmt([{ dataIndex: 0 }])).toMatch(/^quinta, 08\/01\/2026<br\/><b>R\$\s?590\.174,50<\/b>$/);
   });
