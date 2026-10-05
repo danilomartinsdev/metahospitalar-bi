@@ -1,6 +1,11 @@
 <script lang="ts">
-import { registerMap } from 'echarts/core';
+import { MapChart } from 'echarts/charts';
+import { registerMap, use } from 'echarts/core';
 import { MAPAS, type NivelMapa } from '~/utils/charts/mapa-brasil';
+
+// No ECharts modular, registerMap só funciona depois que o tipo "map" foi instalado; sem isto, se a malha
+// chegar antes de o BaseChart carregar, o registro vira no-op e o mapa quebra ("reading 'regions'").
+use([MapChart]);
 
 // Escopo de módulo: cada malha (IBGE) é baixada e registrada uma única vez, para todas as telas.
 const cargas = new Map<NivelMapa, Promise<void>>();
