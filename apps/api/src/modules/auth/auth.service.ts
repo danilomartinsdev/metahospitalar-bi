@@ -156,7 +156,7 @@ export class AuthService {
     // Sem await: o tempo de resposta não deve depender do envio (não revela se o e-mail existe).
     void this.mail.enviar({
       para: u.email,
-      assunto: 'Redefinição de senha — BI Meta Hospitalar',
+      assunto: 'Redefinição de senha — BI Metahospitalar',
       texto: `Olá, ${u.nome}.\n\nPara definir uma nova senha, acesse:\n${link}\n\nO link vale por 1 hora. Se você não pediu, ignore este e-mail.`,
       html: `<p>Olá, ${escapar(u.nome)}.</p><p>Para definir uma nova senha, clique no link abaixo:</p><p><a href="${link}">Redefinir minha senha</a></p><p>O link vale por 1 hora. Se você não pediu, ignore este e-mail.</p>`,
     });

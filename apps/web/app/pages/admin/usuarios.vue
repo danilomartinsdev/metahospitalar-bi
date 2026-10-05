@@ -8,7 +8,7 @@ import { useAuthStore } from '~/stores/auth';
 const aviso = useAviso();
 const confirmar = useConfirmacao();
 definePageMeta({ titulo: 'Usuários', permissao: 'users.manage' });
-useHead({ title: 'Usuários — BI Meta Hospitalar' });
+useHead({ title: 'Usuários — BI Metahospitalar' });
 
 const auth = useAuthStore();
 const usuarios = useUsuariosQuery();

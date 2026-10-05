@@ -8,7 +8,7 @@ import {
 
 const aviso = useAviso();
 definePageMeta({ titulo: 'Representantes', permissao: 'cadastros.edit' });
-useHead({ title: 'Representantes — BI Meta Hospitalar' });
+useHead({ title: 'Representantes — BI Metahospitalar' });
 
 const reps = useRepresentantesQuery();
 const atualizar = useAtualizarRepresentante();

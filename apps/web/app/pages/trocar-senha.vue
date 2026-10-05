@@ -10,7 +10,7 @@ const aviso = useAviso();
 const auth = useAuthStore();
 const obrigatoria = computed(() => auth.usuario?.trocarSenha === true);
 definePageMeta({ layout: 'auth' });
-useHead({ title: 'Trocar senha — BI Meta Hospitalar' });
+useHead({ title: 'Trocar senha — BI Metahospitalar' });
 
 const { request } = useApi();
 const erro = ref<string | null>(null);

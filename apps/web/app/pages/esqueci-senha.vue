@@ -5,7 +5,7 @@ import type { FormSubmitEvent } from '@nuxt/ui';
 import type { z } from 'zod';
 
 definePageMeta({ layout: 'auth' });
-useHead({ title: 'Esqueci minha senha — BI Meta Hospitalar' });
+useHead({ title: 'Esqueci minha senha — BI Metahospitalar' });
 
 const enviado = ref(false);
 const erro = ref<string | null>(null);

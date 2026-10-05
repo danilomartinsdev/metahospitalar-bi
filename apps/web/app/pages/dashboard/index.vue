@@ -5,7 +5,7 @@ import { periodoPorExtenso, variacoesKpi } from '~/utils/periodo';
 import { barrasRankingOptions, donutOptions, evolucaoOptions } from '~/utils/charts/options';
 
 definePageMeta({ titulo: 'Visão geral', permissao: 'dashboard.view' });
-useHead({ title: 'Visão geral — BI Meta Hospitalar' });
+useHead({ title: 'Visão geral — BI Metahospitalar' });
 
 const { qs, filtros } = useFiltros();
 const meses = useMesesQuery();

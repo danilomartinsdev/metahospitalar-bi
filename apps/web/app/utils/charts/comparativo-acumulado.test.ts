@@ -1,47 +1,45 @@
 import type { VisaoGeral } from '@meta-bi/shared';
 import { describe, expect, it } from 'vitest';
-import { buildComparativoAcumuladoOptions, categoriasAcumulado } from './comparativo-acumulado';
+import { buildComparativoAcumuladoOptions, temComparativo } from './comparativo-acumulado';
 import { TEMA_CLARO } from './palette';
 
 const acumulado: VisaoGeral['acumuladoSegmento'] = {
-  meses: 8,
-  periodo: { atual: { de: '2026-01', ate: '2026-08' }, anterior: { de: '2025-01', ate: '2025-08' } },
-  total: { atual: '50000.00', anterior: '20000.00', pct: 1.5 },
+  meses: 9,
+  periodo: { atual: { de: '2026-01', ate: '2026-09' }, anterior: { de: '2025-01', ate: '2025-09' } },
+  total: { atual: '56997286.02', anterior: '61336427.14', pct: -0.0707 },
   linhas: [
-    { segmento: 'PUBLICO', atual: '25000.00', anterior: '12000.00', pct: 1.0833 },
-    { segmento: 'PRIVADO', atual: '25000.00', anterior: '0.00', pct: null },
+    { segmento: 'PUBLICO', atual: '26678877.39', anterior: '0.00', pct: null },
+    { segmento: 'PRIVADO', atual: '30318408.63', anterior: '0.00', pct: null },
   ],
 };
 
-type Serie = { name: string; data: number[]; label?: { formatter: (p: { dataIndex: number }) => string } };
+type Serie = { name: string; data: number[]; label?: { formatter: () => string } };
 
 describe('buildComparativoAcumuladoOptions', () => {
-  it('agrupa ano anterior × atual por segmento e põe o Total por último', () => {
+  it('compara só os totais dos dois períodos (sem Público/Privado)', () => {
     const o = buildComparativoAcumuladoOptions(acumulado, TEMA_CLARO);
-    expect((o.xAxis as { data: string[] }).data).toEqual(['Público', 'Privado', 'Total']);
+    expect((o.xAxis as { data: string[] }).data).toEqual(['Total vendido']);
     const [ant, atual] = o.series as Serie[];
-    expect(ant!.name).toBe('jan–ago/2025');
-    expect(ant!.data).toEqual([12000, 0, 20000]);
-    expect(atual!.name).toBe('jan–ago/2026');
-    expect(atual!.data).toEqual([25000, 25000, 50000]);
+    expect(ant).toMatchObject({ name: 'jan–set/2025', data: [61336427.14] });
+    expect(atual).toMatchObject({ name: 'jan–set/2026', data: [56997286.02] });
   });
 
-  it('rótulo mostra a variação com seta e fica vazio sem base de comparação', () => {
+  it('legenda mostra o total de cada período', () => {
     const o = buildComparativoAcumuladoOptions(acumulado, TEMA_CLARO);
-    const f = (o.series as Serie[])[1]!.label!.formatter;
-    expect(f({ dataIndex: 0 })).toMatch(/^▲ 108,3\s?%$/);
-    expect(f({ dataIndex: 1 })).toBe('');
-    expect(f({ dataIndex: 2 })).toMatch(/^▲ 150,0\s?%$/);
+    const fmt = (o.legend as { formatter: (n: string) => string }).formatter;
+    expect(fmt('jan–set/2025')).toMatch(/^jan–set\/2025: R\$\s?61\.336\.427,14$/);
+    expect(fmt('jan–set/2026')).toMatch(/^jan–set\/2026: R\$\s?56\.997\.286,02$/);
   });
 
-  it('sem vendas: sem categorias nem barras', () => {
+  it('rótulo da barra atual mostra a variação com seta', () => {
+    const o = buildComparativoAcumuladoOptions(acumulado, TEMA_CLARO);
+    expect((o.series as Serie[])[1]!.label!.formatter()).toMatch(/^▼ 7,1\s?%$/);
+  });
+
+  it('sem vendas nos dois períodos: nada a comparar', () => {
     const vazio = { ...acumulado, total: { atual: '0.00', anterior: '0.00', pct: null }, linhas: [] };
+    expect(temComparativo(vazio)).toBe(false);
     const o = buildComparativoAcumuladoOptions(vazio, TEMA_CLARO);
-    expect((o.xAxis as { data: string[] }).data).toEqual([]);
     expect((o.series as Serie[]).every((s) => s.data.length === 0)).toBe(true);
-  });
-
-  it('categoriasAcumulado traduz o código do segmento', () => {
-    expect(categoriasAcumulado(acumulado).map((c) => c.rotulo)).toEqual(['Público', 'Privado', 'Total']);
   });
 });

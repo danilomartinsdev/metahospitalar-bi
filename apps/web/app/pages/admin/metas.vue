@@ -6,7 +6,7 @@ import { useMetasQuery, useRepresentantesQuery, useSalvarMetas } from '~/composa
 const aviso = useAviso();
 const confirmar = useConfirmacao();
 definePageMeta({ titulo: 'Metas', permissao: 'metas.edit' });
-useHead({ title: 'Metas — BI Meta Hospitalar' });
+useHead({ title: 'Metas — BI Metahospitalar' });
 
 const MESES = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 const anoAtual = new Date().getFullYear();

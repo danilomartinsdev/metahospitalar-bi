@@ -6,7 +6,7 @@ import { usePapeisQuery, useRemoverPapel, useSalvarPapel } from '~/composables/a
 const aviso = useAviso();
 const confirmar = useConfirmacao();
 definePageMeta({ titulo: 'Papéis', permissao: 'users.manage' });
-useHead({ title: 'Papéis — BI Meta Hospitalar' });
+useHead({ title: 'Papéis — BI Metahospitalar' });
 
 const papeis = usePapeisQuery();
 const salvar = useSalvarPapel();

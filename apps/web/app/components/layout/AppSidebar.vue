@@ -30,13 +30,13 @@ function ativo(to: string) {
       <img
         v-if="recolhida"
         src="/brand/icone-meta-recortado.png"
-        alt="Meta Hospitalar"
+        alt="Metahospitalar"
         class="h-3.5 w-auto shrink-0 brightness-0 invert"
       />
       <img
         v-else
         src="/brand/logo-meta-hospitalar.webp"
-        alt="Meta Hospitalar"
+        alt="Metahospitalar"
         class="h-8 w-auto brightness-0 invert"
       />
     </NuxtLink>

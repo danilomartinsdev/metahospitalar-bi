@@ -5,7 +5,7 @@ import type { z } from 'zod';
 import { useAuthStore } from '~/stores/auth';
 
 definePageMeta({ layout: 'auth' });
-useHead({ title: 'Entrar — BI Meta Hospitalar' });
+useHead({ title: 'Entrar — BI Metahospitalar' });
 
 const auth = useAuthStore();
 const route = useRoute();

@@ -10,8 +10,11 @@ RUN pnpm install --frozen-lockfile --filter web... --ignore-scripts
 COPY packages/shared packages/shared
 COPY apps/web apps/web
 RUN pnpm --filter web exec nuxt generate
+# CSP: libera por hash só os scripts embutidos que o Nuxt gerou (senão a SPA abre em branco).
+COPY docker/Caddyfile docker/csp-hashes.mjs docker/
+RUN node docker/csp-hashes.mjs apps/web/.output/public docker/Caddyfile > /repo/Caddyfile
 
 FROM caddy:2-alpine AS runtime
-COPY docker/Caddyfile /etc/caddy/Caddyfile
+COPY --from=build /repo/Caddyfile /etc/caddy/Caddyfile
 COPY --from=build /repo/apps/web/.output/public /srv
 EXPOSE 80 443

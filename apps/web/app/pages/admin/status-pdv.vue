@@ -5,7 +5,7 @@ import { type StatusPdv, useAtualizarStatus, useStatusQuery } from '~/composable
 
 const aviso = useAviso();
 definePageMeta({ titulo: 'Status PDV', permissao: 'cadastros.edit' });
-useHead({ title: 'Status PDV — BI Meta Hospitalar' });
+useHead({ title: 'Status PDV — BI Metahospitalar' });
 
 const status = useStatusQuery();
 const atualizar = useAtualizarStatus();

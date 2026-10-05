@@ -5,7 +5,7 @@ import type { z } from 'zod';
 
 const aviso = useAviso();
 definePageMeta({ layout: 'auth' });
-useHead({ title: 'Redefinir senha — BI Meta Hospitalar' });
+useHead({ title: 'Redefinir senha — BI Metahospitalar' });
 
 const route = useRoute();
 const token = typeof route.query.token === 'string' ? route.query.token : '';

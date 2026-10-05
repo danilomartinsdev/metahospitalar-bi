@@ -39,7 +39,7 @@ export default defineNuxtConfig({
   app: {
     head: {
       htmlAttrs: { lang: 'pt-BR' },
-      title: 'BI Meta Hospitalar',
+      title: 'BI Metahospitalar',
       meta: [{ name: 'viewport', content: 'width=device-width, initial-scale=1' }],
       link: [{ rel: 'icon', type: 'image/png', href: '/brand/icone-meta.png' }],
     },

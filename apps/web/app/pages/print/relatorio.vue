@@ -8,7 +8,7 @@ import { periodoPorExtenso, variacoesKpi } from '~/utils/periodo';
 // Relatório executivo em A4, aberto pelo Chromium da API (ADR 0004). Sem sessão: o token de uso
 // único na URL é a credencial; a API aplica o escopo de quem pediu o PDF.
 definePageMeta({ layout: 'print' });
-useHead({ title: 'Relatório executivo — BI Meta Hospitalar' });
+useHead({ title: 'Relatório executivo — BI Metahospitalar' });
 
 type Janela = Window & { __relatorio?: 'pronto' | 'erro' };
 const route = useRoute();
@@ -77,7 +77,7 @@ const TABELAS = computed(() =>
   <article v-else class="space-y-5 text-sm">
     <header class="flex items-end justify-between border-b pb-3">
       <div>
-        <img src="/brand/logo-meta-hospitalar.webp" alt="Meta Hospitalar" class="h-9 w-auto" />
+        <img src="/brand/logo-meta-hospitalar.webp" alt="Metahospitalar" class="h-9 w-auto" />
         <h1 class="mt-2 text-xl font-semibold">Relatório executivo de vendas</h1>
         <p class="text-muted-foreground">{{ periodo }}</p>
       </div>

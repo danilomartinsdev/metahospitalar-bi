@@ -11,7 +11,7 @@ import {
 const aviso = useAviso();
 const confirmarAcao = useConfirmacao();
 definePageMeta({ titulo: 'Importações', permissao: 'import.run' });
-useHead({ title: 'Importações — BI Meta Hospitalar' });
+useHead({ title: 'Importações — BI Metahospitalar' });
 
 const can = useCan();
 const lotes = useLotesQuery();

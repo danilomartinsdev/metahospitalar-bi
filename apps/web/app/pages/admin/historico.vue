@@ -3,7 +3,7 @@ import { valorMetaSchema } from '@meta-bi/shared';
 import { useHistoricoQuery, useSalvarHistorico } from '~/composables/api/useCadastros';
 
 definePageMeta({ titulo: 'Histórico', permissao: 'metas.edit' });
-useHead({ title: 'Histórico de faturamento — BI Meta Hospitalar' });
+useHead({ title: 'Histórico de faturamento — BI Metahospitalar' });
 
 const aviso = useAviso();
 const MESES = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];

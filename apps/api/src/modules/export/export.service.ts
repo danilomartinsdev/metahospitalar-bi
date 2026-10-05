@@ -120,7 +120,7 @@ export class ExportService {
     try {
       conteudo = await this.renderer.renderizar(
         `${base}/print/relatorio?token=${token}`,
-        `Meta Hospitalar · BI Executivo — gerado por ${u.nome} em ${quando} · uso interno`,
+        `Metahospitalar · BI Executivo — gerado por ${u.nome} em ${quando} · uso interno`,
       );
     } catch (e) {
       this.logger.error(`Falha ao gerar PDF: ${(e as Error).message}`);

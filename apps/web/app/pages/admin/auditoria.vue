@@ -3,7 +3,7 @@ import type { AuditoriaLinha } from '@meta-bi/shared';
 import { useAcoesAuditoriaQuery, useAuditoriaQuery, useUsuariosQuery } from '~/composables/api/useAdmin';
 
 definePageMeta({ titulo: 'Auditoria', permissao: 'audit.view' });
-useHead({ title: 'Auditoria — BI Meta Hospitalar' });
+useHead({ title: 'Auditoria — BI Metahospitalar' });
 
 const route = useRoute();
 const router = useRouter();

@@ -5,7 +5,7 @@ import { useLocalStorage } from '@vueuse/core';
 import { usePedidosQuery } from '~/composables/api/useDashboard';
 
 definePageMeta({ titulo: 'Pedidos', permissao: 'pedidos.view' });
-useHead({ title: 'Pedidos — BI Meta Hospitalar' });
+useHead({ title: 'Pedidos — BI Metahospitalar' });
 
 const route = useRoute();
 const router = useRouter();

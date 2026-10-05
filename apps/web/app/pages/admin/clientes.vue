@@ -5,7 +5,7 @@ import { useAtualizarCliente, useClientesAdminQuery } from '~/composables/api/us
 
 const aviso = useAviso();
 definePageMeta({ titulo: 'Segmento por cliente', permissao: 'cadastros.edit' });
-useHead({ title: 'Segmento por cliente — BI Meta Hospitalar' });
+useHead({ title: 'Segmento por cliente — BI Metahospitalar' });
 
 const busca = ref('');
 const buscaDebounced = refDebounced(busca, 350);

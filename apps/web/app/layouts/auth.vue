@@ -5,7 +5,7 @@
       <div class="mb-8 flex justify-center">
         <img
           src="/brand/logo-meta-hospitalar.webp"
-          alt="Meta Hospitalar"
+          alt="Metahospitalar"
           class="h-14 w-auto dark:brightness-0 dark:invert"
         />
       </div>

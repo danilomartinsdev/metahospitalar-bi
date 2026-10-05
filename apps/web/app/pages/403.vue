@@ -2,7 +2,7 @@
 import { ShieldAlert } from 'lucide-vue-next';
 
 definePageMeta({ titulo: 'Acesso negado' });
-useHead({ title: 'Acesso negado — BI Meta Hospitalar' });
+useHead({ title: 'Acesso negado — BI Metahospitalar' });
 </script>
 
 <template>

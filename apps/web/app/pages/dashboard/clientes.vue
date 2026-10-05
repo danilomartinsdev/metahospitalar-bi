@@ -3,7 +3,7 @@ import { Repeat, Sparkles, Users } from 'lucide-vue-next';
 import { useClientesQuery } from '~/composables/api/useDashboard';
 
 definePageMeta({ titulo: 'Clientes', permissao: 'dashboard.view' });
-useHead({ title: 'Clientes — BI Meta Hospitalar' });
+useHead({ title: 'Clientes — BI Metahospitalar' });
 
 const { qs } = useFiltros();
 const q = useClientesQuery(qs);
