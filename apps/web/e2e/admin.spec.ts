@@ -6,7 +6,7 @@ async function entrar(page: Page) {
   await page.getByLabel('E-mail').fill(USUARIOS.admin);
   await page.getByLabel('Senha', { exact: true }).fill(process.env.E2E_SENHA!);
   await page.getByRole('button', { name: 'Entrar' }).click();
-  await expect(page.getByRole('heading', { name: 'Visão geral', level: 2 })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Visão geral', level: 2 })).toBeVisible({ timeout: 30_000 });
 }
 
 const TELAS = [

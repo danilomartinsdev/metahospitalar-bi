@@ -98,8 +98,11 @@ export function acumuladoPorSegmento(linhas: LinhaVenda[], ano: number, mesFinal
   const segs = ['PUBLICO', 'PRIVADO', 'SEM'] as const;
   const de = (ls: LinhaVenda[], s: (typeof segs)[number]) =>
     somar(ls.filter((l) => (l.segmento ?? 'SEM') === s)).total;
+  const tAtual = somar(atual).total;
+  const tAnterior = somar(anterior).total;
   return {
     meses: mesFinal,
+    total: { atual: tAtual.toFixed(2), anterior: tAnterior.toFixed(2), pct: variacao(tAtual, tAnterior) },
     linhas: segs
       .map((s) => ({ segmento: s, atual: de(atual, s), anterior: de(anterior, s) }))
       .filter((r) => !r.atual.isZero() || !r.anterior.isZero())
@@ -109,5 +112,28 @@ export function acumuladoPorSegmento(linhas: LinhaVenda[], ano: number, mesFinal
         anterior: r.anterior.toFixed(2),
         pct: variacao(r.atual, r.anterior),
       })),
+  };
+}
+
+/**
+ * Atingimento acumulado: Σ real ÷ Σ meta nos meses jan..mesFinal que têm meta (> 0).
+ * Sem nenhuma meta no intervalo → null ("sem meta").
+ */
+export function atingimentoAcumulado(
+  real: Map<number, Decimal>,
+  metas: Map<number, Decimal> | null,
+  mesFinal: number,
+): { mesInicial: number; mesFinal: number; meta: string; real: string; pct: number | null } | null {
+  if (!metas) return null;
+  const meses = Array.from({ length: mesFinal }, (_, i) => i + 1).filter((m) => metas.get(m)?.gt(0));
+  if (!meses.length) return null;
+  const meta = meses.reduce((s, m) => s.plus(metas.get(m)!), zero());
+  const realizado = meses.reduce((s, m) => s.plus(real.get(m) ?? zero()), zero());
+  return {
+    mesInicial: meses[0]!,
+    mesFinal: meses.at(-1)!,
+    meta: meta.toFixed(2),
+    real: realizado.toFixed(2),
+    pct: fracao(realizado, meta),
   };
 }

@@ -20,6 +20,7 @@ const ev = (comMeta: boolean): VisaoGeral['evolucao'] => ({
     anoAnterior: '500.00',
     meta: comMeta && i < 6 ? '2000.00' : null,
   })),
+  atingimento: null,
 });
 
 describe('evolucaoOptions', () => {

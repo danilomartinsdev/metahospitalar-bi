@@ -14,7 +14,26 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css'],
   // Usa o código-fonte do pacote compartilhado (sem depender do build em dist/ durante o dev).
   alias: { '@meta-bi/shared': fileURLToPath(new URL('../../packages/shared/src/index.ts', import.meta.url)) },
-  vite: { plugins: [tailwindcss()] },
+  vite: {
+    plugins: [tailwindcss()],
+    // Pré-empacota no início do dev o que o Vite descobriria navegando — senão cada descoberta
+    // recarrega a página inteira e o app parece lento.
+    optimizeDeps: {
+      include: [
+        '@tanstack/vue-query',
+        '@vueuse/core',
+        'zod',
+        'lucide-vue-next',
+        'vue-echarts',
+        'echarts/core',
+        'echarts/charts',
+        'echarts/components',
+        'echarts/renderers',
+      ],
+    },
+    // O servidor do E2E (outro buildDir) usa cache próprio para não invalidar o do dev.
+    ...(process.env.NUXT_BUILD_DIR ? { cacheDir: 'node_modules/.cache/vite-e2e' } : {}),
+  },
   shadcn: { prefix: '', componentDir: './app/components/ui' },
   fonts: { families: [{ name: 'Inter', provider: 'google', weights: [400, 500, 600] }] },
   app: {

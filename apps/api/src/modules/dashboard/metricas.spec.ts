@@ -4,6 +4,7 @@ import { Prisma } from '../../generated/prisma/client.js';
 import {
   acumuladoPorSegmento,
   agrupar,
+  atingimentoAcumulado,
   deslocarMes,
   type LinhaVenda,
   mesesEntre,
@@ -72,6 +73,30 @@ describe('KPIs do exemplo base (agosto/2026)', () => {
       { segmento: 'PUBLICO', atual: '25000.00', anterior: '12000.00', pct: expect.closeTo(1.0833, 4) },
       { segmento: 'PRIVADO', atual: '25000.00', anterior: '8000.00', pct: 2.125 },
     ]);
+    expect(seg.total).toEqual({ atual: '50000.00', anterior: '20000.00', pct: 1.5 });
+  });
+
+  it('atingimento acumulado: Σ real ÷ Σ meta só nos meses com meta (ago = 30.000 ÷ 40.000 = 75%)', () => {
+    const D = Prisma.Decimal;
+    const real = new Map([
+      [7, new D(20000)],
+      [8, new D(30000)],
+    ]);
+    // Julho sem meta (0) fica de fora; setembro está além do mês final.
+    const metas = new Map([
+      [7, new D(0)],
+      [8, new D(40000)],
+      [9, new D(50000)],
+    ]);
+    expect(atingimentoAcumulado(real, metas, 8)).toEqual({
+      mesInicial: 8,
+      mesFinal: 8,
+      meta: '40000.00',
+      real: '30000.00',
+      pct: 0.75,
+    });
+    expect(atingimentoAcumulado(real, null, 8)).toBeNull();
+    expect(atingimentoAcumulado(real, new Map([[9, new D(1)]]), 8)).toBeNull();
   });
 
   it('ranking ordena por total e participação soma 100%', () => {

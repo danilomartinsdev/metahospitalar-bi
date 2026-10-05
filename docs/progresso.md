@@ -21,7 +21,7 @@ Administração › Representantes — sem isso, % Público fica 0%. Tela de ove
 
 ## Pendências
 
-- [ ] **Migração UI → Nuxt UI v4** (fase-4b-ui, ADR 0007): fases 0–6 feitas (tema, shell, primitivos/overlays/toasts, tabelas/paginação/selects, formulários de auth com UForm, telas de admin com UCheckbox/USwitch/URadioGroup, filtro por usuário e detalhe na auditoria, validação/alterações pendentes em metas); faltam 7 (dashboards, com melhorias inspiradas no dashboard HTML de referência) e 8 (limpeza final de shadcn-vue/vue-sonner/vee-validate).
+- [ ] **Migração UI → Nuxt UI v4** (fase-4b-ui, ADR 0007): fases 0–7 feitas (tema, shell, primitivos/overlays/toasts, tabelas/paginação/selects, formulários de auth com UForm, telas de admin com UCheckbox/USwitch/URadioGroup, filtro por usuário e detalhe na auditoria, validação/alterações pendentes em metas; dashboards com atingimento acumulado da meta, comparativo acumulado em gráfico, sparkline de % Público, atalhos de período, aviso de busca ativa e top 3 destacado nos rankings — inspirados no dashboard HTML de referência); falta 8 (limpeza final de shadcn-vue/vue-sonner/vee-validate). Exportação CSV da referência não entra: a spec prevê Excel (export.xlsx) em fase própria.
 - [ ] Tela de override de segmento por cliente (Fase 4, ainda não feita).
 
 - [ ] **Planilha real** em `fixtures/focco/ano-todo-ate-agora.xls` (gitignored) — necessária para validar o importador.

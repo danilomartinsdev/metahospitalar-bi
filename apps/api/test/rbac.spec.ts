@@ -7,7 +7,7 @@ const AMOSTRA = path.resolve(import.meta.dirname, '../../../fixtures/focco/amost
 let ctx: Contexto;
 let admin: string;
 
-const req = (method: 'GET' | 'POST' | 'PATCH' | 'DELETE', url: string, token: string, payload?: object) =>
+const req = (method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE', url: string, token: string, payload?: object) =>
   ctx.app
     .inject({ method, url, headers: { authorization: `Bearer ${token}` }, ...(payload ? { payload } : {}) })
     .then((r) => ({

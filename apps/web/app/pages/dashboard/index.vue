@@ -1,16 +1,18 @@
 <script setup lang="ts">
 import { DollarSign, Landmark, Receipt, ShoppingCart } from 'lucide-vue-next';
-import { useVisaoGeralQuery } from '~/composables/api/useDashboard';
+import { useMesesQuery, useVisaoGeralQuery } from '~/composables/api/useDashboard';
 import { barrasRankingOptions, donutOptions, evolucaoOptions } from '~/utils/charts/options';
 
 definePageMeta({ titulo: 'Visão geral', permissao: 'dashboard.view' });
 useHead({ title: 'Visão geral — BI Meta Hospitalar' });
 
-const { qs } = useFiltros();
+const { qs, filtros } = useFiltros();
+const meses = useMesesQuery();
 const q = useVisaoGeralQuery(qs);
 const v = computed(() => q.data.value);
 const carregando = computed(() => q.isPending.value);
 const donut = ref<'regiao' | 'segmento'>('regiao');
+const can = useCan();
 
 const NOMES_MES = [
   'janeiro',
@@ -32,6 +34,12 @@ const rotuloPeriodo = computed(() => {
   const f = (m: string) => `${NOMES_MES[Number(m.slice(5)) - 1]} de ${m.slice(0, 4)}`;
   return p.de === p.ate ? f(p.de) : `${f(p.de)} a ${f(p.ate)}`;
 });
+/** Último mês com pedidos importados (no escopo do usuário). */
+const dadosAte = computed(() => {
+  const m = meses.data.value?.at(-1);
+  return m ? `${NOMES_MES[Number(m.slice(5)) - 1]} de ${m.slice(0, 4)}` : '';
+});
+const MES_CURTO = (n: number) => NOMES_MES[n - 1]!.slice(0, 3);
 const serie = (k: 'total' | 'qtd' | 'ticket') => v.value?.kpis[k].serie.map((s) => Number(s.valor)) ?? [];
 const variacoes = (k: 'total' | 'qtd' | 'ticket') =>
   v.value
@@ -40,7 +48,10 @@ const variacoes = (k: 'total' | 'qtd' | 'ticket') =>
         { rotulo: 'vs. ano anterior', pct: v.value.kpis[k].anoAnterior.pct },
       ]
     : [];
-const SEGMENTO: Record<string, string> = { PUBLICO: 'Público', PRIVADO: 'Privado', SEM: 'Sem segmento' };
+const ABAS_DONUT = [
+  { label: 'Região', value: 'regiao' },
+  { label: 'Público × Privado', value: 'segmento' },
+];
 </script>
 
 <template>
@@ -49,10 +60,20 @@ const SEGMENTO: Record<string, string> = { PUBLICO: 'Público', PRIVADO: 'Privad
       <h2 class="text-2xl font-semibold">Visão geral</h2>
       <p class="text-sm text-muted-foreground">
         {{ rotuloPeriodo || 'Carregando período…' }}
+        <template v-if="dadosAte"> · dados importados até {{ dadosAte }}</template>
       </p>
     </div>
 
     <DashboardFilterBar :periodo="v?.periodo" />
+
+    <UAlert
+      v-if="filtros.q"
+      color="warning"
+      variant="subtle"
+      icon="i-lucide-search"
+      :title="`Busca ativa: “${filtros.q}”`"
+      description="Indicadores, gráficos e rankings consideram só os pedidos encontrados pela busca."
+    />
 
     <UiExtraEstadoBloco v-if="q.error.value" :erro="q.error.value" @tentar-de-novo="q.refetch()" />
     <template v-else>
@@ -86,6 +107,7 @@ const SEGMENTO: Record<string, string> = { PUBLICO: 'Público', PRIVADO: 'Privad
           :icone="Landmark"
           :carregando="carregando"
           :valor="formatPct(v?.kpis.pctPublico.valor)"
+          :serie="v?.kpis.pctPublico.serie.map((s) => s.valor)"
           :variacoes="
             v ? [{ rotulo: `no ano anterior: ${formatPct(v.kpis.pctPublico.anoAnterior)}`, pct: null }] : []
           "
@@ -123,34 +145,47 @@ const SEGMENTO: Record<string, string> = { PUBLICO: 'Público', PRIVADO: 'Privad
             rotulo="Gráfico de evolução mensal de vendas comparando com o ano anterior e a meta"
             :opcoes="(t) => evolucaoOptions(v!.evolucao, t)"
           />
+          <p v-if="v" class="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
+            <template v-if="v.evolucao.atingimento">
+              <span>
+                Meta acumulada
+                {{
+                  v.evolucao.atingimento.mesInicial === v.evolucao.atingimento.mesFinal
+                    ? MES_CURTO(v.evolucao.atingimento.mesFinal)
+                    : `${MES_CURTO(v.evolucao.atingimento.mesInicial)}–${MES_CURTO(v.evolucao.atingimento.mesFinal)}`
+                }}:
+                <b class="num text-foreground">{{ formatBRL(v.evolucao.atingimento.meta) }}</b>
+              </span>
+              <span>
+                Realizado: <b class="num text-foreground">{{ formatBRL(v.evolucao.atingimento.real) }}</b>
+              </span>
+              <span>
+                Atingimento:
+                <b
+                  class="num"
+                  :class="(v.evolucao.atingimento.pct ?? 0) >= 1 ? 'text-success' : 'text-warning'"
+                  >{{ formatPct(v.evolucao.atingimento.pct) }}</b
+                >
+              </span>
+            </template>
+            <span v-else>
+              Sem meta para o período.
+              <NuxtLink v-if="can('metas.edit')" to="/admin/metas" class="font-medium text-primary hover:underline">
+                Definir metas
+              </NuxtLink>
+            </span>
+          </p>
         </div>
         <div class="rounded-xl border bg-card p-5">
           <div class="flex items-center justify-between">
             <h3 class="text-sm font-medium text-muted-foreground">Participação</h3>
-            <div
-              class="flex rounded-md border p-0.5 text-xs"
-              role="group"
+            <UTabs
+              v-model="donut"
+              :items="ABAS_DONUT"
+              :content="false"
+              size="xs"
               aria-label="Agrupar participação por"
-            >
-              <button
-                v-for="o in [
-                  { k: 'regiao', r: 'Região' },
-                  { k: 'segmento', r: 'Público × Privado' },
-                ] as const"
-                :key="o.k"
-                type="button"
-                class="rounded px-2 py-1"
-                :class="
-                  donut === o.k
-                    ? 'bg-primary text-primary-foreground'
-                    : 'text-muted-foreground hover:text-foreground'
-                "
-                :aria-pressed="donut === o.k"
-                @click="donut = o.k"
-              >
-                {{ o.r }}
-              </button>
-            </div>
+            />
           </div>
           <div v-if="carregando" class="mx-auto mt-6 size-48 animate-pulse rounded-full bg-muted" />
           <p v-else-if="v && !v.porRegiao.length" class="py-20 text-center text-sm text-muted-foreground">
@@ -189,38 +224,17 @@ const SEGMENTO: Record<string, string> = { PUBLICO: 'Público', PRIVADO: 'Privad
         </div>
         <div class="rounded-xl border bg-card p-5">
           <h3 class="text-sm font-medium text-muted-foreground">
-            Acumulado por segmento
+            Acumulado do ano por segmento
             <span v-if="v" class="block text-xs font-normal"
               >jan–{{ NOMES_MES[v.acumuladoSegmento.meses - 1]?.slice(0, 3) }} {{ v.evolucao.ano }} vs. mesmo
               período de {{ v.evolucao.ano - 1 }}</span
             >
           </h3>
-          <div v-if="carregando" class="mt-4 space-y-3">
-            <div v-for="i in 3" :key="i" class="h-12 animate-pulse rounded bg-muted" />
-          </div>
-          <ul v-else-if="v" class="mt-4 divide-y">
-            <li v-for="s in v.acumuladoSegmento.linhas" :key="s.segmento" class="py-3">
-              <div class="flex items-baseline justify-between">
-                <span class="font-medium">{{ SEGMENTO[s.segmento] }}</span>
-                <span class="num font-semibold">{{ formatBRL(s.atual) }}</span>
-              </div>
-              <div class="mt-0.5 flex items-baseline justify-between text-xs text-muted-foreground">
-                <span class="num">antes: {{ formatBRL(s.anterior) }}</span>
-                <span
-                  class="num font-medium"
-                  :class="s.pct === null ? '' : s.pct >= 0 ? 'text-success' : 'text-danger'"
-                >
-                  {{ s.pct === null ? 'sem base' : formatPct(s.pct) }}
-                </span>
-              </div>
-            </li>
-            <li
-              v-if="!v.acumuladoSegmento.linhas.length"
-              class="py-6 text-center text-sm text-muted-foreground"
-            >
-              Sem vendas.
-            </li>
-          </ul>
+          <ChartsComparativoAcumuladoChart
+            :acumulado="v?.acumuladoSegmento"
+            :ano="v?.evolucao.ano"
+            :carregando="carregando"
+          />
         </div>
       </section>
     </template>

@@ -97,7 +97,14 @@ const colunas = computed<TableColumn<LinhaRanking>[]>(() => [
     class="text-sm"
   >
     <template #pos-cell="{ row, table }">
-      {{ table.getRowModel().rows.findIndex((r) => r.id === row.id) + 1 }}
+      <span
+        v-for="pos in [table.getRowModel().rows.findIndex((r) => r.id === row.id) + 1]"
+        :key="pos"
+        class="inline-grid size-6 place-items-center rounded-md text-xs font-semibold"
+        :class="pos <= 3 ? 'bg-primary-soft text-primary' : 'text-muted-foreground'"
+        :aria-label="`${pos}º lugar`"
+        >{{ pos }}</span
+      >
     </template>
     <template #total-cell="{ row }">{{ formatBRL(row.original.total) }}</template>
     <template #qtd-cell="{ row }">{{ formatInt(row.original.qtd) }}</template>

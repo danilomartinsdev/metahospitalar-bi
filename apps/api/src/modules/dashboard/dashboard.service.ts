@@ -19,6 +19,7 @@ import { ScopedPedidosRepository } from '../pedidos/scoped-pedidos.repository.js
 import {
   acumuladoPorSegmento,
   agrupar,
+  atingimentoAcumulado,
   deslocarMes,
   fracao,
   type LinhaVenda,
@@ -157,11 +158,17 @@ export class DashboardService {
 
     // Evolução mensal: ignora o filtro de mês (usa o ano de "até").
     const metas = await this.metasMensais(u, f, ano);
+    const realMes = new Map(
+      Array.from({ length: 12 }, (_, i) => {
+        const m = `${ano}-${String(i + 1).padStart(2, '0')}`;
+        return [i + 1, totalDe(noPeriodo(todas, m, m))] as const;
+      }),
+    );
     const evolucao = Array.from({ length: 12 }, (_, i) => {
       const m = String(i + 1).padStart(2, '0');
       return {
         mes: i + 1,
-        real: totalDe(noPeriodo(todas, `${ano}-${m}`, `${ano}-${m}`)).toFixed(2),
+        real: realMes.get(i + 1)!.toFixed(2),
         anoAnterior: totalDe(noPeriodo(todas, `${ano - 1}-${m}`, `${ano - 1}-${m}`)).toFixed(2),
         meta: metas?.get(i + 1)?.toFixed(2) ?? null,
       };
@@ -173,7 +180,11 @@ export class DashboardService {
         total: kpi(totalDe),
         qtd: kpi(qtdDe),
         ticket: kpi(ticketDe),
-        pctPublico: { valor: pctPublico(atual), anoAnterior: pctPublico(anoAnt) },
+        pctPublico: {
+          valor: pctPublico(atual),
+          anoAnterior: pctPublico(anoAnt),
+          serie: mesesSerie.map((mes) => ({ mes, valor: pctPublico(noPeriodo(ultimos12, mes, mes)) })),
+        },
       },
       contagens: {
         estados: new Set(atual.map((l) => l.uf)).size,
@@ -181,7 +192,11 @@ export class DashboardService {
         gestores: new Set(atual.map((l) => l.gestorId)).size,
         clientes: new Set(atual.map((l) => l.clienteId)).size,
       },
-      evolucao: { ano, meses: evolucao },
+      evolucao: {
+        ano,
+        meses: evolucao,
+        atingimento: atingimentoAcumulado(realMes, metas, Number(ate.slice(5, 7))),
+      },
       porRegiao: agrupar(
         atual,
         (l) => l.regiao,
@@ -255,6 +270,7 @@ export class DashboardService {
             );
     const s = somar(ls);
     return {
+      periodo: { de, ate },
       linhas,
       total: { total: s.total.toFixed(2), qtd: s.qtd, ticket: ticket(s.total, s.qtd)?.toFixed(2) ?? null },
     };
@@ -287,6 +303,7 @@ export class DashboardService {
       novo: !antigos.has(r.chave),
     }));
     return {
+      periodo: { de, ate },
       ranking: enriquecido,
       novos: enriquecido.filter((r) => r.novo).length,
       recorrentes: enriquecido.filter((r) => r.meses > 1).length,

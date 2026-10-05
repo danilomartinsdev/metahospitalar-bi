@@ -144,8 +144,8 @@ export function barrasRankingOptions(linhas: LinhaRanking[], t: TemaGrafico, lim
   };
 }
 
-/** Sparkline (sem eixos) para os cards de KPI. */
-export function sparklineOptions(valores: number[], t: TemaGrafico): EChartsOption {
+/** Sparkline (sem eixos) para os cards de KPI; `null` vira lacuna (mês sem base). */
+export function sparklineOptions(valores: (number | null)[], t: TemaGrafico): EChartsOption {
   return {
     grid: { left: 0, right: 0, top: 2, bottom: 2 },
     xAxis: { type: 'category', show: false, data: valores.map((_, i) => i) },

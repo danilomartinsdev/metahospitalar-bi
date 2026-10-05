@@ -72,6 +72,7 @@ export interface LinhaRanking {
   participacao: number | null;
 }
 export interface Ranking {
+  periodo: { de: string; ate: string };
   linhas: LinhaRanking[];
   total: { total: string; qtd: number; ticket: string | null };
 }
@@ -81,19 +82,30 @@ export interface VisaoGeral {
     total: Kpi;
     qtd: Kpi;
     ticket: Kpi;
-    pctPublico: { valor: number | null; anoAnterior: number | null };
+    pctPublico: {
+      valor: number | null;
+      anoAnterior: number | null;
+      serie: { mes: string; valor: number | null }[];
+    };
   };
   contagens: { estados: number; regioes: number; gestores: number; clientes: number };
-  evolucao: { ano: number; meses: { mes: number; real: string; anoAnterior: string; meta: string | null }[] };
+  evolucao: {
+    ano: number;
+    meses: { mes: number; real: string; anoAnterior: string; meta: string | null }[];
+    /** Σ real ÷ Σ meta nos meses de jan até o mês final do período que têm meta; null = sem meta. */
+    atingimento: { mesInicial: number; mesFinal: number; meta: string; real: string; pct: number | null } | null;
+  };
   porRegiao: LinhaRanking[];
   porSegmento: LinhaRanking[];
   topGestores: LinhaRanking[];
   acumuladoSegmento: {
     meses: number;
+    total: { atual: string; anterior: string; pct: number | null };
     linhas: { segmento: string; atual: string; anterior: string; pct: number | null }[];
   };
 }
 export interface ClientesResumo {
+  periodo: { de: string; ate: string };
   ranking: (LinhaRanking & { meses: number; novo: boolean })[];
   novos: number;
   recorrentes: number;

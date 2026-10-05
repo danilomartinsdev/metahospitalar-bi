@@ -30,11 +30,22 @@ function mudarPeriodo(campo: 'de' | 'ate', valor: string) {
   definir(novo);
 }
 
-function atalho(tipo: 'mes' | 'ano') {
-  const ultimo = meses.data.value?.at(-1);
-  if (!ultimo) return;
-  definir(tipo === 'mes' ? { de: ultimo, ate: ultimo } : { de: `${ultimo.slice(0, 4)}-01`, ate: ultimo });
-}
+/** Atalhos de período a partir do último mês com dados. "Ano anterior" só aparece se houver dados nele. */
+const atalhos = computed(() => {
+  const lista = meses.data.value ?? [];
+  const ultimo = lista.at(-1);
+  if (!ultimo) return [];
+  const ano = Number(ultimo.slice(0, 4));
+  const doAnoAnterior = lista.filter((m) => m.startsWith(`${ano - 1}-`));
+  return [
+    { rotulo: 'Último mês', de: ultimo, ate: ultimo },
+    { rotulo: 'Acumulado do ano', de: `${ano}-01`, ate: ultimo },
+    ...(doAnoAnterior.length
+      ? [{ rotulo: `Ano ${ano - 1}`, de: doAnoAnterior[0]!, ate: doAnoAnterior.at(-1)! }]
+      : []),
+  ];
+});
+const atalhoAtivo = (a: { de: string; ate: string }) => a.de === de.value && a.ate === ate.value;
 
 const busca = ref(filtros.value.q ?? '');
 watch(
@@ -80,8 +91,16 @@ const opcoes = computed(() => ({
         aria-label="Mês final"
         @update:model-value="(v) => mudarPeriodo('ate', String(v))"
       />
-      <UButton color="neutral" variant="ghost" size="sm" label="Último mês" @click="atalho('mes')" />
-      <UButton color="neutral" variant="ghost" size="sm" label="Ano" @click="atalho('ano')" />
+      <UButton
+        v-for="a in atalhos"
+        :key="a.rotulo"
+        :color="atalhoAtivo(a) ? 'primary' : 'neutral'"
+        :variant="atalhoAtivo(a) ? 'soft' : 'ghost'"
+        size="sm"
+        :label="a.rotulo"
+        :aria-pressed="atalhoAtivo(a)"
+        @click="definir({ de: a.de, ate: a.ate })"
+      />
     </div>
 
     <div class="flex flex-1 flex-wrap items-center gap-2 lg:justify-end">

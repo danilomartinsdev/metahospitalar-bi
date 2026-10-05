@@ -11,7 +11,7 @@ const ABAS: { dim: DimensaoRanking; rotulo: string; coluna: string }[] = [
 ];
 const aba = computed(() => ABAS.find((a) => a.dim === props.dim)!);
 
-const { qs } = useFiltros();
+const { qs, filtros } = useFiltros();
 const route = useRoute();
 const q = useRankingQuery(() => props.dim, qs);
 </script>
@@ -20,25 +20,31 @@ const q = useRankingQuery(() => props.dim, qs);
   <div class="mx-auto max-w-7xl space-y-6">
     <div class="flex flex-wrap items-end justify-between gap-3">
       <h2 class="text-2xl font-semibold">Ranking de {{ aba.rotulo.toLowerCase() }}</h2>
-      <nav class="flex rounded-lg border bg-card p-1 text-sm" aria-label="Tipo de ranking">
-        <NuxtLink
-          v-for="a in ABAS"
-          :key="a.dim"
-          :to="{ path: `/dashboard/${a.dim}`, query: route.query }"
-          class="rounded-md px-3 py-1.5"
-          :class="
-            a.dim === dim
-              ? 'bg-primary text-primary-foreground'
-              : 'text-muted-foreground hover:text-foreground'
-          "
-          :aria-current="a.dim === dim ? 'page' : undefined"
-        >
-          {{ a.rotulo }}
-        </NuxtLink>
+      <nav aria-label="Tipo de ranking">
+        <UFieldGroup size="sm">
+          <UButton
+            v-for="a in ABAS"
+            :key="a.dim"
+            :to="{ path: `/dashboard/${a.dim}`, query: route.query }"
+            :color="a.dim === dim ? 'primary' : 'neutral'"
+            :variant="a.dim === dim ? 'solid' : 'outline'"
+            :label="a.rotulo"
+            :aria-current="a.dim === dim ? 'page' : undefined"
+          />
+        </UFieldGroup>
       </nav>
     </div>
 
-    <DashboardFilterBar />
+    <DashboardFilterBar :periodo="q.data.value?.periodo" />
+
+    <UAlert
+      v-if="filtros.q"
+      color="warning"
+      variant="subtle"
+      icon="i-lucide-search"
+      :title="`Busca ativa: “${filtros.q}”`"
+      description="O ranking considera só os pedidos encontrados pela busca."
+    />
 
     <section class="rounded-xl border bg-card p-5">
       <div v-if="q.isPending.value" class="h-80 animate-pulse rounded-lg bg-muted" />

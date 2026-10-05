@@ -8,7 +8,7 @@ const props = defineProps<{
   valor: string;
   icone: Component;
   variacoes?: { rotulo: string; pct: number | null }[];
-  serie?: number[];
+  serie?: (number | null)[];
   carregando?: boolean;
 }>();
 
@@ -16,7 +16,7 @@ const classeVar = (p: number | null) =>
   p === null || Math.abs(p) < 0.0005 ? 'text-muted-foreground' : p > 0 ? 'text-success' : 'text-danger';
 const iconeVar = (p: number | null) =>
   p === null || Math.abs(p) < 0.0005 ? Minus : p > 0 ? ArrowUpRight : ArrowDownRight;
-const temSerie = computed(() => (props.serie?.length ?? 0) > 1);
+const temSerie = computed(() => (props.serie?.filter((v) => v !== null).length ?? 0) > 1);
 </script>
 
 <template>

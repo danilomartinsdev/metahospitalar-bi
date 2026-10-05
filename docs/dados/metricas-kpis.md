@@ -52,6 +52,11 @@ YTD 2025 = 0 (jul) + 20.000 (ago) = 20.000; variação = **+150,0%**.
 `total ÷ meta`; meta ausente ou 0 → "sem meta". Ex.: meta ago/2026 = 40.000 →
 30.000 ÷ 40.000 = **75,0%**.
 
+**Acumulado (rodapé da evolução mensal):** Σ real ÷ Σ meta somando só os meses de janeiro até o
+mês final do período que têm meta (> 0). Ex.: meta só em ago = 40.000, real jul = 20.000 e
+ago = 30.000 → 30.000 ÷ 40.000 = **75,0%** (julho, sem meta, fica de fora). Nenhuma meta no
+intervalo → "sem meta".
+
 ### % de participação (rankings)
 `valor do item ÷ total do conjunto filtrado`. Soma das participações = 100% (diferença de
 arredondamento absorvida na exibição, não no cálculo). A linha de total mostra Σ valor, Σ qtd,
