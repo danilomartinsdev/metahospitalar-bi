@@ -16,6 +16,7 @@ import {
   Building2,
   Tags,
   History,
+  Banknote,
 } from 'lucide-vue-next';
 
 export interface NavItem {
@@ -42,6 +43,7 @@ export const NAV: NavGroup[] = [
       { label: 'Regiões', to: '/dashboard/regioes', icon: Map, permissao: 'dashboard.view' },
       { label: 'Clientes', to: '/dashboard/clientes', icon: Building2, permissao: 'dashboard.view' },
       { label: 'Pedidos', to: '/pedidos', icon: ClipboardList, permissao: 'pedidos.view' },
+      { label: 'Faturamento', to: '/faturamento', icon: Banknote, permissao: 'faturamento.view' },
     ],
   },
   {
