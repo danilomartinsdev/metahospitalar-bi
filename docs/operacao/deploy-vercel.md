@@ -20,8 +20,8 @@ Faça depois de criar o projeto da API (passo 2, antes do primeiro deploy):
 1. Vercel › projeto **metabi-api** › **Storage › Create Database › Neon** (região São Paulo, se houver) › conecte ao projeto.
 2. A integração cria as variáveis de conexão. Confira em **Settings › Environment Variables**:
    - `DATABASE_URL` deve ser a URL **pooled** (host com `-pooler`);
-   - crie à mão `DATABASE_URL_DIRECT` com a URL **direta** (sem `-pooler`; a integração costuma chamá-la de
-     `DATABASE_URL_UNPOOLED`) — é a usada pelas migrations.
+   - `DATABASE_URL_UNPOOLED` (URL direta, sem `-pooler`) é usada pelas migrations automaticamente — não precisa
+     criar `DATABASE_URL_DIRECT` (o valor é sensível e a Vercel não deixa copiá-lo).
 
 Alternativa: conta própria em https://neon.tech, copiando as mesmas duas URLs de **Connection Details**.
 
@@ -35,16 +35,16 @@ deploy; se falhar por falta de banco/variáveis, tudo bem — complete os passos
 3. **Root Directory:** `apps/api` · Framework: _Other_ (o `apps/api/vercel.json` define o build).
 4. **Environment Variables** (Production):
 
-| Variável                                                                           | Valor                                                                                    |
-| ---------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| `NODE_ENV`                                                                         | `production`                                                                             |
-| `DATABASE_URL`                                                                     | URL **pooled** do Neon                                                                   |
-| `DATABASE_URL_DIRECT`                                                              | URL **direct** do Neon                                                                   |
-| `JWT_ACCESS_SECRET`                                                                | segredo forte (está no arquivo `meta-bi-vercel-api.env` gerado no seu computador)        |
-| `WEB_ORIGIN`, `APP_URL`, `PRINT_BASE_URL`                                          | `https://bi.seudominio.com.br`                                                           |
-| `COOKIE_SECURE`                                                                    | `true`                                                                                   |
-| `IMPORT_MAX_FILE_MB`                                                               | `4`                                                                                      |
-| `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM` | e-mail (se ainda não tiver, valores fictícios — só o "esqueci minha senha" não funciona) |
+| Variável                                                                           | Valor                                                                                     |
+| ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- |
+| `NODE_ENV`                                                                         | `production`                                                                              |
+| `DATABASE_URL`                                                                     | URL **pooled** do Neon (criada pela integração)                                           |
+| `DATABASE_URL_UNPOOLED`                                                            | URL **direta** do Neon (criada pela integração; ou `DATABASE_URL_DIRECT` se Neon próprio) |
+| `JWT_ACCESS_SECRET`                                                                | segredo forte (está no arquivo `meta-bi-vercel-api.env` gerado no seu computador)         |
+| `WEB_ORIGIN`, `APP_URL`, `PRINT_BASE_URL`                                          | `https://bi.seudominio.com.br`                                                            |
+| `COOKIE_SECURE`                                                                    | `true`                                                                                    |
+| `IMPORT_MAX_FILE_MB`                                                               | `4`                                                                                       |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM` | e-mail (se ainda não tiver, valores fictícios — só o "esqueci minha senha" não funciona)  |
 
 5. **Settings › Git › Production Branch** = `main` (o default do GitHub ainda é `fase-0-contexto`).
 6. **Deploy.** O build roda as migrations no Neon. Anote o endereço do projeto (ex.: `https://metabi-api.vercel.app`).
@@ -86,7 +86,7 @@ Cada `git push` na `main` faz a Vercel publicar os dois projetos de novo (migrat
 
 | Sintoma                                | O que fazer                                                                                             |
 | -------------------------------------- | ------------------------------------------------------------------------------------------------------- |
-| Build da API falha em `migrate deploy` | Confira `DATABASE_URL_DIRECT` (URL sem `-pooler`)                                                       |
+| Build da API falha em `migrate deploy` | Confira `DATABASE_URL_UNPOOLED`/`DATABASE_URL_DIRECT` (URL sem `-pooler`)                               |
 | Login não mantém a sessão              | `WEB_ORIGIN`/`APP_URL` devem ser o domínio do site, com `https://`; `COOKIE_SECURE=true`                |
 | Site abre mas dados dão erro           | `API_ORIGIN` do projeto web errado; teste `/api/health` direto na API                                   |
 | PDF falha                              | Vercel › metabi-api › Logs; a função precisa de 2 GB/60 s (já no `vercel.json`) — plano Pro recomendado |
