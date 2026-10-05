@@ -95,7 +95,12 @@ export function barrasFaturamentoOptions(
       axisLabel: { color: t.texto, interval: 0 },
       axisTick: { show: false },
     },
-    xAxis: { ...eixoValor(t), splitLine: { lineStyle: { color: t.borda } } },
+    // Poucas marcas e sem sobreposição: o eixo horizontal é estreito no card.
+    xAxis: {
+      ...eixoValor(t),
+      splitNumber: 3,
+      axisLabel: { color: t.textoSuave, hideOverlap: true, formatter: (v: number) => formatCompact(v) },
+    },
     series: [
       {
         type: 'bar',
