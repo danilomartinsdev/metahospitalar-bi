@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { DollarSign, Landmark, Receipt, ShoppingCart } from 'lucide-vue-next';
 import { useMesesQuery, useVisaoGeralQuery } from '~/composables/api/useDashboard';
-import { anoAnterior, periodoAnterior, periodoCurto, periodoPorExtenso } from '~/utils/periodo';
+import { periodoPorExtenso, variacoesKpi } from '~/utils/periodo';
 import { barrasRankingOptions, donutOptions, evolucaoOptions } from '~/utils/charts/options';
 
 definePageMeta({ titulo: 'Visão geral', permissao: 'dashboard.view' });
@@ -38,18 +38,9 @@ const dadosAte = computed(() => {
   return m ? `${NOMES_MES[Number(m.slice(5)) - 1]} de ${m.slice(0, 4)}` : '';
 });
 const MES_CURTO = (n: number) => NOMES_MES[n - 1]!.slice(0, 3);
-const rotuloCurto = (p: { de: string; ate: string }) => periodoCurto(p.de, p.ate);
 const serie = (k: 'total' | 'qtd' | 'ticket') => v.value?.kpis[k].serie.map((s) => Number(s.valor)) ?? [];
 const variacoes = (k: 'total' | 'qtd' | 'ticket') =>
-  v.value
-    ? [
-        {
-          rotulo: `vs. ${rotuloCurto(periodoAnterior(v.value.periodo))}`,
-          pct: v.value.kpis[k].mesAnterior.pct,
-        },
-        { rotulo: `vs. ${rotuloCurto(anoAnterior(v.value.periodo))}`, pct: v.value.kpis[k].anoAnterior.pct },
-      ]
-    : [];
+  v.value ? variacoesKpi(v.value.kpis[k], v.value.periodo) : [];
 const ABAS_DONUT = [
   { label: 'Mapa', value: 'mapa' },
   { label: 'Região', value: 'regiao' },

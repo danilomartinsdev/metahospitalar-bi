@@ -32,6 +32,11 @@ Pedidos fictícios usados em todos os exemplos:
 Segmento efetivo = override do cliente ?? padrão do representante; sem segmento = "Não definido"
 (entra no total, não entra no numerador).
 
+### Quais comparações aparecem nos cards (decidido em 2026-10-05)
+Período de **vários meses** (ex.: acumulado do ano): só **vs. mesmo período do ano anterior**.
+Período de **um mês**: vs. mês anterior **e** vs. mesmo mês do ano anterior.
+O rótulo sempre diz o período comparado (ex.: "vs. jan–set/2025").
+
 ### Variação vs. mês anterior (MoM)
 `(atual − anterior) ÷ anterior`; se anterior = 0, "—" (sem %).
 Agosto/2026 vs. julho/2026: (30.000 − 20.000) ÷ 20.000 = **+50,0%**.

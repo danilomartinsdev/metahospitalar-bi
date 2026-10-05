@@ -2,9 +2,8 @@
 import { REGIAO_ENUM_ROTULO, type RelatorioImpressao } from '@meta-bi/shared';
 import { DollarSign, Landmark, Receipt, ShoppingCart } from 'lucide-vue-next';
 import { barrasRankingOptions, donutOptions, evolucaoOptions } from '~/utils/charts/options';
-import { anoAnterior, periodoAnterior, periodoCurto, periodoPorExtenso } from '~/utils/periodo';
+import { periodoPorExtenso, variacoesKpi } from '~/utils/periodo';
 
-const curto = (p: { de: string; ate: string }) => periodoCurto(p.de, p.ate);
 
 // Relatório executivo em A4, aberto pelo Chromium da API (ADR 0004). Sem sessão: o token de uso
 // único na URL é a credencial; a API aplica o escopo de quem pediu o PDF.
@@ -56,12 +55,7 @@ const filtrosTexto = computed(() => {
 });
 
 const variacoes = (k: 'total' | 'qtd' | 'ticket') =>
-  v.value
-    ? [
-        { rotulo: `vs. ${curto(periodoAnterior(v.value.periodo))}`, pct: v.value.kpis[k].mesAnterior.pct },
-        { rotulo: `vs. ${curto(anoAnterior(v.value.periodo))}`, pct: v.value.kpis[k].anoAnterior.pct },
-      ]
-    : [];
+  v.value ? variacoesKpi(v.value.kpis[k], v.value.periodo) : [];
 const serie = (k: 'total' | 'qtd' | 'ticket') => v.value?.kpis[k].serie.map((s) => Number(s.valor)) ?? [];
 
 const TABELAS = computed(() =>

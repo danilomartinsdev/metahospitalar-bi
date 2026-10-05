@@ -13,7 +13,7 @@ metas. Planilha real: 744 pedidos, 0 erros, reimportação sem duplicar. Amostra
 Visão geral, rankings (gestores/estados/regiões), clientes, pedidos paginados; filtros na URL.
 Aceite: agosto/2026 = 65 pedidos, R$ 6.049.414,77, ticket R$ 93.067,92 — igual ao cálculo manual
 (`apps/api/test/agosto-2026.spec.ts`). Testes de escopo provam que representante não vê dados de outros.
-Variação "vs. período anterior" = mesmo número de meses imediatamente antes (para 1 mês, é o mês anterior).
+Comparações nos KPIs: período de vários meses mostra só "vs. mesmo período do ano anterior"; um mês mostra também o mês anterior (decisão de 2026-10-05).
 Período e busca ficaram na barra de filtros de cada tela (não na topbar).
 
 **Segmento configurado (2026-10-05):** MURILLO = Público (licitações); todos os demais representantes = Privado.

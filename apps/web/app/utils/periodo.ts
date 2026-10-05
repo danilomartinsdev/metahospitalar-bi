@@ -51,3 +51,19 @@ export function periodoAnterior(p: { de: string; ate: string }) {
   const n = mesesNoPeriodo(p.de, p.ate);
   return { de: deslocarMes(p.de, -n), ate: deslocarMes(p.ate, -n) };
 }
+
+/**
+ * Comparações mostradas nos cards de KPI (decisão de 2026-10-05):
+ * período de vários meses → só o mesmo período do ano anterior;
+ * um mês só → mês anterior e mesmo mês do ano anterior.
+ */
+export function variacoesKpi(
+  kpi: { mesAnterior: { pct: number | null }; anoAnterior: { pct: number | null } },
+  p: { de: string; ate: string },
+): { rotulo: string; pct: number | null }[] {
+  const aa = anoAnterior(p);
+  const ano = { rotulo: `vs. ${periodoCurto(aa.de, aa.ate)}`, pct: kpi.anoAnterior.pct };
+  if (mesesNoPeriodo(p.de, p.ate) > 1) return [ano];
+  const pa = periodoAnterior(p);
+  return [{ rotulo: `vs. ${periodoCurto(pa.de, pa.ate)}`, pct: kpi.mesAnterior.pct }, ano];
+}
