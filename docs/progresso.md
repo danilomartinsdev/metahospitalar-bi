@@ -25,7 +25,7 @@ Administração › Representantes — sem isso, % Público fica 0%. Tela de ove
 - [ ] Tela de override de segmento por cliente (Fase 4, ainda não feita).
 - [ ] **Exportação** Excel (pedidos, rankings, clientes) e PDF executivo (ADR 0004): funcionando (menu "Exportar" nas análises). Falta: testes de integração (403, escopo, token de uso único), trocar o token em memória pela tabela `TokenImpressao` (já no schema) e atualizar docs/arquitetura/api.md; revisor-rbac.
 - [ ] **Histórico manual** de faturamento mensal: tela Administração › Histórico e cálculo prontos (total vendido, evolução, atingimento, acumulado e PDF). Falta: testes (unitário do total com manual + integração 403/escopo) e docs/dados/metricas-kpis.md.
-- [ ] **Mapa de regiões** na Visão geral, colorido pelo volume e destacando o filtro de região.
+- [x] **Mapa de regiões** (malha IBGE em public/geo): aba "Mapa" na Visão geral e no Ranking de regiões; clique filtra a região.
 
 - [ ] **Planilha real** em `fixtures/focco/ano-todo-ate-agora.xls` (gitignored) — necessária para validar o importador.
 - [ ] Gerar amostra anonimizada em `fixtures/focco/amostras/` a partir da planilha real.

@@ -49,7 +49,13 @@ const q = useRankingQuery(() => props.dim, qs);
       description="O ranking considera só os pedidos encontrados pela busca."
     />
 
-    <section class="rounded-xl border bg-card p-5">
+    <section class="grid gap-4 rounded-xl border bg-card p-5" :class="dim === 'regioes' && 'lg:grid-cols-2'">
+      <ChartsMapaRegioesChart
+        v-if="dim === 'regioes'"
+        :linhas="q.data.value?.linhas"
+        :carregando="q.isPending.value"
+        altura="320px"
+      />
       <div v-if="q.isPending.value" class="h-80 animate-pulse rounded-lg bg-muted" />
       <ChartsBaseChart
         v-else-if="q.data.value?.linhas.length"

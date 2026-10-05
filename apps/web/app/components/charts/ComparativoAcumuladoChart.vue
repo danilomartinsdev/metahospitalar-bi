@@ -43,7 +43,9 @@ const classePct = (p: number | null) =>
           <th scope="row" class="py-1.5 pr-2 text-left align-top font-medium">{{ c.rotulo }}</th>
           <td class="num py-1.5 text-right">
             {{ formatBRL(c.atual) }}
-            <span class="block font-normal text-muted-foreground">{{ ano - 1 }}: {{ formatBRL(c.anterior) }}</span>
+            <span class="block font-normal text-muted-foreground"
+              >{{ ano - 1 }}: {{ formatBRL(c.anterior) }}</span
+            >
           </td>
           <td class="num w-16 py-1.5 pl-2 text-right align-top" :class="classePct(c.pct)">
             {{ c.pct === null ? 'sem base' : formatPct(c.pct) }}

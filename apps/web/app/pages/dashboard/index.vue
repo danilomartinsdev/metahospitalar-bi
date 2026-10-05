@@ -11,7 +11,7 @@ const meses = useMesesQuery();
 const q = useVisaoGeralQuery(qs);
 const v = computed(() => q.data.value);
 const carregando = computed(() => q.isPending.value);
-const donut = ref<'regiao' | 'segmento'>('regiao');
+const donut = ref<'mapa' | 'regiao' | 'segmento'>('mapa');
 const can = useCan();
 
 const NOMES_MES = [
@@ -49,6 +49,7 @@ const variacoes = (k: 'total' | 'qtd' | 'ticket') =>
       ]
     : [];
 const ABAS_DONUT = [
+  { label: 'Mapa', value: 'mapa' },
   { label: 'Região', value: 'regiao' },
   { label: 'Público × Privado', value: 'segmento' },
 ];
@@ -173,7 +174,11 @@ const ABAS_DONUT = [
             </template>
             <span v-else>
               Sem meta para o período.
-              <NuxtLink v-if="can('metas.edit')" to="/admin/metas" class="font-medium text-primary hover:underline">
+              <NuxtLink
+                v-if="can('metas.edit')"
+                to="/admin/metas"
+                class="font-medium text-primary hover:underline"
+              >
                 Definir metas
               </NuxtLink>
             </span>
@@ -194,6 +199,7 @@ const ABAS_DONUT = [
           <p v-else-if="v && !v.porRegiao.length" class="py-20 text-center text-sm text-muted-foreground">
             Sem vendas no período.
           </p>
+          <ChartsMapaRegioesChart v-else-if="v && donut === 'mapa'" :linhas="v.porRegiao" altura="290px" />
           <ChartsBaseChart
             v-else-if="v"
             altura="300px"
