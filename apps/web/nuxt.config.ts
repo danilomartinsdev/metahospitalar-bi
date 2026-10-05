@@ -11,6 +11,9 @@ export default defineNuxtConfig({
   devtools: { enabled: false },
   modules: ['@nuxt/ui', '@pinia/nuxt', 'shadcn-nuxt'],
   colorMode: { storageKey: 'meta-bi-tema', classSuffix: '' },
+  // Ícones usados no código (i-lucide-*) entram no bundle: nada de buscar na API do Iconify em produção
+  // (a CSP só permite conexões ao próprio site).
+  icon: { clientBundle: { scan: true }, serverBundle: 'local' },
   css: ['~/assets/css/main.css'],
   // Usa o código-fonte do pacote compartilhado (sem depender do build em dist/ durante o dev).
   alias: { '@meta-bi/shared': fileURLToPath(new URL('../../packages/shared/src/index.ts', import.meta.url)) },
