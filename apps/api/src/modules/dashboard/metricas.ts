@@ -141,3 +141,21 @@ export function atingimentoAcumulado(
     pct: fracao(realizado, meta),
   };
 }
+
+/**
+ * Detalhamento mês a mês: cada mês de de..ate × o mesmo mês do ano anterior, e o total do período.
+ * `totalPeriodo(a, b)` é a soma do intervalo (o service passa a versão que inclui o faturamento manual).
+ */
+export function detalhamentoMensal(totalPeriodo: (a: string, b: string) => Decimal, de: string, ate: string) {
+  const linhas = mesesEntre(de, ate).map((mes) => {
+    const atual = totalPeriodo(mes, mes);
+    const anterior = totalPeriodo(deslocarMes(mes, -12), deslocarMes(mes, -12));
+    return { mes, atual: atual.toFixed(2), anterior: anterior.toFixed(2), pct: variacao(atual, anterior) };
+  });
+  const atual = totalPeriodo(de, ate);
+  const anterior = totalPeriodo(deslocarMes(de, -12), deslocarMes(ate, -12));
+  return {
+    linhas,
+    total: { atual: atual.toFixed(2), anterior: anterior.toFixed(2), pct: variacao(atual, anterior) },
+  };
+}

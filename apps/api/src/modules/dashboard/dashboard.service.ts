@@ -21,6 +21,7 @@ import {
   agrupar,
   atingimentoAcumulado,
   deslocarMes,
+  detalhamentoMensal,
   fracao,
   type LinhaVenda,
   mesesEntre,
@@ -228,6 +229,7 @@ export class DashboardService {
         (l) => l.gestorId,
         (l) => l.gestorNome,
       ).slice(0, 10),
+      detalhamentoMensal: detalhamentoMensal(totalPeriodo, de, ate),
       acumuladoSegmento: this.comTotalManual(
         acumuladoPorSegmento(todas, de, ate),
         totalPeriodo(de, ate),

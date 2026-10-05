@@ -5,6 +5,7 @@ import {
   acumuladoPorSegmento,
   agrupar,
   atingimentoAcumulado,
+  detalhamentoMensal,
   deslocarMes,
   type LinhaVenda,
   mesesEntre,
@@ -129,5 +130,18 @@ describe('meses', () => {
     expect(deslocarMes('2026-01', -1)).toBe('2025-12');
     expect(deslocarMes('2025-12', 13)).toBe('2027-01');
     expect(mesesEntre('2025-11', '2026-02')).toEqual(['2025-11', '2025-12', '2026-01', '2026-02']);
+  });
+});
+
+describe('detalhamentoMensal', () => {
+  it('mês a mês × mesmo mês do ano anterior, com o total do período', () => {
+    const tp = (a: string, b: string) => somar(noPeriodo(BASE, a, b)).total;
+    const d = detalhamentoMensal(tp, '2026-07', '2026-08');
+    expect(d.linhas).toEqual([
+      // julho/2025 não tem venda: variação sem base
+      { mes: '2026-07', atual: '20000.00', anterior: '0.00', pct: null },
+      { mes: '2026-08', atual: '30000.00', anterior: '20000.00', pct: 0.5 },
+    ]);
+    expect(d.total).toEqual({ atual: '50000.00', anterior: '20000.00', pct: 1.5 });
   });
 });

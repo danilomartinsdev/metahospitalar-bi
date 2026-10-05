@@ -125,3 +125,12 @@
   --ui-border-accented: var(--input);
   --ui-border-inverted: var(--foreground);
 }
+
+/* Cores dos gráficos: por padrão seguem o tema; a paleta escolhida pelo usuário (utils/charts/palette.ts)
+   sobrescreve --grafico-principal / --grafico-comparacao no <html>. As versões "soft" pintam tabelas. */
+:root {
+  --grafico-principal: var(--primary);
+  --grafico-comparacao: var(--muted-foreground);
+  --grafico-principal-soft: color-mix(in oklab, var(--grafico-principal) 12%, transparent);
+  --grafico-comparacao-soft: color-mix(in oklab, var(--grafico-comparacao) 12%, transparent);
+}

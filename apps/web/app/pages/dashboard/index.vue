@@ -248,6 +248,12 @@ const ABAS_DONUT = [
           <ChartsComparativoAcumuladoChart :acumulado="v?.acumuladoSegmento" :carregando="carregando" />
         </div>
       </section>
+
+      <DashboardDetalhamentoMensal
+        :detalhamento="v?.detalhamentoMensal"
+        :periodo="v?.periodo"
+        :carregando="carregando"
+      />
     </template>
   </div>
 </template>

@@ -98,6 +98,11 @@ export interface VisaoGeral {
   porRegiao: LinhaRanking[];
   porSegmento: LinhaRanking[];
   topGestores: LinhaRanking[];
+  /** Mês a mês do período (de..ate) × mesmo mês do ano anterior, e o total; inclui o faturamento manual. */
+  detalhamentoMensal: {
+    linhas: { mes: string; atual: string; anterior: string; pct: number | null }[];
+    total: { atual: string; anterior: string; pct: number | null };
+  };
   /** Selecionado (de..ate) × mesmo período do ano anterior, por segmento. */
   acumuladoSegmento: {
     meses: number;

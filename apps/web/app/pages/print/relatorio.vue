@@ -4,7 +4,6 @@ import { DollarSign, Landmark, Receipt, ShoppingCart } from 'lucide-vue-next';
 import { barrasRankingOptions, donutOptions, evolucaoOptions } from '~/utils/charts/options';
 import { periodoPorExtenso, variacoesKpi } from '~/utils/periodo';
 
-
 // Relatório executivo em A4, aberto pelo Chromium da API (ADR 0004). Sem sessão: o token de uso
 // único na URL é a credencial; a API aplica o escopo de quem pediu o PDF.
 definePageMeta({ layout: 'print' });
@@ -192,6 +191,12 @@ const TABELAS = computed(() =>
         <ChartsComparativoAcumuladoChart :acumulado="v.acumuladoSegmento" />
       </div>
     </section>
+
+    <DashboardDetalhamentoMensal
+      class="break-inside-avoid"
+      :detalhamento="v.detalhamentoMensal"
+      :periodo="v.periodo"
+    />
 
     <section v-for="t in TABELAS" :key="t.titulo" class="break-inside-avoid">
       <h2 class="mb-2 text-sm font-semibold">{{ t.titulo }}</h2>

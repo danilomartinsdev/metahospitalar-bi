@@ -19,6 +19,8 @@
   --color-primary-strong: var(--primary-strong);
   --color-primary-strong-foreground: var(--primary-strong-foreground);
   --color-primary-soft: var(--primary-soft);
+  --color-grafico-principal-soft: var(--grafico-principal-soft);
+  --color-grafico-comparacao-soft: var(--grafico-comparacao-soft);
   --color-highlight: var(--highlight);
   --color-highlight-foreground: var(--highlight-foreground);
   --color-secondary: var(--secondary);
