@@ -60,6 +60,16 @@
 Histórico). Único em (`ano`, `mes`). Só entra nos números em meses **sem pedidos importados**, para escopo
 "todos" e sem filtros (ver docs/progresso.md › Decisões tomadas).
 
+## Faturamento (relatório diário do Focco — separado dos pedidos)
+### FaturamentoDia
+`id`, `empresa`, `data` (Date, **única**), `ano`, `mes`, `semana`, `bruto`, `antecipado`, `remessa`,
+`devolucao`, `dre` (todos Decimal(14,2); `dre` = bruto + antecipado + remessa + devolucao), `loteId`.
+Reimportar um arquivo **substitui todos os dias do ano** dele. Índice (`ano`, `mes`).
+
+### FaturamentoLote
+`id`, `ano`, `arquivoNome`, `arquivoHash`, `dias`, `totalDre` Decimal(14,2), `usuarioId?` — histórico das
+importações de faturamento.
+
 ## Importação
 
 ### ImportLote

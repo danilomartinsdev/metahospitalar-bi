@@ -66,6 +66,7 @@ model Usuario {
   tokensSenha      TokenRedefinicaoSenha[]
   tokensImpressao  TokenImpressao[]
   auditoria        AuditLog[]
+  lotesFaturamento FaturamentoLote[]
   lotes            ImportLote[]            @relation("LoteUsuario")
   lotesRevertidos  ImportLote[]            @relation("LoteRevertidoPor")
 
@@ -73,14 +74,14 @@ model Usuario {
 }
 
 model Role {
-  id          String           @id @default(uuid()) @db.Uuid
-  chave       String           @unique
-  nome        String
-  sistema     Boolean          @default(false) // papéis padrão não podem ser apagados
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
-  permissoes  RolePermission[]
-  usuarios    Usuario[]
+  id         String           @id @default(uuid()) @db.Uuid
+  chave      String           @unique
+  nome       String
+  sistema    Boolean          @default(false) // papéis padrão não podem ser apagados
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+  permissoes RolePermission[]
+  usuarios   Usuario[]
 }
 
 model RolePermission {
@@ -107,19 +108,19 @@ model UsuarioRepresentante {
 
 /// Refresh tokens (rotativos). Só o hash é guardado.
 model Sessao {
-  id          String    @id @default(uuid()) @db.Uuid
-  usuarioId   String    @db.Uuid
-  tokenHash   String    @unique
-  familia     String    @db.Uuid // mesma família = mesma sessão de login; reuso revoga a família
-  expiraEm    DateTime
-  ultimoUsoEm DateTime  @default(now())
-  revogadaEm  DateTime?
+  id            String    @id @default(uuid()) @db.Uuid
+  usuarioId     String    @db.Uuid
+  tokenHash     String    @unique
+  familia       String    @db.Uuid // mesma família = mesma sessão de login; reuso revoga a família
+  expiraEm      DateTime
+  ultimoUsoEm   DateTime  @default(now())
+  revogadaEm    DateTime?
   substituidaEm DateTime?
-  ip          String?
-  userAgent   String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  usuario     Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  ip            String?
+  userAgent     String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  usuario       Usuario   @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
 
   @@index([usuarioId])
   @@index([familia])
@@ -304,4 +305,45 @@ model FaturamentoHistorico {
   updatedAt DateTime @updatedAt
 
   @@unique([ano, mes])
+}
+
+// ─── Faturamento (relatório diário do Focco; domínio separado dos pedidos) ──────────────────────
+
+// Um dia de faturamento da empresa. Reimportar um ano substitui todos os dias daquele ano.
+model FaturamentoDia {
+  id         String          @id @default(uuid()) @db.Uuid
+  empresa    String
+  data       DateTime        @unique @db.Date
+  ano        Int
+  mes        Int
+  semana     Int
+  bruto      Decimal         @db.Decimal(14, 2)
+  antecipado Decimal         @db.Decimal(14, 2)
+  remessa    Decimal         @db.Decimal(14, 2)
+  devolucao  Decimal         @db.Decimal(14, 2)
+  dre        Decimal         @db.Decimal(14, 2) // = bruto + antecipado + remessa + devolucao
+  loteId     String          @db.Uuid
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+  lote       FaturamentoLote @relation(fields: [loteId], references: [id], onDelete: Cascade)
+
+  @@index([ano, mes])
+  @@index([loteId])
+}
+
+// Histórico das importações de faturamento (uma por arquivo confirmado).
+model FaturamentoLote {
+  id          String           @id @default(uuid()) @db.Uuid
+  ano         Int
+  arquivoNome String
+  arquivoHash String
+  dias        Int
+  totalDre    Decimal          @db.Decimal(14, 2)
+  usuarioId   String?          @db.Uuid
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  usuario     Usuario?         @relation(fields: [usuarioId], references: [id], onDelete: SetNull)
+  registros   FaturamentoDia[]
+
+  @@index([ano])
 }

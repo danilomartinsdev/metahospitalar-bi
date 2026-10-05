@@ -25,6 +25,8 @@
 | export.xlsx     |   ✔   |        ✔         |       ✔       | configurável |
 | export.pdf      |   ✔   |        ✔         |       ✔       | configurável |
 | metas.edit      |   ✔   |        ✔         |               |              |
+| faturamento.view   |   ✔   |        ✔         |               |              |
+| faturamento.import |   ✔   |        ✔         |               |              |
 | cadastros.edit  |   ✔   |                  |               |              |
 | users.manage    |   ✔   |                  |               |              |
 | audit.view      |   ✔   |                  |               |              |
@@ -46,7 +48,8 @@ Visualizador = configurável.
 - Metas sem correspondência no escopo (escopo por região) não são exibidas.
 - `GET /representantes` devolve só os vinculados para escopo "representantes".
 - **Ações que valem para a base inteira exigem escopo "todos"**, além da permissão: importação
-  (prévia, confirmar, lotes, rollback) e metas (ler e salvar). A prévia pertence a quem a enviou.
+  (prévia, confirmar, lotes, rollback), metas (ler e salvar) e faturamento (ver e importar — é um número da
+  empresa inteira, sem representante). A prévia pertence a quem a enviou.
 
 ## Proteção contra escalonamento de privilégio (Fase 4)
 

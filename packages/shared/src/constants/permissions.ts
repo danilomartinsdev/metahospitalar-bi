@@ -10,6 +10,8 @@ export const PERMISSIONS = [
   'cadastros.edit',
   'users.manage',
   'audit.view',
+  'faturamento.view',
+  'faturamento.import',
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
@@ -25,6 +27,8 @@ export const PERMISSION_LABELS: Record<Permission, string> = {
   'cadastros.edit': 'Editar cadastros',
   'users.manage': 'Gerenciar usuários e papéis',
   'audit.view': 'Ver auditoria',
+  'faturamento.view': 'Ver faturamento',
+  'faturamento.import': 'Importar faturamento',
 };
 
 export const ROLE_KEYS = ['admin', 'gestor-comercial', 'representante', 'visualizador'] as const;
@@ -43,6 +47,8 @@ export const DEFAULT_ROLES: Record<RoleKey, { nome: string; permissoes: readonly
       'export.xlsx',
       'export.pdf',
       'metas.edit',
+      'faturamento.view',
+      'faturamento.import',
     ],
   },
   representante: {
