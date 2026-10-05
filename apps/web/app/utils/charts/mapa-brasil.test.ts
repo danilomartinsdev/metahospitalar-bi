@@ -1,6 +1,6 @@
 import type { LinhaRanking } from '@meta-bi/shared';
 import { describe, expect, it } from 'vitest';
-import { buildMapaRegioesOptions } from './mapa-regioes';
+import { buildMapaBrasilOptions } from './mapa-brasil';
 import { TEMA_CLARO } from './palette';
 
 const linha = (chave: string, total: string, participacao: number): LinhaRanking => ({
@@ -18,9 +18,9 @@ const LINHAS = [
 ];
 type Dado = { name: string; value: number; itemStyle: { areaColor: string; opacity: number } };
 const dados = (sel: string[]) =>
-  (buildMapaRegioesOptions(LINHAS, sel, TEMA_CLARO).series as { data: Dado[] }[])[0]!.data;
+  (buildMapaBrasilOptions('regiao', LINHAS, sel, TEMA_CLARO).series as { data: Dado[] }[])[0]!.data;
 
-describe('buildMapaRegioesOptions', () => {
+describe('buildMapaBrasilOptions', () => {
   it('desenha as 5 regiões (sem Exterior), com zero onde não há venda', () => {
     const d = dados([]);
     expect(d.map((x) => x.name)).toEqual(['NORTE', 'NORDESTE', 'CENTRO_OESTE', 'SUDESTE', 'SUL']);
@@ -45,5 +45,18 @@ describe('buildMapaRegioesOptions', () => {
       opacity: 1,
     });
     expect(d.find((x) => x.name === 'SUDESTE')!.itemStyle.areaColor).toBe(TEMA_CLARO.borda);
+  });
+});
+
+describe('buildMapaBrasilOptions por UF', () => {
+  it('desenha as 27 UFs (sem EX) e destaca as filtradas', () => {
+    const linhas = [linha('SP', '700.00', 0.7), linha('GO', '200.00', 0.2), linha('EX', '100.00', 0.1)];
+    const o = buildMapaBrasilOptions('uf', linhas, ['GO'], TEMA_CLARO);
+    const d = (o.series as { map: string; data: Dado[] }[])[0]!;
+    expect(d.map).toBe('br-ufs');
+    expect(d.data).toHaveLength(27);
+    expect(d.data.some((x) => x.name === 'EX')).toBe(false);
+    expect(d.data.find((x) => x.name === 'GO')!.itemStyle.areaColor).toBe(TEMA_CLARO.primaria);
+    expect(d.data.find((x) => x.name === 'SP')!.itemStyle.areaColor).toBe(TEMA_CLARO.borda);
   });
 });

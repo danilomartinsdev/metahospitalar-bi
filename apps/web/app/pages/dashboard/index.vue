@@ -199,7 +199,12 @@ const ABAS_DONUT = [
           <p v-else-if="v && !v.porRegiao.length" class="py-20 text-center text-sm text-muted-foreground">
             Sem vendas no período.
           </p>
-          <ChartsMapaRegioesChart v-else-if="v && donut === 'mapa'" :linhas="v.porRegiao" altura="290px" />
+          <ChartsMapaBrasilChart
+            v-else-if="v && donut === 'mapa'"
+            nivel="regiao"
+            :linhas="v.porRegiao"
+            altura="290px"
+          />
           <ChartsBaseChart
             v-else-if="v"
             altura="300px"
