@@ -90,6 +90,9 @@ importações de faturamento.
 `trocarSenha` (bool), `tentativasFalhas`, `bloqueadoAte?`, `ultimoAcessoEm?`,
 `escopoTipo` (todos|regiao|representantes), `escopoRegioes` (enum[]).
 
+- `paletaGraficos?` (String): paleta de cores dos gráficos escolhida pelo próprio usuário (null = padrão;
+  valores em `PALETAS_GRAFICO`, packages/shared).
+
 ### UsuarioRepresentante
 
 Vínculo N:N usuário ↔ representante (escopo "representantes").

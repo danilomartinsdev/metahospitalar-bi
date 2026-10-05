@@ -67,6 +67,8 @@ model Usuario {
   tokensImpressao  TokenImpressao[]
   auditoria        AuditLog[]
   lotesFaturamento FaturamentoLote[]
+  // Paleta de cores dos gráficos escolhida pelo usuário (null = padrão). Valores: PALETAS_GRAFICO.
+  paletaGraficos   String?
   lotes            ImportLote[]            @relation("LoteUsuario")
   lotesRevertidos  ImportLote[]            @relation("LoteRevertidoPor")
 

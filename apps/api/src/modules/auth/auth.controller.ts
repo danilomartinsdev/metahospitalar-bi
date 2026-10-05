@@ -1,14 +1,16 @@
-import { Body, Controller, Get, HttpCode, Inject, Post, Req, Res } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Inject, Patch, Post, Req, Res } from '@nestjs/common';
 import { RouteConfig } from '@nestjs/platform-fastify';
 import {
   type AuthResposta,
   type EsqueciSenhaInput,
   type LoginInput,
+  type Preferencias,
   type RedefinirSenhaInput,
   type TrocarSenhaInput,
   type UsuarioLogado,
   esqueciSenhaSchema,
   loginSchema,
+  preferenciasSchema,
   redefinirSenhaSchema,
   trocarSenhaSchema,
 } from '@meta-bi/shared';
@@ -89,6 +91,16 @@ export class AuthController {
   @Get('me')
   me(@CurrentUser() usuario: UsuarioAutenticado): UsuarioLogado {
     return UsuarioLoader.paraResposta(usuario);
+  }
+
+  /** Preferências pessoais (hoje: paleta dos gráficos). Só altera o próprio usuário. */
+  @AuthenticatedOnly()
+  @Patch('me/preferencias')
+  preferencias(
+    @CurrentUser() usuario: UsuarioAutenticado,
+    @Body(new ZodPipe(preferenciasSchema)) prefs: Preferencias,
+  ): Promise<UsuarioLogado> {
+    return this.auth.salvarPreferencias(usuario, prefs);
   }
 
   @AuthenticatedOnly()

@@ -1,5 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { PERMISSIONS, type EscopoTipo, type Permission, type UsuarioLogado } from '@meta-bi/shared';
+import {
+  PALETAS_GRAFICO,
+  PERMISSIONS,
+  type EscopoTipo,
+  type PaletaGrafico,
+  type Permission,
+  type UsuarioLogado,
+} from '@meta-bi/shared';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import type { UsuarioAutenticado } from '../../common/auth/types.js';
 import { REGIAO_ROTULO } from '../../common/regiao.js';
@@ -10,6 +17,7 @@ const ESCOPO: Record<string, EscopoTipo> = {
   REPRESENTANTES: 'representantes',
 };
 const PERMS = new Set<string>(PERMISSIONS);
+const PALETAS = new Set<string>(PALETAS_GRAFICO);
 
 /** Carrega o usuário a cada requisição: permissões e escopo sempre atuais e revogação imediata. */
 @Injectable()
@@ -45,6 +53,9 @@ export class UsuarioLoader {
         representanteIds: u.representantes.map((r) => r.representanteId),
       },
       trocarSenha: u.trocarSenha,
+      // Valor desconhecido no banco (ex.: paleta removida) cai no padrão.
+      paletaGraficos:
+        u.paletaGraficos && PALETAS.has(u.paletaGraficos) ? (u.paletaGraficos as PaletaGrafico) : null,
       sessaoFamilia: familia,
     };
   }

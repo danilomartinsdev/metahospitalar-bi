@@ -160,6 +160,7 @@ export class ExportService {
     return {
       geradoPor: u.nome,
       geradoEm: new Date().toISOString(),
+      paletaGraficos: u.paletaGraficos,
       filtros: f,
       visaoGeral,
       rankings: { gestores, estados, regioes },

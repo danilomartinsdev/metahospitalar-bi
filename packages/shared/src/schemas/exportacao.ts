@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { PaletaGrafico } from './auth.js';
 import { type Filtros, filtrosSchema, type Ranking, type VisaoGeral } from './dashboard.js';
 
 /** O que pode ser exportado em Excel (uma planilha por tela de análise). */
@@ -22,6 +23,8 @@ export const printTokenSchema = z.object({ token: z.string().regex(/^[\w-]{43}$/
 export interface RelatorioImpressao {
   geradoPor: string;
   geradoEm: string;
+  /** Paleta de quem pediu o PDF (o relatório sai com as cores dele). */
+  paletaGraficos: PaletaGrafico | null;
   filtros: Filtros;
   visaoGeral: VisaoGeral;
   rankings: { gestores: Ranking; estados: Ranking; regioes: Ranking };

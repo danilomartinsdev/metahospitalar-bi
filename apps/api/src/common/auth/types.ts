@@ -1,4 +1,4 @@
-import type { EscopoTipo, Permission, Regiao } from '@meta-bi/shared';
+import type { EscopoTipo, PaletaGrafico, Permission, Regiao } from '@meta-bi/shared';
 
 export interface Escopo {
   tipo: EscopoTipo;
@@ -16,6 +16,8 @@ export interface UsuarioAutenticado {
   /** Escopo de dados aplicado pelo ScopedPedidosRepository. Nunca exposto na resposta. */
   escopo: Escopo;
   trocarSenha: boolean;
+  /** Paleta de cores dos gráficos escolhida pelo usuário (null = padrão). */
+  paletaGraficos: PaletaGrafico | null;
   /** Família de sessão (login) a que o access token pertence. */
   sessaoFamilia: string;
 }

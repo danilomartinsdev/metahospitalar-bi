@@ -45,6 +45,14 @@ export const redefinirSenhaSchema = z
   .refine((d) => d.novaSenha === d.confirmacao, { error: 'As senhas não conferem', path: ['confirmacao'] });
 export type RedefinirSenhaInput = z.infer<typeof redefinirSenhaSchema>;
 
+/** Paletas de cores dos gráficos que cada usuário pode escolher (cores em apps/web/app/utils/charts/palette.ts). */
+export const PALETAS_GRAFICO = ['padrao', 'esmeralda', 'grafite', 'vinho', 'oceano'] as const;
+export type PaletaGrafico = (typeof PALETAS_GRAFICO)[number];
+
+/** Preferências do próprio usuário (PATCH /auth/me/preferencias). null = padrão. */
+export const preferenciasSchema = z.object({ paletaGraficos: z.enum(PALETAS_GRAFICO).nullable() });
+export type Preferencias = z.infer<typeof preferenciasSchema>;
+
 export const usuarioLogadoSchema = z.object({
   id: z.string(),
   nome: z.string(),
@@ -53,6 +61,7 @@ export const usuarioLogadoSchema = z.object({
   permissoes: z.array(z.enum(PERMISSIONS)),
   escopoTipo: z.enum(ESCOPO_TIPOS),
   trocarSenha: z.boolean(),
+  paletaGraficos: z.enum(PALETAS_GRAFICO).nullable(),
 });
 export type UsuarioLogado = z.infer<typeof usuarioLogadoSchema>;
 

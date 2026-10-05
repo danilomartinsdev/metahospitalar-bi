@@ -1,5 +1,12 @@
 import { HttpStatus, Inject, Injectable } from '@nestjs/common';
-import type { AuthResposta, LoginInput, RedefinirSenhaInput, TrocarSenhaInput } from '@meta-bi/shared';
+import type {
+  AuthResposta,
+  LoginInput,
+  Preferencias,
+  RedefinirSenhaInput,
+  TrocarSenhaInput,
+  UsuarioLogado,
+} from '@meta-bi/shared';
 import { ENV, type Env } from '../../config/env.js';
 import { ApiException, Erros } from '../../common/errors.js';
 import type { ContextoRequisicao, UsuarioAutenticado } from '../../common/auth/types.js';
@@ -187,6 +194,15 @@ export class AuthService {
     if (!usuario) throw Erros.naoAutenticado();
     const { token, expiraEm } = await this.tokens.emitirAccess({ sub: usuarioId, sid: familia });
     return { accessToken: token, expiraEm, usuario: UsuarioLoader.paraResposta(usuario) };
+  }
+
+  /** Preferências do próprio usuário (o id vem do token, nunca do corpo da requisição). */
+  async salvarPreferencias(usuario: UsuarioAutenticado, prefs: Preferencias): Promise<UsuarioLogado> {
+    await this.prisma.usuario.update({
+      where: { id: usuario.id },
+      data: { paletaGraficos: prefs.paletaGraficos },
+    });
+    return UsuarioLoader.paraResposta({ ...usuario, paletaGraficos: prefs.paletaGraficos });
   }
 }
 
