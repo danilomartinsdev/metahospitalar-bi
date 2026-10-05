@@ -6,76 +6,98 @@
 > dinheiro `Decimal(14,2)`, datas sem hora como `@db.Date`.
 
 ## Vendas
+
 ### Pedido
-| Coluna | Tipo | Origem | Observação |
-|---|---|---|---|
-| id | uuid | — | PK |
-| focoId | int, único | ID | chave de upsert |
-| numPedido | text | NUM PEDIDO | |
-| ordemCpr | text? | ORDEM CPR | |
-| dtEmissao | date | DT EMIS | índice |
-| dtEntrega | date? | DT ENTREGA | |
-| competencia | date (1º dia do mês) | derivada de dtEmissao | índice |
-| statusId | FK StatusPdv | POS PDV | índice |
-| clienteId | FK Cliente | CLIENTE | índice |
-| representanteId | FK Representante | REPRESENTANTE | índice |
-| uf | char(2) | UF | índice |
-| regiao | enum | derivada da UF | índice |
-| valor | Decimal(14,2) | VALOR G TOTAL GERAL | |
-| ultimoLoteId | FK ImportLote | — | último lote que gravou o pedido |
+
+| Coluna          | Tipo                 | Origem                | Observação                      |
+| --------------- | -------------------- | --------------------- | ------------------------------- |
+| id              | uuid                 | —                     | PK                              |
+| focoId          | int, único           | ID                    | chave de upsert                 |
+| numPedido       | text                 | NUM PEDIDO            |                                 |
+| ordemCpr        | text?                | ORDEM CPR             |                                 |
+| dtEmissao       | date                 | DT EMIS               | índice                          |
+| dtEntrega       | date?                | DT ENTREGA            |                                 |
+| competencia     | date (1º dia do mês) | derivada de dtEmissao | índice                          |
+| statusId        | FK StatusPdv         | POS PDV               | índice                          |
+| clienteId       | FK Cliente           | CLIENTE               | índice                          |
+| representanteId | FK Representante     | REPRESENTANTE         | índice                          |
+| uf              | char(2)              | UF                    | índice                          |
+| regiao          | enum                 | derivada da UF        | índice                          |
+| valor           | Decimal(14,2)        | VALOR G TOTAL GERAL   |                                 |
+| ultimoLoteId    | FK ImportLote        | —                     | último lote que gravou o pedido |
 
 ### Cliente
-| Coluna | Tipo | Observação |
-|---|---|---|
-| id | uuid | |
-| nomeNormalizado | text, único | chave de agrupamento |
-| nomeOriginal | text | último nome visto |
+
+| Coluna           | Tipo           | Observação                     |
+| ---------------- | -------------- | ------------------------------ |
+| id               | uuid           |                                |
+| nomeNormalizado  | text, único    | chave de agrupamento           |
+| nomeOriginal     | text           | último nome visto              |
 | segmentoOverride | enum Segmento? | sobrescreve o do representante |
 
 ### Representante
-| Coluna | Tipo | Observação |
-|---|---|---|
-| id | uuid | |
-| codigo | text, único | como vem do Focco |
-| nomeExibicao | text | ex.: "BL REPR (BRUNA)" |
-| segmentoPadrao | enum Segmento? | |
-| ativo | bool | |
+
+| Coluna         | Tipo           | Observação             |
+| -------------- | -------------- | ---------------------- |
+| id             | uuid           |                        |
+| codigo         | text, único    | como vem do Focco      |
+| nomeExibicao   | text           | ex.: "BL REPR (BRUNA)" |
+| segmentoPadrao | enum Segmento? |                        |
+| ativo          | bool           |                        |
 
 ### StatusPdv
+
 `id`, `codigo` (único), `descricao`, `contaNoTotal` (bool), `cor` (nome de token).
 
 ### Meta
+
 `id`, `ano`, `mes`, `representanteId?` (null = meta total), `valor` Decimal(14,2).
 Único em (`ano`, `mes`, `representanteId`).
 
+### FaturamentoHistorico
+
+`id`, `ano`, `mes`, `valor` Decimal(14,2) — faturamento total da empresa digitado à mão (Administração ›
+Histórico). Único em (`ano`, `mes`). Só entra nos números em meses **sem pedidos importados**, para escopo
+"todos" e sem filtros (ver docs/progresso.md › Decisões tomadas).
+
 ## Importação
+
 ### ImportLote
+
 `id`, `usuarioId`, `arquivoNome`, `arquivoHash`, `arquivoTamanho`, `arquivoPath`,
 `novos`, `atualizados`, `inalterados`, `ignorados`, `erros`, `status` (aplicado|revertido),
 `revertidoEm?`, `revertidoPorId?`.
 
 ### ImportLoteItem
+
 `id`, `loteId`, `pedidoId`/`focoId`, `acao` (criado|atualizado), `snapshotAnterior` (JSON?).
 
 ## Acesso
+
 ### Usuario
+
 `id`, `email` (único, minúsculo), `nome`, `senhaHash` (argon2id), `roleId`, `ativo`,
 `trocarSenha` (bool), `tentativasFalhas`, `bloqueadoAte?`, `ultimoAcessoEm?`,
 `escopoTipo` (todos|regiao|representantes), `escopoRegioes` (enum[]).
 
 ### UsuarioRepresentante
+
 Vínculo N:N usuário ↔ representante (escopo "representantes").
 
 ### Role / Permission / RolePermission
+
 Papéis editáveis; permissões fixas (lista em `packages/shared/src/constants/permissions.ts`).
 
 ### Sessao (refresh tokens)
+
 `id`, `usuarioId`, `tokenHash`, `familia` (detecção de reuso), `expiraEm`, `ultimoUsoEm`,
 `revogadaEm?`, `ip`, `userAgent`.
 
 ### TokenRedefinicaoSenha / TokenImpressao
+
 `id`, `usuarioId`, `tokenHash`, `expiraEm`, `usadoEm?` (+ `filtros` JSON no de impressão).
 
 ### AuditLog
+
 `id`, `usuarioId?`, `acao`, `entidade?`, `entidadeId?`, `detalhes` (JSON, sem segredos),
 `ip`, `userAgent`, `createdAt`. Índice em (`createdAt`, `acao`, `usuarioId`).
