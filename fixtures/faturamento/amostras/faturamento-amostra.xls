@@ -1,0 +1,11 @@
+<HTML>
+<HEAD><meta http-equiv="Content-Type" content="text/html; charset=windows-1252"></HEAD>
+<BODY><TABLE>
+<TR><td>EMPRESA</td><td>ANO</td><td>MES</td><td>SEMANA</td><td>DATA</td><td>DIA</td><td>VLR FAT BRUTO</td><td>VLR FAT ANTECIP</td><td>VLR REMESSA</td><td>VLR DEVOLUCAO</td><td>B</td><td>VLR FATURA DRE</td></TR>
+<TR><td>1 - EMPRESA TESTE</td><td>2026</td><td>01</td><td>01</td><td>01/01/2026 00:00:00</td><td>QUI</td><td></td><td></td><td></td><td></td><td>=</td><td>0</td></TR>
+<TR><td>1 - EMPRESA TESTE</td><td>2026</td><td>01</td><td>01</td><td>02/01/2026 00:00:00</td><td>SEX</td><td>1000,5</td><td></td><td></td><td></td><td>=</td><td>1000,5</td></TR>
+<TR><td>1 - EMPRESA TESTE</td><td>2026</td><td>01</td><td>02</td><td>05/01/2026 00:00:00</td><td>SEG</td><td>2000</td><td>-300</td><td></td><td>-50,25</td><td>=</td><td>1649,75</td></TR>
+<TR><td>1 - EMPRESA TESTE</td><td>2026</td><td>01</td><td>02</td><td>06/01/2026 00:00:00</td><td>TER</td><td>1500</td><td></td><td>250</td><td></td><td>=</td><td>1750</td></TR>
+<TR><td>1 - EMPRESA TESTE</td><td>2026</td><td>02</td><td>06</td><td>02/02/2026 00:00:00</td><td>SEG</td><td>3000</td><td></td><td></td><td>-100</td><td>=</td><td>2900</td></TR>
+<TR><td>1 - EMPRESA TESTE</td><td>2026</td><td>02</td><td>06</td><td>03/02/2026 00:00:00</td><td>TER</td><td>500,1</td><td>-0,1</td><td></td><td></td><td>=</td><td>500</td></TR>
+</TABLE></BODY></HTML>

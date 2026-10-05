@@ -33,8 +33,8 @@ function decodificar(buf: Buffer): string {
   }
 }
 
-/** Lê o arquivo e devolve as linhas da tabela como strings, já localizando o cabeçalho. */
-export function lerRelatorio(buf: Buffer): { formato: Formato; linhas: LinhaBruta[] } {
+/** Lê o arquivo (xls, xlsx, csv ou HTML do Focco) e devolve a 1ª aba como matriz de strings. */
+export function lerMatriz(buf: Buffer): { formato: Formato; matriz: unknown[][] } {
   const formato = detectarFormato(buf);
   // raw: true mantém "05/01/26" e "83575,749" como texto (sem conversão para data/float).
   const opts: XLSX.ParsingOptions = { raw: true, cellFormula: false, cellHTML: false, dense: true };
@@ -52,9 +52,18 @@ export function lerRelatorio(buf: Buffer): { formato: Formato; linhas: LinhaBrut
     blankrows: false,
   });
   if (matriz.length > MAX_LINHAS) throw new ArquivoInvalidoError(`Arquivo com mais de ${MAX_LINHAS} linhas.`);
+  return { formato, matriz };
+}
 
-  // Pula as linhas de título até achar o cabeçalho com todas as colunas obrigatórias.
-  const obrigatorias = Object.values(COLUNAS_FOCCO);
+/**
+ * Localiza o cabeçalho (1ª linha com todas as colunas) e devolve as linhas não vazias como strings,
+ * indexadas pelos campos de `colunas`, com o número da linha no arquivo.
+ */
+export function extrairLinhas<C extends Record<string, string>>(
+  matriz: unknown[][],
+  colunas: C,
+): (Record<keyof C, string> & { numeroLinha: number })[] {
+  const obrigatorias = Object.values(colunas);
   const iCab = matriz.findIndex((l) => {
     const nomes = l.map((c) => normalizarNome(String(c)));
     return obrigatorias.every((o) => nomes.includes(o));
@@ -65,17 +74,21 @@ export function lerRelatorio(buf: Buffer): { formato: Formato; linhas: LinhaBrut
     );
   }
   const cab = matriz[iCab]!.map((c) => normalizarNome(String(c)));
-  const pos = Object.fromEntries(
-    Object.entries(COLUNAS_FOCCO).map(([campo, nome]) => [campo, cab.indexOf(nome)]),
-  ) as Record<keyof typeof COLUNAS_FOCCO, number>;
-
-  const linhas: LinhaBruta[] = [];
+  const pos = Object.entries(colunas).map(([campo, nome]) => [campo, cab.indexOf(nome)] as const);
+  const linhas: (Record<keyof C, string> & { numeroLinha: number })[] = [];
   matriz.slice(iCab + 1).forEach((l, i) => {
-    const valores = Object.fromEntries(
-      Object.entries(pos).map(([campo, p]) => [campo, String(l[p] ?? '').trim()]),
-    ) as Record<keyof typeof COLUNAS_FOCCO, string>;
+    const valores = Object.fromEntries(pos.map(([campo, p]) => [campo, String(l[p] ?? '').trim()])) as Record<
+      keyof C,
+      string
+    >;
     if (Object.values(valores).every((v) => !v)) return;
     linhas.push({ ...valores, numeroLinha: iCab + i + 2 });
   });
-  return { formato, linhas };
+  return linhas;
+}
+
+/** Lê o relatório de pedidos (Extrator PDV) e devolve as linhas como strings. */
+export function lerRelatorio(buf: Buffer): { formato: Formato; linhas: LinhaBruta[] } {
+  const { formato, matriz } = lerMatriz(buf);
+  return { formato, linhas: extrairLinhas(matriz, COLUNAS_FOCCO) };
 }
