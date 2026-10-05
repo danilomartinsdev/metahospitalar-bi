@@ -32,6 +32,7 @@ Contraste mínimo AA (4.5:1 texto, 3:1 elementos gráficos) — validar ao criar
 - Eixos e grid com `--border`/`--muted-foreground`; tooltip com valores via `formatBRL`.
 - Options geradas por funções puras (`utils/charts/*.ts`) recebendo o tema; `BaseChart` re-renderiza ao trocar tema.
 - Donut: no máximo 6 fatias + "Outros".
+- **Paletas por usuário** (menu do usuário › Cores dos gráficos): Padrão, Esmeralda, Grafite, Vinho e Oceano, definidas só em `utils/charts/palette.ts` com versão clara e escura. Trocam a cor principal, a de comparação (ano anterior), a da meta e as fatias; texto e eixos seguem o tema. As tabelas comparativas usam `--grafico-principal`/`--grafico-comparacao` (e as versões `-soft`/`-forte`), sobrescritas no `<html>` pela paleta. O PDF sai com a paleta de quem pediu.
 
 ## Tipografia e espaçamento
 | Uso | Tamanho/peso |

@@ -65,7 +65,7 @@ export function buildComparativoAcumuladoOptions(a: Acumulado, t: TemaGrafico): 
         name: nomes.anterior,
         type: 'bar',
         data: tem ? [Number(a.total.anterior)] : [],
-        itemStyle: { color: t.textoSuave, opacity: 0.45, borderRadius: [4, 4, 0, 0] },
+        itemStyle: { color: t.comparacao, opacity: 0.55, borderRadius: [4, 4, 0, 0] },
         barMaxWidth: 56,
       },
       {

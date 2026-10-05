@@ -3,6 +3,7 @@ import type { DropdownMenuItem } from '@nuxt/ui';
 
 const auth = useAuthStore();
 const router = useRouter();
+const paletaAberta = ref(false);
 
 const iniciais = computed(() =>
   (auth.usuario?.nome ?? '?')
@@ -23,6 +24,11 @@ const itens: DropdownMenuItem[][] = [
     },
   ],
   [
+    {
+      label: 'Cores dos gráficos',
+      icon: 'i-lucide-palette',
+      onSelect: () => (paletaAberta.value = true),
+    },
     {
       label: 'Trocar senha',
       icon: 'i-lucide-key-round',
@@ -56,4 +62,5 @@ const itens: DropdownMenuItem[][] = [
       </span>
     </button>
   </UDropdownMenu>
+  <LayoutPaletaGraficosModal v-model:aberto="paletaAberta" />
 </template>

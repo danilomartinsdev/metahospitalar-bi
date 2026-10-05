@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { REGIAO_ENUM_ROTULO, type RelatorioImpressao } from '@meta-bi/shared';
+import { type PaletaGrafico, REGIAO_ENUM_ROTULO, type RelatorioImpressao } from '@meta-bi/shared';
 import { DollarSign, Landmark, Receipt, ShoppingCart } from 'lucide-vue-next';
 import { barrasRankingOptions, donutOptions, evolucaoOptions } from '~/utils/charts/options';
 import { periodoPorExtenso, variacoesKpi } from '~/utils/periodo';
@@ -13,12 +13,15 @@ type Janela = Window & { __relatorio?: 'pronto' | 'erro' };
 const route = useRoute();
 const dados = ref<RelatorioImpressao | null>(null);
 const erro = ref(false);
+const paletaImpressao = useState<PaletaGrafico | null | undefined>('paleta-impressao', () => undefined);
 
 onMounted(async () => {
   try {
     dados.value = await $fetch<RelatorioImpressao>('/api/print/relatorio', {
       query: { token: String(route.query.token ?? '') },
     });
+    // O PDF sai com a paleta de cores de quem pediu o relatório.
+    paletaImpressao.value = dados.value.paletaGraficos;
     // Espera o Vue desenhar e as animações curtas do ECharts terminarem antes de liberar o PDF.
     await nextTick();
     setTimeout(() => ((window as Janela).__relatorio = 'pronto'), 1200);

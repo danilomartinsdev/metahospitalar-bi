@@ -28,9 +28,10 @@ const props = defineProps<{
 const emit = defineEmits<{ clique: [params: { name?: string; data?: unknown }] }>();
 
 const { isDark } = useTheme();
-const tema = ref<TemaGrafico>(lerTema());
-// Relê os tokens quando o tema muda (a classe .dark já foi aplicada no próximo tick).
-watch(isDark, () => nextTick(() => (tema.value = lerTema())));
+const paleta = usePaletaGraficos();
+const tema = ref<TemaGrafico>(lerTema(paleta.value));
+// Relê os tokens quando o tema ou a paleta do usuário mudam (a classe .dark já foi aplicada no próximo tick).
+watch([isDark, paleta], () => nextTick(() => (tema.value = lerTema(paleta.value))));
 const option = computed(() => props.opcoes(tema.value));
 </script>
 
