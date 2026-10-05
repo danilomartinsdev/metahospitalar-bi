@@ -68,7 +68,11 @@ describe('KPIs do exemplo base (agosto/2026)', () => {
     expect(ytd25.toFixed(2)).toBe('20000.00');
     expect(variacao(ytd26, ytd25)).toBe(1.5);
 
-    const seg = acumuladoPorSegmento(BASE, 2026, 8);
+    const seg = acumuladoPorSegmento(BASE, '2026-01', '2026-08');
+    expect(seg.periodo).toEqual({
+      atual: { de: '2026-01', ate: '2026-08' },
+      anterior: { de: '2025-01', ate: '2025-08' },
+    });
     expect(seg.linhas).toEqual([
       { segmento: 'PUBLICO', atual: '25000.00', anterior: '12000.00', pct: expect.closeTo(1.0833, 4) },
       { segmento: 'PRIVADO', atual: '25000.00', anterior: '8000.00', pct: 2.125 },

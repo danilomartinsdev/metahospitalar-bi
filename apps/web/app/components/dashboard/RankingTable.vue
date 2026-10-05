@@ -26,7 +26,8 @@ const cabecalho =
       variant: 'ghost',
       size: 'xs',
       label: rotulo,
-      trailingIcon: s === 'asc' ? 'i-lucide-arrow-up' : s === 'desc' ? 'i-lucide-arrow-down' : 'i-lucide-arrow-up-down',
+      trailingIcon:
+        s === 'asc' ? 'i-lucide-arrow-up' : s === 'desc' ? 'i-lucide-arrow-down' : 'i-lucide-arrow-up-down',
       class: ['-mx-2 font-medium text-muted-foreground hover:text-foreground', direita && 'ml-auto'],
       onClick: () => column.toggleSorting(),
     });
@@ -36,7 +37,12 @@ const NUM = { class: { th: 'text-right', td: 'num text-right' } };
 const numero = (v: string | number | null) => (v == null ? -Infinity : Number(v));
 
 const colunas = computed<TableColumn<LinhaRanking>[]>(() => [
-  { id: 'pos', header: '#', enableSorting: false, meta: { class: { th: 'w-10', td: 'num text-muted-foreground' } } },
+  {
+    id: 'pos',
+    header: '#',
+    enableSorting: false,
+    meta: { class: { th: 'w-10', td: 'num text-muted-foreground' } },
+  },
   {
     id: 'rotulo',
     accessorKey: 'rotulo',

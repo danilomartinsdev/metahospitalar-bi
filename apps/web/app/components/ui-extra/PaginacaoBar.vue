@@ -10,7 +10,6 @@ const props = withDefaults(defineProps<{ total: number; rotulo?: string; opcoes?
 const inicio = computed(() => (props.total ? (pagina.value - 1) * porPagina.value + 1 : 0));
 const fim = computed(() => Math.min(pagina.value * porPagina.value, props.total));
 const itensPorPagina = computed(() => props.opcoes.map((n) => ({ label: `${n} por página`, value: n })));
-
 </script>
 
 <template>

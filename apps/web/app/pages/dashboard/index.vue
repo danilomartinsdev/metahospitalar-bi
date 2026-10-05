@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { DollarSign, Landmark, Receipt, ShoppingCart } from 'lucide-vue-next';
 import { useMesesQuery, useVisaoGeralQuery } from '~/composables/api/useDashboard';
+import { anoAnterior, periodoAnterior, periodoCurto, periodoPorExtenso } from '~/utils/periodo';
 import { barrasRankingOptions, donutOptions, evolucaoOptions } from '~/utils/charts/options';
 
 definePageMeta({ titulo: 'Visão geral', permissao: 'dashboard.view' });
@@ -28,24 +29,25 @@ const NOMES_MES = [
   'novembro',
   'dezembro',
 ];
-const rotuloPeriodo = computed(() => {
-  const p = v.value?.periodo;
-  if (!p) return '';
-  const f = (m: string) => `${NOMES_MES[Number(m.slice(5)) - 1]} de ${m.slice(0, 4)}`;
-  return p.de === p.ate ? f(p.de) : `${f(p.de)} a ${f(p.ate)}`;
-});
+const rotuloPeriodo = computed(() =>
+  v.value ? periodoPorExtenso(v.value.periodo.de, v.value.periodo.ate) : '',
+);
 /** Último mês com pedidos importados (no escopo do usuário). */
 const dadosAte = computed(() => {
   const m = meses.data.value?.at(-1);
   return m ? `${NOMES_MES[Number(m.slice(5)) - 1]} de ${m.slice(0, 4)}` : '';
 });
 const MES_CURTO = (n: number) => NOMES_MES[n - 1]!.slice(0, 3);
+const rotuloCurto = (p: { de: string; ate: string }) => periodoCurto(p.de, p.ate);
 const serie = (k: 'total' | 'qtd' | 'ticket') => v.value?.kpis[k].serie.map((s) => Number(s.valor)) ?? [];
 const variacoes = (k: 'total' | 'qtd' | 'ticket') =>
   v.value
     ? [
-        { rotulo: 'vs. período anterior', pct: v.value.kpis[k].mesAnterior.pct },
-        { rotulo: 'vs. ano anterior', pct: v.value.kpis[k].anoAnterior.pct },
+        {
+          rotulo: `vs. ${rotuloCurto(periodoAnterior(v.value.periodo))}`,
+          pct: v.value.kpis[k].mesAnterior.pct,
+        },
+        { rotulo: `vs. ${rotuloCurto(anoAnterior(v.value.periodo))}`, pct: v.value.kpis[k].anoAnterior.pct },
       ]
     : [];
 const ABAS_DONUT = [
@@ -238,17 +240,21 @@ const ABAS_DONUT = [
         </div>
         <div class="rounded-xl border bg-card p-5">
           <h3 class="text-sm font-medium text-muted-foreground">
-            Acumulado do ano por segmento
-            <span v-if="v" class="block text-xs font-normal"
-              >jan–{{ NOMES_MES[v.acumuladoSegmento.meses - 1]?.slice(0, 3) }} {{ v.evolucao.ano }} vs. mesmo
-              período de {{ v.evolucao.ano - 1 }}</span
-            >
+            Comparativo com o ano anterior
+            <span v-if="v" class="block text-xs font-normal">
+              {{
+                periodoPorExtenso(v.acumuladoSegmento.periodo.atual.de, v.acumuladoSegmento.periodo.atual.ate)
+              }}
+              ×
+              {{
+                periodoPorExtenso(
+                  v.acumuladoSegmento.periodo.anterior.de,
+                  v.acumuladoSegmento.periodo.anterior.ate,
+                )
+              }}
+            </span>
           </h3>
-          <ChartsComparativoAcumuladoChart
-            :acumulado="v?.acumuladoSegmento"
-            :ano="v?.evolucao.ano"
-            :carregando="carregando"
-          />
+          <ChartsComparativoAcumuladoChart :acumulado="v?.acumuladoSegmento" :carregando="carregando" />
         </div>
       </section>
     </template>

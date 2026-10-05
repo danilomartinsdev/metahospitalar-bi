@@ -82,6 +82,13 @@ export function donutOptions(linhas: LinhaRanking[], t: TemaGrafico): EChartsOpt
   const resto = linhas.slice(6);
   const dados = principais.map((l) => ({ name: l.rotulo, value: Number(l.total) }));
   if (resto.length) dados.push({ name: 'Outros', value: resto.reduce((s, l) => s + Number(l.total), 0) });
+  // % da legenda vem da participação calculada na API (Decimal); "Outros" soma as participações.
+  const pct = new Map(principais.map((l) => [l.rotulo, l.participacao]));
+  if (resto.length)
+    pct.set(
+      'Outros',
+      resto.reduce((s, l) => s + (l.participacao ?? 0), 0),
+    );
   return {
     ...base(t),
     color: t.categorica,
@@ -93,7 +100,14 @@ export function donutOptions(linhas: LinhaRanking[], t: TemaGrafico): EChartsOpt
         return `${x.name}<br/><b>${formatBRL(x.value)}</b> · ${formatPct(x.percent / 100)}`;
       },
     },
-    legend: { bottom: 0, textStyle: { color: t.textoSuave }, itemWidth: 10, itemHeight: 10, type: 'scroll' },
+    legend: {
+      bottom: 0,
+      textStyle: { color: t.textoSuave },
+      itemWidth: 10,
+      itemHeight: 10,
+      type: 'scroll',
+      formatter: (nome: string) => `${nome} ${formatPct(pct.get(nome) ?? null)}`,
+    },
     series: [
       {
         type: 'pie',

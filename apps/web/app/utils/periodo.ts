@@ -1,0 +1,53 @@
+// Rótulos de período (meses "AAAA-MM") para a UI, sempre explícitos: "janeiro a setembro de 2026".
+const MESES = [
+  'janeiro',
+  'fevereiro',
+  'março',
+  'abril',
+  'maio',
+  'junho',
+  'julho',
+  'agosto',
+  'setembro',
+  'outubro',
+  'novembro',
+  'dezembro',
+];
+
+const ano = (m: string) => m.slice(0, 4);
+const nome = (m: string) => MESES[Number(m.slice(5, 7)) - 1]!;
+const curto = (m: string) => nome(m).slice(0, 3);
+
+export function deslocarMes(m: string, n: number): string {
+  const t = Number(ano(m)) * 12 + Number(m.slice(5, 7)) - 1 + n;
+  return `${Math.floor(t / 12)}-${String((t % 12) + 1).padStart(2, '0')}`;
+}
+
+export function mesesNoPeriodo(de: string, ate: string): number {
+  return (Number(ano(ate)) - Number(ano(de))) * 12 + Number(ate.slice(5, 7)) - Number(de.slice(5, 7)) + 1;
+}
+
+/** "setembro de 2026" · "janeiro a setembro de 2026" · "outubro de 2025 a março de 2026". */
+export function periodoPorExtenso(de: string, ate: string): string {
+  if (de === ate) return `${nome(de)} de ${ano(de)}`;
+  if (ano(de) === ano(ate)) return `${nome(de)} a ${nome(ate)} de ${ano(ate)}`;
+  return `${nome(de)} de ${ano(de)} a ${nome(ate)} de ${ano(ate)}`;
+}
+
+/** "set/2026" · "jan–set/2026" · "out/2025–mar/2026". */
+export function periodoCurto(de: string, ate: string): string {
+  if (de === ate) return `${curto(de)}/${ano(de)}`;
+  if (ano(de) === ano(ate)) return `${curto(de)}–${curto(ate)}/${ano(ate)}`;
+  return `${curto(de)}/${ano(de)}–${curto(ate)}/${ano(ate)}`;
+}
+
+/** Mesmo período do ano anterior. */
+export function anoAnterior(p: { de: string; ate: string }) {
+  return { de: deslocarMes(p.de, -12), ate: deslocarMes(p.ate, -12) };
+}
+
+/** Período imediatamente anterior com o mesmo número de meses (regra do "vs. período anterior"). */
+export function periodoAnterior(p: { de: string; ate: string }) {
+  const n = mesesNoPeriodo(p.de, p.ate);
+  return { de: deslocarMes(p.de, -n), ate: deslocarMes(p.ate, -n) };
+}

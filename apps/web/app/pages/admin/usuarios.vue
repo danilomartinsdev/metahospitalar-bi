@@ -15,7 +15,11 @@ const usuarios = useUsuariosQuery();
 
 const busca = ref('');
 const buscaDebounced = refDebounced(busca, 250);
-const normalizar = (s: string) => s.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
+const normalizar = (s: string) =>
+  s
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLowerCase();
 const filtrados = computed(() => {
   const t = normalizar(buscaDebounced.value.trim());
   const lista = usuarios.data.value ?? [];
@@ -82,14 +86,27 @@ function acoes(u: UsuarioAdmin): DropdownMenuItem[][] {
   const grupos: DropdownMenuItem[][] = [
     [
       { label: 'Editar', icon: 'i-lucide-pencil', onSelect: () => abrir(u) },
-      { label: 'Redefinir senha', icon: 'i-lucide-key-round', onSelect: () => executar(u, 'redefinir-senha') },
-      { label: 'Encerrar sessões', icon: 'i-lucide-log-out', onSelect: () => executar(u, 'derrubar-sessoes') },
+      {
+        label: 'Redefinir senha',
+        icon: 'i-lucide-key-round',
+        onSelect: () => executar(u, 'redefinir-senha'),
+      },
+      {
+        label: 'Encerrar sessões',
+        icon: 'i-lucide-log-out',
+        onSelect: () => executar(u, 'derrubar-sessoes'),
+      },
     ],
   ];
   if (u.id !== auth.usuario?.id) {
     grupos.push([
       u.ativo
-        ? { label: 'Desativar', icon: 'i-lucide-user-x', color: 'error', onSelect: () => executar(u, 'desativar') }
+        ? {
+            label: 'Desativar',
+            icon: 'i-lucide-user-x',
+            color: 'error',
+            onSelect: () => executar(u, 'desativar'),
+          }
         : { label: 'Reativar', icon: 'i-lucide-user-check', onSelect: () => executar(u, 'reativar') },
     ]);
   }
@@ -152,7 +169,12 @@ const escopo = (u: UsuarioAdmin) =>
                     <UBadge v-if="!u.ativo" color="neutral" variant="soft" label="Desativado" />
                     <UBadge v-else-if="u.bloqueado" color="warning" variant="soft" label="Bloqueado" />
                     <UBadge v-else color="success" variant="soft" label="Ativo" />
-                    <UBadge v-if="u.trocarSenha && u.ativo" color="neutral" variant="outline" label="Troca de senha" />
+                    <UBadge
+                      v-if="u.trocarSenha && u.ativo"
+                      color="neutral"
+                      variant="outline"
+                      label="Troca de senha"
+                    />
                   </div>
                 </td>
                 <td class="px-5 py-3 text-right">
@@ -192,7 +214,14 @@ const escopo = (u: UsuarioAdmin) =>
             <code class="num rounded bg-background px-2 py-1 text-base font-semibold">{{
               credencial?.senha
             }}</code>
-            <UButton color="neutral" variant="outline" size="sm" icon="i-lucide-copy" label="Copiar" @click="copiar" />
+            <UButton
+              color="neutral"
+              variant="outline"
+              size="sm"
+              icon="i-lucide-copy"
+              label="Copiar"
+              @click="copiar"
+            />
           </p>
         </div>
       </template>

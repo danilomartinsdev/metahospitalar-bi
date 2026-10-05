@@ -4,7 +4,8 @@ import { mensagemErro } from '~/composables/api/useApi';
 export function useAviso() {
   const toast = useToast();
   return {
-    sucesso: (titulo: string) => toast.add({ title: titulo, color: 'success', icon: 'i-lucide-circle-check' }),
+    sucesso: (titulo: string) =>
+      toast.add({ title: titulo, color: 'success', icon: 'i-lucide-circle-check' }),
     erro: (e: unknown, padrao?: string) =>
       toast.add({
         title: typeof e === 'string' ? e : mensagemErro(e, padrao),

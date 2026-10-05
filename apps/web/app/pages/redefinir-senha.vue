@@ -52,6 +52,14 @@ async function salvar({ data: dados }: FormSubmitEvent<z.output<typeof redefinir
       type="password"
       autocomplete="new-password"
     />
-    <UButton type="submit" size="lg" block class="h-10 justify-center" label="Salvar nova senha" loading-auto :disabled="!token" />
+    <UButton
+      type="submit"
+      size="lg"
+      block
+      class="h-10 justify-center"
+      label="Salvar nova senha"
+      loading-auto
+      :disabled="!token"
+    />
   </UForm>
 </template>

@@ -2,6 +2,9 @@
 import { REGIAO_ENUM_ROTULO, type RelatorioImpressao } from '@meta-bi/shared';
 import { DollarSign, Landmark, Receipt, ShoppingCart } from 'lucide-vue-next';
 import { barrasRankingOptions, donutOptions, evolucaoOptions } from '~/utils/charts/options';
+import { anoAnterior, periodoAnterior, periodoCurto, periodoPorExtenso } from '~/utils/periodo';
+
+const curto = (p: { de: string; ate: string }) => periodoCurto(p.de, p.ate);
 
 // Relatório executivo em A4, aberto pelo Chromium da API (ADR 0004). Sem sessão: o token de uso
 // único na URL é a credencial; a API aplica o escopo de quem pediu o PDF.
@@ -55,8 +58,8 @@ const filtrosTexto = computed(() => {
 const variacoes = (k: 'total' | 'qtd' | 'ticket') =>
   v.value
     ? [
-        { rotulo: 'vs. período anterior', pct: v.value.kpis[k].mesAnterior.pct },
-        { rotulo: 'vs. ano anterior', pct: v.value.kpis[k].anoAnterior.pct },
+        { rotulo: `vs. ${curto(periodoAnterior(v.value.periodo))}`, pct: v.value.kpis[k].mesAnterior.pct },
+        { rotulo: `vs. ${curto(anoAnterior(v.value.periodo))}`, pct: v.value.kpis[k].anoAnterior.pct },
       ]
     : [];
 const serie = (k: 'total' | 'qtd' | 'ticket') => v.value?.kpis[k].serie.map((s) => Number(s.valor)) ?? [];
@@ -177,8 +180,22 @@ const TABELAS = computed(() =>
         />
       </div>
       <div class="rounded-xl border p-4">
-        <h2 class="text-sm font-medium text-muted-foreground">Acumulado do ano por segmento</h2>
-        <ChartsComparativoAcumuladoChart :acumulado="v.acumuladoSegmento" :ano="v.evolucao.ano" />
+        <h2 class="text-sm font-medium text-muted-foreground">
+          Comparativo com o ano anterior
+          <span class="block text-xs font-normal">
+            {{
+              periodoPorExtenso(v.acumuladoSegmento.periodo.atual.de, v.acumuladoSegmento.periodo.atual.ate)
+            }}
+            ×
+            {{
+              periodoPorExtenso(
+                v.acumuladoSegmento.periodo.anterior.de,
+                v.acumuladoSegmento.periodo.anterior.ate,
+              )
+            }}
+          </span>
+        </h2>
+        <ChartsComparativoAcumuladoChart :acumulado="v.acumuladoSegmento" />
       </div>
     </section>
 

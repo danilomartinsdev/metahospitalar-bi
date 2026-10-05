@@ -188,7 +188,9 @@ const resumo = (d: unknown) => (d && typeof d === 'object' ? JSON.stringify(d).s
     <UModal
       :open="!!detalhe"
       :title="detalhe ? (ROTULOS[detalhe.acao] ?? detalhe.acao) : ''"
-      :description="detalhe ? `${formatDateTime(detalhe.createdAt)} · ${detalhe.usuario?.nome ?? 'sem usuário'}` : ''"
+      :description="
+        detalhe ? `${formatDateTime(detalhe.createdAt)} · ${detalhe.usuario?.nome ?? 'sem usuário'}` : ''
+      "
       @update:open="(v) => !v && (detalhe = null)"
     >
       <template #body>

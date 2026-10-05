@@ -98,8 +98,10 @@ export interface VisaoGeral {
   porRegiao: LinhaRanking[];
   porSegmento: LinhaRanking[];
   topGestores: LinhaRanking[];
+  /** Selecionado (de..ate) × mesmo período do ano anterior, por segmento. */
   acumuladoSegmento: {
     meses: number;
+    periodo: { atual: { de: string; ate: string }; anterior: { de: string; ate: string } };
     total: { atual: string; anterior: string; pct: number | null };
     linhas: { segmento: string; atual: string; anterior: string; pct: number | null }[];
   };

@@ -103,7 +103,12 @@ async function salvar() {
 <template>
   <div class="mx-auto max-w-7xl space-y-6">
     <UiExtraPageHeader titulo="Metas" descricao="Metas mensais em R$: total da empresa e por representante.">
-      <USelect v-model="anoSelecionado" :items="[anoAtual - 1, anoAtual, anoAtual + 1]" class="w-28" aria-label="Ano" />
+      <USelect
+        v-model="anoSelecionado"
+        :items="[anoAtual - 1, anoAtual, anoAtual + 1]"
+        class="w-28"
+        aria-label="Ano"
+      />
       <UBadge v-if="alterado" color="warning" variant="soft" label="Alterações não salvas" />
       <UButton icon="i-lucide-save" label="Salvar" :loading="salvarMut.isPending.value" @click="salvar" />
     </UiExtraPageHeader>

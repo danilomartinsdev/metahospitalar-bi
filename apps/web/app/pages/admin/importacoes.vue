@@ -139,7 +139,12 @@ const resumo = computed(() =>
             · total <span class="num">{{ formatBRL(previa.valorTotal) }}</span>
           </p>
         </div>
-        <UBadge v-if="previa.jaImportado" color="neutral" variant="soft" label="Este arquivo já foi importado" />
+        <UBadge
+          v-if="previa.jaImportado"
+          color="neutral"
+          variant="soft"
+          label="Este arquivo já foi importado"
+        />
       </div>
 
       <div class="grid grid-cols-2 gap-3 md:grid-cols-4">

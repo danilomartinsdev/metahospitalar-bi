@@ -229,9 +229,9 @@ export class DashboardService {
         (l) => l.gestorNome,
       ).slice(0, 10),
       acumuladoSegmento: this.comTotalManual(
-        acumuladoPorSegmento(todas, ano, Number(ate.slice(5, 7))),
-        totalPeriodo(`${ano}-01`, `${ano}-${ate.slice(5, 7)}`),
-        totalPeriodo(`${ano - 1}-01`, `${ano - 1}-${ate.slice(5, 7)}`),
+        acumuladoPorSegmento(todas, de, ate),
+        totalPeriodo(de, ate),
+        totalPeriodo(deslocarMes(de, -12), deslocarMes(ate, -12)),
       ),
     };
   }

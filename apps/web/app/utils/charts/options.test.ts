@@ -56,3 +56,16 @@ describe('barrasRankingOptions', () => {
     expect((o.yAxis as { data: string[] }).data).toEqual(['B', 'A']);
   });
 });
+
+describe('donutOptions — legenda', () => {
+  it('mostra a participação ao lado do nome', () => {
+    const l = (rotulo: string, total: string, participacao: number) => ({
+      ...linha(rotulo, total),
+      participacao,
+    });
+    const o = donutOptions([l('Privado', '532.00', 0.532), l('Público', '468.00', 0.468)], TEMA_CLARO);
+    const fmt = (o.legend as { formatter: (n: string) => string }).formatter;
+    expect(fmt('Privado')).toMatch(/^Privado 53,2\s?%$/);
+    expect(fmt('Público')).toMatch(/^Público 46,8\s?%$/);
+  });
+});

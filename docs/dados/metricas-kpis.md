@@ -48,6 +48,12 @@ Ex.: dados de 2026 até agosto → YTD 2026 = jan–ago/2026; YTD 2025 = jan–a
 Com o exemplo base (só jul–ago existem): YTD 2026 = 20.000 + 30.000 = 50.000;
 YTD 2025 = 0 (jul) + 20.000 (ago) = 20.000; variação = **+150,0%**.
 
+### Comparativo com o ano anterior (card da Visão geral)
+Período selecionado × **mesmo período do ano anterior** (ex.: janeiro a setembro de 2026 × janeiro a
+setembro de 2025; só setembro/2026 × setembro/2025), por segmento e no total. Os dois períodos aparecem
+escritos na tela. O total usa o faturamento manual (Histórico) nos meses sem pedidos; os segmentos, só pedidos.
+Decidido com o usuário em 2026-10-05.
+
 ### Atingimento de meta
 `total ÷ meta`; meta ausente ou 0 → "sem meta". Ex.: meta ago/2026 = 40.000 →
 30.000 ÷ 40.000 = **75,0%**.

@@ -88,23 +88,27 @@ export function serieMensal(linhas: LinhaVenda[], meses: string[], f: (ls: Linha
 }
 
 /**
- * Acumulado do ano por segmento comparado SÓ nos meses em comum:
- * jan..mesFinal do ano atual vs jan..mesFinal do ano anterior.
+ * Comparativo por segmento com o MESMO período do ano anterior:
+ * de..ate (ex.: jan–set/2026) vs de−12..ate−12 (jan–set/2025).
  */
-export function acumuladoPorSegmento(linhas: LinhaVenda[], ano: number, mesFinal: number) {
-  const ate = (a: number) => `${a}-${String(mesFinal).padStart(2, '0')}`;
-  const atual = noPeriodo(linhas, `${ano}-01`, ate(ano));
-  const anterior = noPeriodo(linhas, `${ano - 1}-01`, ate(ano - 1));
+export function acumuladoPorSegmento(linhas: LinhaVenda[], de: string, ate: string) {
+  const periodo = {
+    atual: { de, ate },
+    anterior: { de: deslocarMes(de, -12), ate: deslocarMes(ate, -12) },
+  };
+  const atual = noPeriodo(linhas, de, ate);
+  const anterior = noPeriodo(linhas, periodo.anterior.de, periodo.anterior.ate);
   const segs = ['PUBLICO', 'PRIVADO', 'SEM'] as const;
-  const de = (ls: LinhaVenda[], s: (typeof segs)[number]) =>
+  const somaSeg = (ls: LinhaVenda[], s: (typeof segs)[number]) =>
     somar(ls.filter((l) => (l.segmento ?? 'SEM') === s)).total;
   const tAtual = somar(atual).total;
   const tAnterior = somar(anterior).total;
   return {
-    meses: mesFinal,
+    meses: mesesEntre(de, ate).length,
+    periodo,
     total: { atual: tAtual.toFixed(2), anterior: tAnterior.toFixed(2), pct: variacao(tAtual, tAnterior) },
     linhas: segs
-      .map((s) => ({ segmento: s, atual: de(atual, s), anterior: de(anterior, s) }))
+      .map((s) => ({ segmento: s, atual: somaSeg(atual, s), anterior: somaSeg(anterior, s) }))
       .filter((r) => !r.atual.isZero() || !r.anterior.isZero())
       .map((r) => ({
         segmento: r.segmento,

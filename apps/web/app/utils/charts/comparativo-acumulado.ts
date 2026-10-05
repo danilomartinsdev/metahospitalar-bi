@@ -1,7 +1,8 @@
-// Comparativo do acumulado do ano por segmento: ano anterior × ano atual, com a variação no topo.
+// Comparativo por segmento: período selecionado × mesmo período do ano anterior, com a variação no topo.
 import type { VisaoGeral } from '@meta-bi/shared';
 import type { EChartsOption } from 'echarts';
 import { formatBRL, formatCompact, formatPct } from '../format';
+import { periodoCurto } from '../periodo';
 import type { TemaGrafico } from './palette';
 
 type Acumulado = VisaoGeral['acumuladoSegmento'];
@@ -16,7 +17,14 @@ export function categoriasAcumulado(a: Acumulado) {
   ];
 }
 
-export function buildComparativoAcumuladoOptions(a: Acumulado, ano: number, t: TemaGrafico): EChartsOption {
+/** Nomes das séries: os dois períodos comparados (ex.: "jan–set/2025" e "jan–set/2026"). */
+export const nomesPeriodos = (a: Acumulado) => ({
+  atual: periodoCurto(a.periodo.atual.de, a.periodo.atual.ate),
+  anterior: periodoCurto(a.periodo.anterior.de, a.periodo.anterior.ate),
+});
+
+export function buildComparativoAcumuladoOptions(a: Acumulado, t: TemaGrafico): EChartsOption {
+  const nomes = nomesPeriodos(a);
   const cats = a.linhas.length ? categoriasAcumulado(a) : [];
   const seta = (p: number | null) => (p === null ? '' : `${p >= 0 ? '▲' : '▼'} ${formatPct(Math.abs(p))}`);
   return {
@@ -46,14 +54,14 @@ export function buildComparativoAcumuladoOptions(a: Acumulado, ano: number, t: T
     },
     series: [
       {
-        name: String(ano - 1),
+        name: nomes.anterior,
         type: 'bar',
         data: cats.map((c) => Number(c.anterior)),
         itemStyle: { color: t.textoSuave, opacity: 0.45, borderRadius: [4, 4, 0, 0] },
         barMaxWidth: 28,
       },
       {
-        name: String(ano),
+        name: nomes.atual,
         type: 'bar',
         data: cats.map((c) => Number(c.atual)),
         itemStyle: { color: t.primaria, borderRadius: [4, 4, 0, 0] },
