@@ -24,7 +24,7 @@ function ativo(to: string) {
     <NuxtLink
       to="/dashboard"
       class="flex h-16 shrink-0 items-center gap-3 border-b border-sidebar-border"
-      :class="recolhida ? 'justify-center px-2' : 'px-6'"
+      :class="recolhida ? 'justify-center px-2' : 'px-4'"
       @click="emit('navegou')"
     >
       <img
@@ -33,6 +33,8 @@ function ativo(to: string) {
         alt="Meta Hospitalar"
         class="h-3.5 w-auto shrink-0 brightness-0 invert"
       />
+      <!-- O arquivo tem ~8px de margem transparente à esquerda nesta altura: px-4 + 8px = 24px,
+           mesmo recuo dos rótulos e ícones do menu. -->
       <img
         v-else
         src="/brand/logo-meta-hospitalar.webp"
