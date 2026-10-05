@@ -27,7 +27,10 @@ watch([filtro, qs, porPagina], () => (pagina.value = 1));
 
 <template>
   <div class="mx-auto max-w-7xl space-y-6">
-    <h2 class="text-2xl font-semibold">Clientes</h2>
+    <div class="flex flex-wrap items-end justify-between gap-3">
+      <h2 class="text-2xl font-semibold">Clientes</h2>
+      <DashboardExportarMenu xlsx="clientes" />
+    </div>
     <DashboardFilterBar :periodo="q.data.value?.periodo" />
 
     <section class="grid gap-4 sm:grid-cols-3">

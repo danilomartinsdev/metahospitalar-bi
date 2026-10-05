@@ -24,8 +24,9 @@ WORKDIR /repo/apps/api
 CMD ["pnpm", "exec", "prisma", "migrate", "deploy"]
 
 FROM node:24-alpine AS runtime
-ENV NODE_ENV=production TZ=America/Sao_Paulo
-RUN apk add --no-cache tzdata
+ENV NODE_ENV=production TZ=America/Sao_Paulo PDF_CHROMIUM_PATH=/usr/bin/chromium-browser
+# Chromium do sistema (o empacotado pelo Playwright não roda em musl) + fontes para o PDF (ADR 0004).
+RUN apk add --no-cache tzdata chromium font-noto ttf-freefont
 WORKDIR /app
 COPY --from=build --chown=node:node /out ./
 USER node

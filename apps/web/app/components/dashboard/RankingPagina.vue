@@ -20,19 +20,22 @@ const q = useRankingQuery(() => props.dim, qs);
   <div class="mx-auto max-w-7xl space-y-6">
     <div class="flex flex-wrap items-end justify-between gap-3">
       <h2 class="text-2xl font-semibold">Ranking de {{ aba.rotulo.toLowerCase() }}</h2>
-      <nav aria-label="Tipo de ranking">
-        <UFieldGroup size="sm">
-          <UButton
-            v-for="a in ABAS"
-            :key="a.dim"
-            :to="{ path: `/dashboard/${a.dim}`, query: route.query }"
-            :color="a.dim === dim ? 'primary' : 'neutral'"
-            :variant="a.dim === dim ? 'solid' : 'outline'"
-            :label="a.rotulo"
-            :aria-current="a.dim === dim ? 'page' : undefined"
-          />
-        </UFieldGroup>
-      </nav>
+      <div class="flex flex-wrap items-center gap-2">
+        <DashboardExportarMenu :xlsx="dim" />
+        <nav aria-label="Tipo de ranking">
+          <UFieldGroup size="sm">
+            <UButton
+              v-for="a in ABAS"
+              :key="a.dim"
+              :to="{ path: `/dashboard/${a.dim}`, query: route.query }"
+              :color="a.dim === dim ? 'primary' : 'neutral'"
+              :variant="a.dim === dim ? 'solid' : 'outline'"
+              :label="a.rotulo"
+              :aria-current="a.dim === dim ? 'page' : undefined"
+            />
+          </UFieldGroup>
+        </nav>
+      </div>
     </div>
 
     <DashboardFilterBar :periodo="q.data.value?.periodo" />

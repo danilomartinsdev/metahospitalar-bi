@@ -24,7 +24,9 @@ export type AcaoAuditada =
   | 'usuario.senha-redefinida'
   | 'papel.criado'
   | 'papel.alterado'
-  | 'papel.removido';
+  | 'papel.removido'
+  | 'export.xlsx'
+  | 'export.pdf';
 
 interface Registro {
   acao: AcaoAuditada;

@@ -31,6 +31,12 @@ export const envSchema = z.object({
 
   UPLOAD_DIR: z.string().default('./storage/uploads'),
   IMPORT_MAX_FILE_MB: z.coerce.number().positive().max(50).default(10),
+
+  // PDF executivo (ADR 0004): URL da SPA que o Chromium da API abre (padrão: WEB_ORIGIN) e,
+  // em produção (Alpine), o Chromium do sistema.
+  PRINT_BASE_URL: z.url().optional(),
+  PDF_CHROMIUM_PATH: z.string().optional(),
+  EXPORT_MAX_LINHAS: z.coerce.number().int().positive().max(200_000).default(50_000),
 });
 
 export type Env = z.infer<typeof envSchema>;

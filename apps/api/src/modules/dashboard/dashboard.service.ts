@@ -312,6 +312,23 @@ export class DashboardService {
   }
 
   async listarPedidos(u: UsuarioAutenticado, q: PedidosQuery) {
+    const { data, total, periodo } = await this.consultarPedidos(u, q, {
+      skip: (q.page - 1) * q.pageSize,
+      take: q.pageSize,
+    });
+    return { data, meta: { page: q.page, pageSize: q.pageSize, total }, periodo };
+  }
+
+  /** Todos os pedidos do filtro (no escopo), para exportação; até `limite` linhas. */
+  async pedidosParaExportar(u: UsuarioAutenticado, q: Filtros & Pick<PedidosQuery, 'sort' | 'dir'>, limite: number) {
+    return this.consultarPedidos(u, q, { take: limite });
+  }
+
+  private async consultarPedidos(
+    u: UsuarioAutenticado,
+    q: Filtros & Pick<PedidosQuery, 'sort' | 'dir'>,
+    pagina: { skip?: number; take: number },
+  ) {
     const { de, ate } = await this.periodo(u, q);
     const where: Prisma.PedidoWhereInput = {
       AND: [this.where(q, false), { competencia: { gte: dataMes(de), lte: dataMes(ate) } }],
@@ -328,8 +345,7 @@ export class DashboardService {
       this.pedidos.findMany(u, {
         where,
         orderBy: [ordem[q.sort], { focoId: 'desc' }],
-        skip: (q.page - 1) * q.pageSize,
-        take: q.pageSize,
+        ...pagina,
         include: {
           status: { select: { codigo: true, descricao: true, cor: true } },
           cliente: { select: { nomeOriginal: true, segmentoOverride: true } },
@@ -353,7 +369,7 @@ export class DashboardService {
       segmento: rotuloSegmento(p.cliente.segmentoOverride ?? p.representante.segmentoPadrao),
       valor: p.valor.toFixed(2),
     }));
-    return { data, meta: { page: q.page, pageSize: q.pageSize, total }, periodo: { de, ate } };
+    return { data, total, periodo: { de, ate } };
   }
 
   /** Meses com dados (no escopo) — alimenta o seletor de período. */

@@ -3,6 +3,9 @@ import { useAuthStore } from '~/stores/auth';
 const PUBLICAS = new Set(['/login', '/esqueci-senha', '/redefinir-senha']);
 
 export default defineNuxtRouteMiddleware(async (to) => {
+  // Impressão (PDF): aberta pelo Chromium da API, sem sessão — a credencial é o token de uso único.
+  if (to.path.startsWith('/print/')) return;
+
   const auth = useAuthStore();
   await auth.inicializar();
 

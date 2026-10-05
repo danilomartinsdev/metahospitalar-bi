@@ -91,9 +91,12 @@ const total = computed(() => q.data.value?.meta.total ?? 0);
   <div class="mx-auto max-w-7xl space-y-6">
     <div class="flex flex-wrap items-end justify-between gap-3">
       <h2 class="text-2xl font-semibold">Pedidos</h2>
-      <UDropdownMenu :items="itensColunas" :content="{ align: 'end' }">
-        <UButton color="neutral" variant="outline" size="sm" icon="i-lucide-columns-3" label="Colunas" />
-      </UDropdownMenu>
+      <div class="flex items-center gap-2">
+        <DashboardExportarMenu xlsx="pedidos" :ordenacao="{ sort, dir }" />
+        <UDropdownMenu :items="itensColunas" :content="{ align: 'end' }">
+          <UButton color="neutral" variant="outline" size="sm" icon="i-lucide-columns-3" label="Colunas" />
+        </UDropdownMenu>
+      </div>
     </div>
 
     <DashboardFilterBar :periodo="q.data.value?.periodo" />

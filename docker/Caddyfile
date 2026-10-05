@@ -26,3 +26,15 @@
 		file_server
 	}
 }
+
+# Interno (não publicado): o Chromium da API abre /print/relatorio por aqui para gerar o PDF.
+:8080 {
+	handle /api/* {
+		reverse_proxy api:4318
+	}
+	handle {
+		root * /srv
+		try_files {path} /index.html
+		file_server
+	}
+}

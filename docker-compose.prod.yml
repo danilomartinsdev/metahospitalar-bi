@@ -41,6 +41,7 @@ services:
       API_HOST: 0.0.0.0
       API_PORT: 4318
       COOKIE_SECURE: 'true'
+      PRINT_BASE_URL: http://web:8080
       DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB:-metabi}?schema=public
     volumes:
       - storage:/app/storage

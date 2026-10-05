@@ -6,3 +6,4 @@ export * from './schemas/importacao.js';
 export * from './schemas/cadastros.js';
 export * from './schemas/dashboard.js';
 export * from './schemas/usuarios.js';
+export * from './schemas/exportacao.js';

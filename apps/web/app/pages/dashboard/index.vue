@@ -56,12 +56,15 @@ const ABAS_DONUT = [
 
 <template>
   <div class="mx-auto max-w-7xl space-y-6">
-    <div>
-      <h2 class="text-2xl font-semibold">Visão geral</h2>
-      <p class="text-sm text-muted-foreground">
-        {{ rotuloPeriodo || 'Carregando período…' }}
-        <template v-if="dadosAte"> · dados importados até {{ dadosAte }}</template>
-      </p>
+    <div class="flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <h2 class="text-2xl font-semibold">Visão geral</h2>
+        <p class="text-sm text-muted-foreground">
+          {{ rotuloPeriodo || 'Carregando período…' }}
+          <template v-if="dadosAte"> · dados importados até {{ dadosAte }}</template>
+        </p>
+      </div>
+      <DashboardExportarMenu />
     </div>
 
     <DashboardFilterBar :periodo="v?.periodo" />
