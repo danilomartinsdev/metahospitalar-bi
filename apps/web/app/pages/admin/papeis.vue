@@ -12,6 +12,9 @@ const papeis = usePapeisQuery();
 const salvar = useSalvarPapel();
 const remover = useRemoverPapel();
 
+/** Papéis com salvamento em andamento (cada card tem o seu). */
+const salvando = reactive(new Set<string>());
+
 /** Rascunho editável por papel. */
 const rascunho = ref<Record<string, { nome: string; permissoes: Permission[] }>>({});
 watch(
@@ -35,12 +38,15 @@ function alternar(p: PapelAdmin, perm: Permission) {
 }
 
 async function gravar(p: PapelAdmin) {
+  salvando.add(p.id);
   try {
     const r = await salvar.mutateAsync({ id: p.id, dados: rascunho.value[p.id]! });
     rascunho.value[p.id] = { nome: r.nome, permissoes: [...r.permissoes] };
     aviso.sucesso(`Papel "${r.nome}" salvo. Vale na próxima ação de cada usuário.`);
   } catch (e) {
     aviso.erro(e);
+  } finally {
+    salvando.delete(p.id);
   }
 }
 
@@ -106,21 +112,19 @@ async function apagar(p: PapelAdmin) {
             <Lock class="size-3.5" /> Admin sempre tem todas as permissões.
           </p>
           <ul class="mt-3 flex-1 space-y-1">
-            <li v-for="perm in PERMISSIONS" :key="perm">
-              <label
-                class="flex cursor-pointer items-center gap-2 rounded px-1 py-1 text-sm hover:bg-muted"
-                :class="p.chave === 'admin' && 'cursor-not-allowed opacity-70'"
-              >
-                <input
-                  type="checkbox"
-                  class="accent-primary"
-                  :disabled="p.chave === 'admin'"
-                  :checked="rascunho[p.id]?.permissoes.includes(perm)"
-                  @change="alternar(p, perm)"
-                />
-                {{ PERMISSION_LABELS[perm] }}
-                <code class="ml-auto text-[10px] text-muted-foreground">{{ perm }}</code>
-              </label>
+            <li
+              v-for="perm in PERMISSIONS"
+              :key="perm"
+              class="flex items-center gap-2 rounded px-1 py-1 text-sm hover:bg-muted"
+            >
+              <UCheckbox
+                class="flex-1"
+                :disabled="p.chave === 'admin'"
+                :model-value="rascunho[p.id]?.permissoes.includes(perm)"
+                :label="PERMISSION_LABELS[perm]"
+                @update:model-value="alternar(p, perm)"
+              />
+              <code class="text-[10px] text-muted-foreground">{{ perm }}</code>
             </li>
           </ul>
 
@@ -139,7 +143,8 @@ async function apagar(p: PapelAdmin) {
               size="sm"
               icon="i-lucide-save"
               label="Salvar"
-              :disabled="!alterado(p) || salvar.isPending.value"
+              :loading="salvando.has(p.id)"
+              :disabled="!alterado(p)"
               @click="gravar(p)"
             />
           </div>

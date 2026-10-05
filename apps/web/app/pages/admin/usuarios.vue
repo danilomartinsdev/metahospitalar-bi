@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { REGIAO_ENUM_ROTULO, type UsuarioAdmin } from '@meta-bi/shared';
 import type { DropdownMenuItem } from '@nuxt/ui';
+import { refDebounced } from '@vueuse/core';
 import { useAcaoUsuario, useUsuariosQuery } from '~/composables/api/useAdmin';
 import { useAuthStore } from '~/stores/auth';
 
@@ -11,6 +12,15 @@ useHead({ title: 'Usuários — BI Meta Hospitalar' });
 
 const auth = useAuthStore();
 const usuarios = useUsuariosQuery();
+
+const busca = ref('');
+const buscaDebounced = refDebounced(busca, 250);
+const normalizar = (s: string) => s.normalize('NFD').replace(/\p{Diacritic}/gu, '').toLowerCase();
+const filtrados = computed(() => {
+  const t = normalizar(buscaDebounced.value.trim());
+  const lista = usuarios.data.value ?? [];
+  return t ? lista.filter((u) => normalizar(`${u.nome} ${u.email} ${u.papel.nome}`).includes(t)) : lista;
+});
 const acao = useAcaoUsuario();
 
 const dialogo = ref(false);
@@ -100,10 +110,20 @@ const escopo = (u: UsuarioAdmin) =>
       <UButton icon="i-lucide-plus" label="Novo usuário" @click="abrir(null)" />
     </UiExtraPageHeader>
 
+    <UInput
+      v-model="busca"
+      icon="i-lucide-search"
+      class="w-full max-w-sm"
+      placeholder="Buscar por nome, e-mail ou papel"
+      aria-label="Buscar usuário"
+    />
+
     <section class="rounded-xl border bg-card">
       <UiExtraEstadoBloco
         :carregando="usuarios.isPending.value"
         :erro="usuarios.error.value"
+        :vazio="!filtrados.length"
+        :texto-vazio="busca ? 'Nenhum usuário encontrado.' : 'Nenhum usuário.'"
         @tentar-de-novo="usuarios.refetch()"
       >
         <div class="overflow-x-auto">
@@ -119,7 +139,7 @@ const escopo = (u: UsuarioAdmin) =>
               </tr>
             </thead>
             <tbody class="divide-y">
-              <tr v-for="u in usuarios.data.value" :key="u.id" :class="!u.ativo && 'opacity-60'">
+              <tr v-for="u in filtrados" :key="u.id" :class="!u.ativo && 'opacity-60'">
                 <td class="px-5 py-3">
                   <span class="block font-medium">{{ u.nome }}</span>
                   <span class="block text-xs text-muted-foreground">{{ u.email }}</span>

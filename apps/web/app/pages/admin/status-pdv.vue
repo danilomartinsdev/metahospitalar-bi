@@ -97,12 +97,11 @@ async function salvar(s: StatusPdv, dados: Parameters<typeof atualizar.mutateAsy
                   />
                 </td>
                 <td class="px-5 py-2">
-                  <input
-                    type="checkbox"
-                    class="size-4 accent-primary"
-                    :checked="s.contaNoTotal"
+                  <USwitch
+                    :model-value="s.contaNoTotal"
+                    :label="s.contaNoTotal ? 'Sim' : 'Não'"
                     :aria-label="`${s.codigo} conta no total`"
-                    @change="salvar(s, { contaNoTotal: ($event.target as HTMLInputElement).checked })"
+                    @update:model-value="(v) => salvar(s, { contaNoTotal: v })"
                   />
                 </td>
               </tr>

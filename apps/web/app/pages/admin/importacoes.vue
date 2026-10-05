@@ -23,8 +23,20 @@ const previa = ref<PreviaImportacao | null>(null);
 const arrastando = ref(false);
 const input = ref<HTMLInputElement>();
 
+const EXTENSOES = ['.xls', '.xlsx', '.csv', '.html', '.htm'];
+const TAMANHO_MAX = 10 * 1024 * 1024;
+
 async function enviar(arquivo?: File) {
   if (!arquivo) return;
+  const nome = arquivo.name.toLowerCase();
+  if (!EXTENSOES.some((ext) => nome.endsWith(ext))) {
+    aviso.erro('Formato não suportado. Envie .xls, .xlsx, .csv ou .html exportado do Focco.');
+    return;
+  }
+  if (arquivo.size > TAMANHO_MAX) {
+    aviso.erro(`Arquivo grande demais (${(arquivo.size / 1024 / 1024).toFixed(1)} MB). O limite é 10 MB.`);
+    return;
+  }
   previa.value = null;
   try {
     previa.value = await previaMut.mutateAsync(arquivo);
@@ -88,7 +100,7 @@ const resumo = computed(() =>
 
     <!-- 1. Upload -->
     <label
-      class="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed bg-card px-6 py-10 text-center transition-colors"
+      class="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed bg-card px-6 py-10 text-center transition-colors focus-within:border-primary focus-within:ring-2 focus-within:ring-ring/50"
       :class="arrastando ? 'border-primary bg-primary-soft' : 'hover:border-primary/60'"
       @dragover.prevent="arrastando = true"
       @dragleave.prevent="arrastando = false"
@@ -99,12 +111,12 @@ const resumo = computed(() =>
       <span class="font-medium">{{
         previaMut.isPending.value ? 'Lendo arquivo…' : 'Arraste o arquivo aqui ou clique para escolher'
       }}</span>
-      <span class="text-xs text-muted-foreground">.xls, .xlsx ou .csv — até 10 MB</span>
+      <span class="text-xs text-muted-foreground">.xls, .xlsx, .csv ou .html — até 10 MB</span>
       <input
         ref="input"
         type="file"
         class="sr-only"
-        accept=".xls,.xlsx,.csv,.html"
+        accept=".xls,.xlsx,.csv,.html,.htm"
         @change="
           enviar(($event.target as HTMLInputElement).files?.[0]);
           ($event.target as HTMLInputElement).value = '';
@@ -229,7 +241,7 @@ const resumo = computed(() =>
                     size="sm"
                     icon="i-lucide-rotate-ccw"
                     label="Desfazer"
-                    :disabled="reverterMut.isPending.value"
+                    :loading="reverterMut.isPending.value && reverterMut.variables.value === l.id"
                     @click="reverter(l.id, l.arquivoNome)"
                   />
                 </td>

@@ -1,7 +1,10 @@
 <script setup lang="ts">
+import { valorMetaSchema } from '@meta-bi/shared';
+import { useEventListener } from '@vueuse/core';
 import { useMetasQuery, useRepresentantesQuery, useSalvarMetas } from '~/composables/api/useCadastros';
 
 const aviso = useAviso();
+const confirmar = useConfirmacao();
 definePageMeta({ titulo: 'Metas', permissao: 'metas.edit' });
 useHead({ title: 'Metas — BI Meta Hospitalar' });
 
@@ -22,6 +25,8 @@ const linhas = computed(() => [
     .map((r) => ({ id: r.id as string | null, nome: r.nomeExibicao })),
 ]);
 
+/** Estado salvo, para saber se há alterações pendentes. */
+const original = ref('{}');
 watch(
   () => metas.data.value,
   (dados) => {
@@ -31,11 +36,54 @@ watch(
         minimumFractionDigits: 2,
       });
     grade.value = g;
+    original.value = JSON.stringify(g);
   },
   { immediate: true },
 );
 
+const limpa = (g: Record<string, string>) =>
+  JSON.stringify(Object.fromEntries(Object.entries(g).filter(([, v]) => v?.trim())));
+const alterado = computed(() => limpa(grade.value) !== limpa(JSON.parse(original.value)));
+
+/** Células com valor que a API recusaria (mesmo schema do backend). */
+const invalidas = computed(
+  () =>
+    new Set(
+      Object.entries(grade.value)
+        .filter(([, v]) => v?.trim() && !valorMetaSchema.safeParse(v).success)
+        .map(([k]) => k),
+    ),
+);
+
+const descartar = () =>
+  confirmar({
+    titulo: 'Descartar alterações?',
+    descricao: 'Há metas digitadas que ainda não foram salvas.',
+    rotuloConfirmar: 'Descartar',
+    perigo: true,
+  });
+
+/** Troca de ano pede confirmação se houver alterações. */
+const anoSelecionado = computed({
+  get: () => ano.value,
+  set: async (v: number) => {
+    if (alterado.value && !(await descartar())) return;
+    ano.value = v;
+  },
+});
+
+onBeforeRouteLeave(async () => (alterado.value ? await descartar() : true));
+useEventListener(window, 'beforeunload', (e: BeforeUnloadEvent) => {
+  if (alterado.value) e.preventDefault();
+});
+
 async function salvar() {
+  if (invalidas.value.size) {
+    aviso.erro(
+      `${invalidas.value.size} valor(es) inválido(s), marcados em vermelho. Use o formato 1.234,56.`,
+    );
+    return;
+  }
   const lista = linhas.value.flatMap((l) =>
     MESES.map((_, i) => {
       const v = grade.value[chave(l.id, i + 1)]?.trim();
@@ -44,6 +92,7 @@ async function salvar() {
   );
   try {
     await salvarMut.mutateAsync({ ano: ano.value, metas: lista });
+    original.value = JSON.stringify(grade.value);
     aviso.sucesso('Metas salvas.');
   } catch (e) {
     aviso.erro(e, 'Verifique os valores digitados.');
@@ -54,7 +103,8 @@ async function salvar() {
 <template>
   <div class="mx-auto max-w-7xl space-y-6">
     <UiExtraPageHeader titulo="Metas" descricao="Metas mensais em R$: total da empresa e por representante.">
-      <USelect v-model="ano" :items="[anoAtual - 1, anoAtual, anoAtual + 1]" class="w-28" aria-label="Ano" />
+      <USelect v-model="anoSelecionado" :items="[anoAtual - 1, anoAtual, anoAtual + 1]" class="w-28" aria-label="Ano" />
+      <UBadge v-if="alterado" color="warning" variant="soft" label="Alterações não salvas" />
       <UButton icon="i-lucide-save" label="Salvar" :loading="salvarMut.isPending.value" @click="salvar" />
     </UiExtraPageHeader>
 
@@ -85,11 +135,16 @@ async function salvar() {
                   {{ l.nome }}
                 </th>
                 <td v-for="(m, i) in MESES" :key="m" class="px-1 py-1.5">
-                  <input
+                  <UInput
                     v-model="grade[chave(l.id, i + 1)]"
                     inputmode="decimal"
                     placeholder="—"
-                    class="num h-8 w-28 rounded-md border bg-background px-2 text-right text-sm focus-visible:border-ring"
+                    size="sm"
+                    class="w-28"
+                    :ui="{ base: 'num text-right' }"
+                    :color="invalidas.has(chave(l.id, i + 1)) ? 'error' : undefined"
+                    :highlight="invalidas.has(chave(l.id, i + 1))"
+                    :aria-invalid="invalidas.has(chave(l.id, i + 1)) || undefined"
                     :aria-label="`Meta de ${l.nome} em ${m}`"
                   />
                 </td>

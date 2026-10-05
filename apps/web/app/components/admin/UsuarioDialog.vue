@@ -49,11 +49,11 @@ const ESCOPOS: { v: EscopoTipo; r: string; d: string }[] = [
   { v: 'representantes', r: 'Por representante', d: 'Só pedidos dos representantes vinculados.' },
 ];
 
-function alternar<T>(lista: T[], item: T) {
-  const i = lista.indexOf(item);
-  if (i >= 0) lista.splice(i, 1);
-  else lista.push(item);
-}
+const itensEscopo = ESCOPOS.map((e) => ({ value: e.v, label: e.r, description: e.d }));
+const itensRegiao = REGIOES_ENUM.map((r) => ({ value: r, label: REGIAO_ENUM_ROTULO[r] }));
+const itensRepresentante = computed(() =>
+  (reps.data.value ?? []).map((r) => ({ value: r.id, label: r.nomeExibicao })),
+);
 
 async function enviar() {
   erro.value = null;
@@ -115,62 +115,36 @@ async function enviar() {
           />
         </div>
 
-        <fieldset class="space-y-2">
-          <legend class="text-sm font-medium">Escopo de dados</legend>
-          <label
-            v-for="e in ESCOPOS"
-            :key="e.v"
-            class="flex cursor-pointer gap-3 rounded-lg border p-3"
-            :class="form.escopoTipo === e.v && 'border-primary bg-primary-soft'"
-          >
-            <input
-              v-model="form.escopoTipo"
-              type="radio"
-              name="escopo"
-              :value="e.v"
-              class="mt-1 accent-primary"
-            />
-            <span>
-              <span class="block text-sm font-medium">{{ e.r }}</span>
-              <span class="block text-xs text-muted-foreground">{{ e.d }}</span>
-            </span>
-          </label>
-        </fieldset>
+        <URadioGroup
+          v-model="form.escopoTipo"
+          legend="Escopo de dados"
+          variant="card"
+          :items="itensEscopo"
+          :ui="{ legend: 'text-sm font-medium mb-2' }"
+        />
 
-        <fieldset v-if="form.escopoTipo === 'regiao'" class="grid grid-cols-2 gap-2">
-          <legend class="mb-1 text-sm font-medium">Regiões</legend>
-          <label v-for="r in REGIOES_ENUM" :key="r" class="flex items-center gap-2 text-sm">
-            <input
-              type="checkbox"
-              class="accent-primary"
-              :checked="form.escopoRegioes.includes(r)"
-              @change="alternar(form.escopoRegioes, r)"
-            />
-            {{ REGIAO_ENUM_ROTULO[r] }}
-          </label>
-        </fieldset>
+        <UCheckboxGroup
+          v-if="form.escopoTipo === 'regiao'"
+          v-model="form.escopoRegioes"
+          legend="Regiões"
+          :items="itensRegiao"
+          :ui="{ legend: 'text-sm font-medium mb-1', fieldset: 'grid grid-cols-2 gap-2' }"
+        />
 
-        <fieldset v-if="form.escopoTipo === 'representantes'" class="space-y-1">
-          <legend class="mb-1 text-sm font-medium">Representantes vinculados</legend>
-          <div class="max-h-48 space-y-1 overflow-y-auto rounded-lg border p-2">
-            <label
-              v-for="r in reps.data.value"
-              :key="r.id"
-              class="flex items-center gap-2 rounded px-1 py-0.5 text-sm hover:bg-muted"
-            >
-              <input
-                type="checkbox"
-                class="accent-primary"
-                :checked="form.representanteIds.includes(r.id)"
-                @change="alternar(form.representanteIds, r.id)"
-              />
-              {{ r.nomeExibicao }}
-            </label>
-            <p v-if="!reps.data.value?.length" class="p-2 text-xs text-muted-foreground">
+        <div v-if="form.escopoTipo === 'representantes'" class="space-y-1">
+          <div class="max-h-48 overflow-y-auto rounded-lg border p-2">
+            <UCheckboxGroup
+              v-if="reps.data.value?.length"
+              v-model="form.representanteIds"
+              legend="Representantes vinculados"
+              :items="itensRepresentante"
+              :ui="{ legend: 'text-sm font-medium mb-1' }"
+            />
+            <p v-else class="p-2 text-xs text-muted-foreground">
               Nenhum representante ainda — importe um relatório.
             </p>
           </div>
-        </fieldset>
+        </div>
       </form>
     </template>
 

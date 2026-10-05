@@ -29,12 +29,18 @@ const itensSegmento = [
   ...SEGMENTOS.map((s) => ({ label: SEGMENTO_ROTULO[s], value: s })),
 ];
 
+/** Linhas com salvamento em andamento. */
+const salvando = reactive(new Set<string>());
+
 async function salvar(id: string, v: string) {
+  salvando.add(id);
   try {
     await atualizar.mutateAsync({ id, segmentoOverride: (v === NENHUM ? null : v) as Segmento | null });
     aviso.sucesso('Segmento salvo.');
   } catch (e) {
     aviso.erro(e, 'Não foi possível salvar.');
+  } finally {
+    salvando.delete(id);
   }
 }
 </script>
@@ -68,7 +74,13 @@ async function salvar(id: string, v: string) {
             </tr>
           </thead>
           <tbody class="divide-y">
-            <tr v-for="c in q.data.value?.data" :key="c.id">
+            <tr
+              v-for="c in q.data.value?.data"
+              :key="c.id"
+              :aria-busy="salvando.has(c.id)"
+              class="transition-opacity"
+              :class="salvando.has(c.id) && 'opacity-60'"
+            >
               <td class="px-5 py-2">{{ c.nomeOriginal }}</td>
               <td class="px-5 py-2">
                 <USelect

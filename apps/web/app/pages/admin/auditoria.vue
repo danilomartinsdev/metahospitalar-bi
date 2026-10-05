@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { useAcoesAuditoriaQuery, useAuditoriaQuery } from '~/composables/api/useAdmin';
+import type { AuditoriaLinha } from '@meta-bi/shared';
+import { useAcoesAuditoriaQuery, useAuditoriaQuery, useUsuariosQuery } from '~/composables/api/useAdmin';
 
 definePageMeta({ titulo: 'Auditoria', permissao: 'audit.view' });
 useHead({ title: 'Auditoria — BI Meta Hospitalar' });
@@ -11,7 +12,7 @@ const page = computed(() => Number(filtro('page')) || 1);
 const pageSize = computed(() => Number(filtro('pageSize')) || 50);
 const qs = computed(() => {
   const p = new URLSearchParams({ page: String(page.value), pageSize: String(pageSize.value) });
-  for (const k of ['acao', 'de', 'ate']) if (filtro(k)) p.set(k, filtro(k));
+  for (const k of ['acao', 'usuarioId', 'de', 'ate']) if (filtro(k)) p.set(k, filtro(k));
   return p.toString();
 });
 const q = useAuditoriaQuery(qs);
@@ -53,6 +54,16 @@ const ROTULOS: Record<string, string> = {
   'papel.alterado': 'Permissões alteradas',
   'papel.removido': 'Papel removido',
 };
+// Listar usuários exige users.manage; sem ela, o filtro por usuário não aparece.
+const can = useCan();
+const podeListarUsuarios = computed(() => can('users.manage'));
+const usuarios = useUsuariosQuery({ enabled: podeListarUsuarios });
+const itensUsuario = computed(() => [
+  { label: 'Todos', value: TODAS },
+  ...(usuarios.data.value ?? []).map((u) => ({ label: u.nome, value: u.id })),
+]);
+const detalhe = ref<AuditoriaLinha | null>(null);
+const temDetalhes = (d: unknown) => !!d && typeof d === 'object' && Object.keys(d).length > 0;
 const resumo = (d: unknown) => (d && typeof d === 'object' ? JSON.stringify(d).slice(0, 160) : '');
 </script>
 
@@ -74,22 +85,35 @@ const resumo = (d: unknown) => (d && typeof d === 'object' ? JSON.stringify(d).s
           @update:model-value="(v) => definir('acao', v === TODAS ? '' : String(v))"
         />
       </label>
+      <label v-if="podeListarUsuarios" class="space-y-1 text-xs text-muted-foreground">
+        Usuário
+        <USelect
+          :model-value="filtro('usuarioId') || TODAS"
+          :items="itensUsuario"
+          size="sm"
+          class="block w-56"
+          :loading="usuarios.isPending.value"
+          @update:model-value="(v) => definir('usuarioId', v === TODAS ? '' : String(v))"
+        />
+      </label>
       <label class="space-y-1 text-xs text-muted-foreground">
         De
-        <input
+        <UInput
           type="date"
-          class="block h-8 rounded-md border bg-background px-2 text-sm text-foreground"
-          :value="filtro('de')"
-          @change="definir('de', ($event.target as HTMLInputElement).value)"
+          size="sm"
+          class="block"
+          :model-value="filtro('de')"
+          @change="(e: Event) => definir('de', (e.target as HTMLInputElement).value)"
         />
       </label>
       <label class="space-y-1 text-xs text-muted-foreground">
         Até
-        <input
+        <UInput
           type="date"
-          class="block h-8 rounded-md border bg-background px-2 text-sm text-foreground"
-          :value="filtro('ate')"
-          @change="definir('ate', ($event.target as HTMLInputElement).value)"
+          size="sm"
+          class="block"
+          :model-value="filtro('ate')"
+          @change="(e: Event) => definir('ate', (e.target as HTMLInputElement).value)"
         />
       </label>
     </div>
@@ -103,7 +127,11 @@ const resumo = (d: unknown) => (d && typeof d === 'object' ? JSON.stringify(d).s
         :linhas="8"
         @tentar-de-novo="q.refetch()"
       >
-        <div class="overflow-x-auto">
+        <div
+          class="overflow-x-auto transition-opacity"
+          :class="q.isFetching.value && 'opacity-60'"
+          :aria-busy="q.isFetching.value"
+        >
           <table class="w-full text-sm">
             <thead class="bg-muted/50 text-left text-xs text-muted-foreground">
               <tr>
@@ -111,7 +139,8 @@ const resumo = (d: unknown) => (d && typeof d === 'object' ? JSON.stringify(d).s
                 <th class="px-3 py-3 font-medium">Ação</th>
                 <th class="px-3 py-3 font-medium">Usuário</th>
                 <th class="px-3 py-3 font-medium">Detalhes</th>
-                <th class="px-5 py-3 font-medium">IP</th>
+                <th class="px-3 py-3 font-medium">IP</th>
+                <th class="px-5 py-3"><span class="sr-only">Ações</span></th>
               </tr>
             </thead>
             <tbody class="divide-y">
@@ -130,7 +159,17 @@ const resumo = (d: unknown) => (d && typeof d === 'object' ? JSON.stringify(d).s
                 >
                   {{ [l.entidade, resumo(l.detalhes)].filter(Boolean).join(' · ') || '—' }}
                 </td>
-                <td class="num px-5 py-2.5 text-muted-foreground">{{ l.ip ?? '—' }}</td>
+                <td class="num px-3 py-2.5 text-muted-foreground">{{ l.ip ?? '—' }}</td>
+                <td class="px-5 py-1.5 text-right">
+                  <UButton
+                    v-if="temDetalhes(l.detalhes)"
+                    color="neutral"
+                    variant="ghost"
+                    size="xs"
+                    label="Ver detalhes"
+                    @click="detalhe = l"
+                  />
+                </td>
               </tr>
             </tbody>
           </table>
@@ -145,5 +184,22 @@ const resumo = (d: unknown) => (d && typeof d === 'object' ? JSON.stringify(d).s
         />
       </UiExtraEstadoBloco>
     </section>
+
+    <UModal
+      :open="!!detalhe"
+      :title="detalhe ? (ROTULOS[detalhe.acao] ?? detalhe.acao) : ''"
+      :description="detalhe ? `${formatDateTime(detalhe.createdAt)} · ${detalhe.usuario?.nome ?? 'sem usuário'}` : ''"
+      @update:open="(v) => !v && (detalhe = null)"
+    >
+      <template #body>
+        <dl v-if="detalhe?.entidade" class="mb-3 text-sm">
+          <dt class="text-muted-foreground">Entidade</dt>
+          <dd class="font-mono text-xs">{{ detalhe.entidade }} {{ detalhe.entidadeId }}</dd>
+        </dl>
+        <pre class="max-h-96 overflow-auto rounded-lg border bg-muted/40 p-3 font-mono text-xs">{{
+          JSON.stringify(detalhe?.detalhes, null, 2)
+        }}</pre>
+      </template>
+    </UModal>
   </div>
 </template>

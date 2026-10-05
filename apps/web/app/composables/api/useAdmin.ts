@@ -11,9 +11,13 @@ import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tansta
 import type { MaybeRefOrGetter } from 'vue';
 import { useApi } from './useApi';
 
-export function useUsuariosQuery() {
+export function useUsuariosQuery(opcoes: { enabled?: MaybeRefOrGetter<boolean> } = {}) {
   const { request } = useApi();
-  return useQuery({ queryKey: ['usuarios'], queryFn: () => request<UsuarioAdmin[]>('/usuarios') });
+  return useQuery({
+    queryKey: ['usuarios'],
+    queryFn: () => request<UsuarioAdmin[]>('/usuarios'),
+    enabled: () => toValue(opcoes.enabled ?? true),
+  });
 }
 
 export function useSalvarUsuario() {

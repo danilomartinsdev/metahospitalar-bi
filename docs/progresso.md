@@ -21,7 +21,7 @@ Administração › Representantes — sem isso, % Público fica 0%. Tela de ove
 
 ## Pendências
 
-- [ ] **Migração UI → Nuxt UI v4** (fase-4b-ui, ADR 0007): fases 0–5 feitas (tema, shell, primitivos/overlays/toasts, tabelas/paginação/selects, formulários de auth com UForm); faltam 6–8; shell, admin, dashboards, auth; limpeza final de shadcn-vue/vue-sonner/vee-validate.
+- [ ] **Migração UI → Nuxt UI v4** (fase-4b-ui, ADR 0007): fases 0–6 feitas (tema, shell, primitivos/overlays/toasts, tabelas/paginação/selects, formulários de auth com UForm, telas de admin com UCheckbox/USwitch/URadioGroup, filtro por usuário e detalhe na auditoria, validação/alterações pendentes em metas); faltam 7 (dashboards, com melhorias inspiradas no dashboard HTML de referência) e 8 (limpeza final de shadcn-vue/vue-sonner/vee-validate).
 - [ ] Tela de override de segmento por cliente (Fase 4, ainda não feita).
 
 - [ ] **Planilha real** em `fixtures/focco/ano-todo-ate-agora.xls` (gitignored) — necessária para validar o importador.
@@ -106,3 +106,4 @@ Telas: Administração › Usuários, Papéis, Auditoria. Fix da revisão de aut
 
 - `pnpm lint`/`typecheck`/`test` ainda não existem: não há código de aplicação (Fase 1).
 - Git Bash desta máquina falha ao iniciar; por isso hooks em Node e comandos via PowerShell.
+4. **Histórico sem pedidos detalhados (2025 e jan–jun/2026):** o dashboard HTML de referência usa totais mensais digitados à mão para meses sem pedidos importados. Vamos importar os pedidos de 2025 do Focco ou cadastrar só totais mensais? Sem isso, comparativos com o ano anterior ficam vazios.

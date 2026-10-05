@@ -20,16 +20,22 @@ const itensSegmento = [
   ...SEGMENTOS.map((s) => ({ label: SEGMENTO_ROTULO[s], value: s })),
 ];
 
+/** Linhas com salvamento em andamento. */
+const salvando = reactive(new Set<string>());
+
 async function salvar(
   r: Representante,
   dados: Parameters<typeof atualizar.mutateAsync>[0]['dados'],
   msg = 'Salvo.',
 ) {
+  salvando.add(r.id);
   try {
     await atualizar.mutateAsync({ id: r.id, dados });
     aviso.sucesso(msg);
   } catch (e) {
     aviso.erro(e, 'Não foi possível salvar.');
+  } finally {
+    salvando.delete(r.id);
   }
 }
 
@@ -64,7 +70,13 @@ function salvarNome(r: Representante, e: Event) {
               </tr>
             </thead>
             <tbody class="divide-y">
-              <tr v-for="r in reps.data.value" :key="r.id">
+              <tr
+                v-for="r in reps.data.value"
+                :key="r.id"
+                :aria-busy="salvando.has(r.id)"
+                class="transition-opacity"
+                :class="salvando.has(r.id) && 'opacity-60'"
+              >
                 <td class="px-5 py-2 font-medium">{{ r.codigo }}</td>
                 <td class="px-3 py-2">
                   <UInput
@@ -87,19 +99,12 @@ function salvarNome(r: Representante, e: Event) {
                   />
                 </td>
                 <td class="px-5 py-2">
-                  <label class="inline-flex cursor-pointer items-center gap-2">
-                    <input
-                      type="checkbox"
-                      class="size-4 accent-primary"
-                      :checked="r.ativo"
-                      @change="salvar(r, { ativo: ($event.target as HTMLInputElement).checked })"
-                    />
-                    <UBadge
-                      :color="r.ativo ? 'primary' : 'neutral'"
-                      :variant="r.ativo ? 'solid' : 'soft'"
-                      :label="r.ativo ? 'Ativo' : 'Inativo'"
-                    />
-                  </label>
+                  <USwitch
+                    :model-value="r.ativo"
+                    :label="r.ativo ? 'Ativo' : 'Inativo'"
+                    :aria-label="`${r.codigo} ativo`"
+                    @update:model-value="(v) => salvar(r, { ativo: v })"
+                  />
                 </td>
               </tr>
             </tbody>
