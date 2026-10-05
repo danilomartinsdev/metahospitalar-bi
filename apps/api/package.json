@@ -26,6 +26,7 @@
     "@nestjs/platform-fastify": "^12.1.2",
     "@prisma/adapter-pg": "7.10.0",
     "@prisma/client": "7.10.0",
+    "@sparticuz/chromium": "^153.0.0",
     "argon2": "^0.45.1",
     "fastify": "5.12.5",
     "jose": "^6.2.12",

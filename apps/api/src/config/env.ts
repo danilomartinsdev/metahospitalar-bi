@@ -32,7 +32,8 @@ export const envSchema = z.object({
   SMTP_FROM: z.string().min(3),
 
   UPLOAD_DIR: z.string().default('./storage/uploads'),
-  IMPORT_MAX_FILE_MB: z.coerce.number().positive().max(50).default(10),
+  // 4 MB: cabe no limite de 4,5 MB por requisição da Vercel (planilhas reais têm < 1 MB).
+  IMPORT_MAX_FILE_MB: z.coerce.number().positive().max(50).default(4),
 
   // PDF executivo (ADR 0004): URL da SPA que o Chromium da API abre (padrão: WEB_ORIGIN) e,
   // em produção (Alpine), o Chromium do sistema.

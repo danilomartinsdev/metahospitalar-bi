@@ -22,13 +22,29 @@ export class ChromiumPdfRenderer extends PdfRenderer implements OnModuleDestroy 
   }
 
   private navegador(): Promise<Browser> {
-    this.browser ??= chromium
-      .launch({ headless: true, executablePath: this.env.PDF_CHROMIUM_PATH || undefined, args: ['--no-sandbox'] })
+    this.browser ??= this.opcoesLancamento()
+      .then((opts) => chromium.launch(opts))
       .catch((e: unknown) => {
         this.browser = null;
         throw e;
       });
     return this.browser;
+  }
+
+  /**
+   * Na Vercel (serverless) usa o Chromium compactado do @sparticuz/chromium, feito para funções; no Docker
+   * usa o Chromium do sistema (PDF_CHROMIUM_PATH) e no desenvolvimento o baixado pelo Playwright.
+   */
+  private async opcoesLancamento() {
+    if (process.env.VERCEL) {
+      const { default: serverless } = await import('@sparticuz/chromium');
+      return { headless: true, executablePath: await serverless.executablePath(), args: serverless.args };
+    }
+    return {
+      headless: true,
+      executablePath: this.env.PDF_CHROMIUM_PATH || undefined,
+      args: ['--no-sandbox'],
+    };
   }
 
   private async vaga(): Promise<void> {
@@ -47,7 +63,9 @@ export class ChromiumPdfRenderer extends PdfRenderer implements OnModuleDestroy 
 
   async renderizar(url: string, rodape: string): Promise<Buffer> {
     await this.vaga();
-    const ctx = await (await this.navegador()).newContext({ locale: 'pt-BR', timezoneId: 'America/Sao_Paulo' });
+    const ctx = await (
+      await this.navegador()
+    ).newContext({ locale: 'pt-BR', timezoneId: 'America/Sao_Paulo' });
     try {
       const page = await ctx.newPage();
       await page.emulateMedia({ media: 'print', colorScheme: 'light' });

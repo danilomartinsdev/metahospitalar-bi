@@ -10,7 +10,7 @@ const previa = ref<PreviaFaturamento | null>(null);
 const arrastando = ref(false);
 
 const EXTENSOES = ['.xls', '.xlsx', '.csv', '.html', '.htm'];
-const TAMANHO_MAX = 10 * 1024 * 1024;
+const TAMANHO_MAX = 4 * 1024 * 1024;
 const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
 
 watch(aberto, (v) => {
@@ -27,7 +27,7 @@ async function enviar(arquivo?: File) {
     return;
   }
   if (arquivo.size > TAMANHO_MAX) {
-    aviso.erro('Arquivo grande demais. O limite é 10 MB.');
+    aviso.erro('Arquivo grande demais. O limite é 4 MB.');
     return;
   }
   previa.value = null;
@@ -81,7 +81,7 @@ const podeConfirmar = computed(
         <span class="font-medium">{{
           previaMut.isPending.value ? 'Lendo arquivo…' : 'Arraste o arquivo aqui ou clique para escolher'
         }}</span>
-        <span class="text-xs text-muted-foreground">.xls exportado do Focco — até 10 MB</span>
+        <span class="text-xs text-muted-foreground">.xls exportado do Focco — até 4 MB</span>
         <input
           type="file"
           class="sr-only"

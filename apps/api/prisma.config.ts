@@ -12,5 +12,6 @@ export default defineConfig({
     path: 'prisma/migrations',
     seed: 'tsx prisma/seed.ts',
   },
-  datasource: { url: env('DATABASE_URL') },
+  // Migrations usam a conexão direta quando houver (Neon: a URL normal é a do pool de conexões).
+  datasource: { url: process.env.DATABASE_URL_DIRECT || env('DATABASE_URL') },
 });

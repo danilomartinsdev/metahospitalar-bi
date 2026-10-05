@@ -1,0 +1,14 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
+  "buildCommand": "cd ../.. && pnpm --filter @meta-bi/shared build && pnpm --filter api exec prisma generate && pnpm --filter api build && pnpm --filter api exec prisma migrate deploy",
+  "outputDirectory": "public",
+  "functions": {
+    "api/[...rota].js": {
+      "maxDuration": 60,
+      "memory": 2048,
+      "includeFiles": "dist/**"
+    }
+  }
+}
