@@ -47,3 +47,4 @@ Thumbs.db
 # Só o lockfile do pnpm é usado
 package-lock.json
 yarn.lock
+.vercel
