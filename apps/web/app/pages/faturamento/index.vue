@@ -255,7 +255,7 @@ const atalho = (tipo: 'ano' | 'mes') => {
         />
       </section>
 
-      <section class="grid gap-4 lg:grid-cols-2 lg:gap-6">
+      <section class="space-y-4 lg:space-y-6">
         <div class="rounded-xl border bg-card p-5">
           <h3 class="text-sm font-medium text-muted-foreground">Fatura DRE mês a mês {{ r?.mensal.ano }}</h3>
           <div v-if="carregando" class="mt-4 h-72 animate-pulse rounded-lg bg-muted" />
