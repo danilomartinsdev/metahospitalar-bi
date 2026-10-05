@@ -57,7 +57,7 @@ async function escolher(chave: PaletaGrafico) {
           </span>
           <!-- Mini gráfico: ano anterior × atual e a linha da meta -->
           <span class="mt-3 flex h-12 items-end gap-1.5" aria-hidden="true">
-            <span v-for="(h, i) in [60, 45, 75, 55]" :key="i" class="flex flex-1 items-end gap-0.5">
+            <span v-for="(h, i) in [60, 45, 75, 55]" :key="i" class="flex h-full flex-1 items-end gap-0.5">
               <span
                 class="w-1/2 rounded-t-sm"
                 :style="{ height: `${h - 15}%`, background: o.t.comparacao, opacity: 0.6 }"
