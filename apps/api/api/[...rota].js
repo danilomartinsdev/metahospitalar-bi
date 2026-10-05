@@ -16,6 +16,8 @@ async function iniciar() {
 export default async function handler(req, res) {
   pronto ??= iniciar().catch((e) => {
     pronto = undefined;
+    // Sem isto a Vercel mostra só FUNCTION_INVOCATION_FAILED; a mensagem lista nomes de variáveis, nunca valores.
+    console.error('Falha ao iniciar a API:', e instanceof Error ? e.message : e);
     throw e;
   });
   const fastify = await pronto;
