@@ -10,6 +10,8 @@ const props = defineProps<{
   variacoes?: { rotulo: string; pct: number | null }[];
   serie?: (number | null)[];
   carregando?: boolean;
+  /** Valor menor e sem quebra de linha (telas com muitos cards lado a lado). */
+  compacto?: boolean;
 }>();
 
 const classeVar = (p: number | null) =>
@@ -32,7 +34,12 @@ const temSerie = computed(() => (props.serie?.filter((v) => v !== null).length ?
       <div class="mt-3 h-3 w-1/2 animate-pulse rounded bg-muted" />
     </template>
     <template v-else>
-      <p class="num mt-3 break-words text-2xl font-semibold leading-tight 2xl:text-[26px]">{{ valor }}</p>
+      <p
+        class="num mt-3 font-semibold leading-tight"
+        :class="compacto ? 'whitespace-nowrap text-lg 2xl:text-xl' : 'break-words text-2xl 2xl:text-[26px]'"
+      >
+        {{ valor }}
+      </p>
       <ul v-if="variacoes?.length" class="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-xs">
         <li v-for="v in variacoes" :key="v.rotulo" class="flex items-center gap-1" :class="classeVar(v.pct)">
           <template v-if="v.pct !== null">

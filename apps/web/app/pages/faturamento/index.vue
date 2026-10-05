@@ -192,6 +192,7 @@ const atalho = (tipo: 'ano' | 'mes') => {
           :carregando="carregando"
           :valor="formatBRL(kpi(c.k)?.valor)"
           :variacoes="variacoes(c.k)"
+          compacto
         />
       </section>
 
