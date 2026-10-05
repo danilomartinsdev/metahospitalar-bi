@@ -12,14 +12,23 @@ Deploy em servidor próprio com Docker continua em [deploy.md](deploy.md).
 | Banco        | Neon (PostgreSQL)                                           | —                                                           |
 | Domínio      | cPanel do HostGator (Editor de Zona)                        | CNAME `bi` → `cname.vercel-dns.com`                         |
 
-## 1. Banco no Neon
+## 1. Banco no Neon (pelo painel da Vercel)
 
-1. Crie a conta em https://neon.tech e um projeto (região mais próxima disponível, ex.: São Paulo).
-2. Em **Connection Details**, copie duas URLs:
-   - **Pooled** (o host tem `-pooler`) → será `DATABASE_URL`;
-   - **Direct** (sem `-pooler`) → será `DATABASE_URL_DIRECT`.
+Caminho escolhido: criar o Neon pela própria Vercel (cobrança e acesso na conta Vercel).
+Faça depois de criar o projeto da API (passo 2, antes do primeiro deploy):
+
+1. Vercel › projeto **metabi-api** › **Storage › Create Database › Neon** (região São Paulo, se houver) › conecte ao projeto.
+2. A integração cria as variáveis de conexão. Confira em **Settings › Environment Variables**:
+   - `DATABASE_URL` deve ser a URL **pooled** (host com `-pooler`);
+   - crie à mão `DATABASE_URL_DIRECT` com a URL **direta** (sem `-pooler`; a integração costuma chamá-la de
+     `DATABASE_URL_UNPOOLED`) — é a usada pelas migrations.
+
+Alternativa: conta própria em https://neon.tech, copiando as mesmas duas URLs de **Connection Details**.
 
 ## 2. Projeto da API na Vercel
+
+Antes: no GitHub, **Settings › General › Default branch** = `main`. Ao importar, a Vercel já tenta um primeiro
+deploy; se falhar por falta de banco/variáveis, tudo bem — complete os passos e use **Deployments › Redeploy**.
 
 1. Crie a conta em https://vercel.com entrando com o GitHub.
 2. **Add New › Project** › importe `danilomartinsdev/metahospitalar-bi`.
@@ -37,8 +46,9 @@ Deploy em servidor próprio com Docker continua em [deploy.md](deploy.md).
 | `IMPORT_MAX_FILE_MB`                                                               | `4`                                                                                      |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM` | e-mail (se ainda não tiver, valores fictícios — só o "esqueci minha senha" não funciona) |
 
-5. **Deploy.** O build roda as migrations no Neon. Anote o endereço do projeto (ex.: `https://metabi-api.vercel.app`).
-6. Teste: `https://metabi-api.vercel.app/api/health` deve responder `{"status":"ok"...}`.
+5. **Settings › Git › Production Branch** = `main` (o default do GitHub ainda é `fase-0-contexto`).
+6. **Deploy.** O build roda as migrations no Neon. Anote o endereço do projeto (ex.: `https://metabi-api.vercel.app`).
+7. Teste: `https://metabi-api.vercel.app/api/health` deve responder `{"status":"ok"...}`.
 
 ## 3. Levar a base atual para o Neon (uma vez)
 
@@ -58,7 +68,8 @@ Depois, em Administração › Usuários, desative os usuários de exemplo (`adm
 1. **Add New › Project** › o mesmo repositório de novo.
 2. **Root Directory:** `apps/web` · Framework: _Other_.
 3. **Environment Variables:** `API_ORIGIN` = endereço da API do passo 2 (ex.: `https://metabi-api.vercel.app`).
-4. **Deploy.**
+4. **Settings › Git › Production Branch** = `main`.
+5. **Deploy.**
 
 ## 5. Domínio
 
