@@ -21,6 +21,8 @@
   --color-primary-soft: var(--primary-soft);
   --color-grafico-principal-soft: var(--grafico-principal-soft);
   --color-grafico-comparacao-soft: var(--grafico-comparacao-soft);
+  --color-grafico-principal-forte: var(--grafico-principal-forte);
+  --color-grafico-comparacao-forte: var(--grafico-comparacao-forte);
   --color-highlight: var(--highlight);
   --color-highlight-foreground: var(--highlight-foreground);
   --color-secondary: var(--secondary);

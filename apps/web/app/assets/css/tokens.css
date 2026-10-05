@@ -133,4 +133,7 @@
   --grafico-comparacao: var(--muted-foreground);
   --grafico-principal-soft: color-mix(in oklab, var(--grafico-principal) 12%, transparent);
   --grafico-comparacao-soft: color-mix(in oklab, var(--grafico-comparacao) 12%, transparent);
+  /* Versões fortes: cabeçalho e linha de total das tabelas comparativas. */
+  --grafico-principal-forte: color-mix(in oklab, var(--grafico-principal) 26%, transparent);
+  --grafico-comparacao-forte: color-mix(in oklab, var(--grafico-comparacao) 26%, transparent);
 }

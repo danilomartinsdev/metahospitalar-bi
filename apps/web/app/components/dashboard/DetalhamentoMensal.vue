@@ -62,10 +62,16 @@ const classePct = (p: number | null) =>
         <thead class="text-xs text-muted-foreground">
           <tr>
             <th scope="col" class="px-5 py-2 text-left font-medium">Mês</th>
-            <th scope="col" class="bg-grafico-comparacao-soft px-5 py-2 text-right font-medium">
+            <th
+              scope="col"
+              class="bg-grafico-comparacao-forte px-5 py-2 text-right font-semibold text-foreground"
+            >
               {{ colAnterior }}
             </th>
-            <th scope="col" class="bg-grafico-principal-soft px-5 py-2 text-right font-medium">
+            <th
+              scope="col"
+              class="bg-grafico-principal-forte px-5 py-2 text-right font-semibold text-foreground"
+            >
               {{ colAtual }}
             </th>
             <th scope="col" class="px-5 py-2 text-right font-medium">Variação</th>
@@ -81,16 +87,16 @@ const classePct = (p: number | null) =>
             </td>
           </tr>
         </tbody>
-        <tfoot class="border-t-2 font-semibold">
+        <tfoot class="border-t-2 border-foreground/20 bg-muted text-base font-bold">
           <tr>
-            <th scope="row" class="px-5 py-2.5 text-left">Total</th>
-            <td class="num bg-grafico-comparacao-soft px-5 py-2.5 text-right">
+            <th scope="row" class="px-5 py-3 text-left uppercase tracking-wide">Total</th>
+            <td class="num bg-grafico-comparacao-forte px-5 py-3 text-right">
               {{ formatBRL(detalhamento.total.anterior) }}
             </td>
-            <td class="num bg-grafico-principal-soft px-5 py-2.5 text-right">
+            <td class="num bg-grafico-principal-forte px-5 py-3 text-right">
               {{ formatBRL(detalhamento.total.atual) }}
             </td>
-            <td class="num px-5 py-2.5 text-right" :class="classePct(detalhamento.total.pct)">
+            <td class="num px-5 py-3 text-right" :class="classePct(detalhamento.total.pct)">
               {{ detalhamento.total.pct === null ? '—' : formatPct(detalhamento.total.pct) }}
             </td>
           </tr>
