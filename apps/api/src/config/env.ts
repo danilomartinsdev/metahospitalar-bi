@@ -21,6 +21,8 @@ export const envSchema = z.object({
   LOGIN_MAX_ATTEMPTS: z.coerce.number().int().positive().default(5),
   LOGIN_LOCK_MINUTES: z.coerce.number().int().positive().default(15),
   COOKIE_SECURE: bool,
+  // Produção só aceita HTTP (cookie sem Secure) com esta confirmação explícita — ex.: rede interna sem domínio.
+  PERMITIR_HTTP: bool,
 
   SMTP_HOST: z.string().min(1),
   SMTP_PORT: z.coerce.number().int().default(587),
@@ -48,8 +50,10 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
     const detalhes = r.error.issues.map((i) => `  - ${i.path.join('.')}: ${i.message}`).join('\n');
     throw new Error(`Configuração inválida (.env):\n${detalhes}`);
   }
-  if (r.data.NODE_ENV === 'production' && !r.data.COOKIE_SECURE) {
-    throw new Error('Configuração inválida: COOKIE_SECURE deve ser true em produção.');
+  if (r.data.NODE_ENV === 'production' && !r.data.COOKIE_SECURE && !r.data.PERMITIR_HTTP) {
+    throw new Error(
+      'Configuração inválida: COOKIE_SECURE deve ser true em produção (para rodar só com HTTP, defina PERMITIR_HTTP=true).',
+    );
   }
   return r.data;
 }

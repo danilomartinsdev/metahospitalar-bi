@@ -51,6 +51,23 @@ Preencha (gere segredos com `openssl rand -base64 48`):
 `DATABASE_URL`, `NODE_ENV`, `COOKIE_SECURE`, `API_HOST` e `PRINT_BASE_URL` já são definidos pelo
 `docker-compose.prod.yml` — não precisa mexer. Nunca commite o `.env`.
 
+### Só HTTP (rede interna, sem domínio)
+
+Para acessar por `http://IP:porta`, acrescente ao `.env` (ex.: servidor 10.1.1.50, porta 34827):
+
+```bash
+WEB_ORIGIN=http://10.1.1.50:34827
+APP_URL=http://10.1.1.50:34827
+SITE_ADDRESS=:80
+HTTP_PORT=34827
+HTTPS_PORT=34828
+COOKIE_SECURE=false
+PERMITIR_HTTP=true
+```
+
+Sem `PERMITIR_HTTP=true` a API se recusa a subir sem HTTPS. **Risco:** sem HTTPS, senhas e sessões trafegam
+sem criptografia na rede — use só em rede interna controlada.
+
 ## 4. Subir
 
 ```bash
