@@ -1,4 +1,4 @@
-import type { PreviaImportacao, RepresentanteUpdate, Segmento, StatusPdvUpdate } from '@meta-bi/shared';
+import type { HistoricoMes, PreviaImportacao, RepresentanteUpdate, Segmento, StatusPdvUpdate } from '@meta-bi/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query';
 import type { MaybeRefOrGetter } from 'vue';
 import { useApi } from './useApi';
@@ -126,5 +126,27 @@ export function useSalvarMetas() {
       metas: { mes: number; representanteId: string | null; valor: string | null }[];
     }) => request<MetaCelula[]>('/metas', { method: 'PUT', body: p }),
     onSuccess: (_d, v) => qc.invalidateQueries({ queryKey: ['metas', v.ano] }),
+  });
+}
+
+export function useHistoricoQuery(ano: MaybeRefOrGetter<number>) {
+  const { request } = useApi();
+  return useQuery({
+    queryKey: ['historico', ano],
+    queryFn: () => request<HistoricoMes[]>(`/historico?ano=${toValue(ano)}`),
+  });
+}
+
+export function useSalvarHistorico() {
+  const { request } = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (p: { ano: number; meses: { mes: number; valor: string | null }[] }) =>
+      request<HistoricoMes[]>('/historico', { method: 'PUT', body: p }),
+    onSuccess: (_d, v) => {
+      void qc.invalidateQueries({ queryKey: ['historico', v.ano] });
+      // Os dashboards passam a usar os novos totais.
+      void qc.invalidateQueries({ queryKey: ['visao-geral'] });
+    },
   });
 }

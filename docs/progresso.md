@@ -24,7 +24,7 @@ Administração › Representantes — sem isso, % Público fica 0%. Tela de ove
 - [ ] **Migração UI → Nuxt UI v4** (fase-4b-ui, ADR 0007): fases 0–7 feitas (tema, shell, primitivos/overlays/toasts, tabelas/paginação/selects, formulários de auth com UForm, telas de admin com UCheckbox/USwitch/URadioGroup, filtro por usuário e detalhe na auditoria, validação/alterações pendentes em metas; dashboards com atingimento acumulado da meta, comparativo acumulado em gráfico, sparkline de % Público, atalhos de período, aviso de busca ativa e top 3 destacado nos rankings — inspirados no dashboard HTML de referência); falta 8 (limpeza final de shadcn-vue/vue-sonner/vee-validate). Exportação CSV da referência não entra: a spec prevê Excel (export.xlsx) em fase própria.
 - [ ] Tela de override de segmento por cliente (Fase 4, ainda não feita).
 - [ ] **Exportação** Excel (pedidos, rankings, clientes) e PDF executivo (ADR 0004): funcionando (menu "Exportar" nas análises). Falta: testes de integração (403, escopo, token de uso único), trocar o token em memória pela tabela `TokenImpressao` (já no schema) e atualizar docs/arquitetura/api.md; revisor-rbac.
-- [ ] **Histórico manual** de faturamento mensal (ver Decisões tomadas).
+- [ ] **Histórico manual** de faturamento mensal: tela Administração › Histórico e cálculo prontos (total vendido, evolução, atingimento, acumulado e PDF). Falta: testes (unitário do total com manual + integração 403/escopo) e docs/dados/metricas-kpis.md.
 - [ ] **Mapa de regiões** na Visão geral, colorido pelo volume e destacando o filtro de região.
 
 - [ ] **Planilha real** em `fixtures/focco/ano-todo-ate-agora.xls` (gitignored) — necessária para validar o importador.
@@ -36,7 +36,7 @@ Administração › Representantes — sem isso, % Público fica 0%. Tela de ove
 
 ## Decisões tomadas
 
-- **Histórico manual para comparativo (2026-10-05):** o usuário cadastra o **faturamento total da empresa por mês** de anos anteriores. O valor manual só vale em meses **sem nenhum pedido importado** (pedidos importados têm prioridade). Consequência (segurança/coerência): como é um total da empresa, só entra nos números para quem tem escopo "todos" e sem filtros de região/UF/representante/segmento/status/busca — mesmo critério das metas. Tela: Administração › Histórico (a fazer, depois da exportação).
+- **Histórico manual para comparativo (2026-10-05):** o usuário cadastra o **faturamento total da empresa por mês** de anos anteriores. O valor manual só vale em meses **sem nenhum pedido importado** (pedidos importados têm prioridade). Consequência (segurança/coerência): como é um total da empresa, só entra nos números para quem tem escopo "todos" e sem filtros de região/UF/representante/segmento/status/busca — mesmo critério das metas. Tela: Administração › Histórico (permissão metas.edit).
 
 ## Decisões pendentes
 

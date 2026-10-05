@@ -26,7 +26,8 @@ export type AcaoAuditada =
   | 'papel.alterado'
   | 'papel.removido'
   | 'export.xlsx'
-  | 'export.pdf';
+  | 'export.pdf'
+  | 'historico.alterado';
 
 interface Registro {
   acao: AcaoAuditada;

@@ -15,6 +15,7 @@ import {
   UserSquare2,
   Building2,
   Tags,
+  History,
 } from 'lucide-vue-next';
 
 export interface NavItem {
@@ -48,6 +49,7 @@ export const NAV: NavGroup[] = [
     itens: [
       { label: 'Importações', to: '/admin/importacoes', icon: FileUp, permissao: 'import.run' },
       { label: 'Metas', to: '/admin/metas', icon: Target, permissao: 'metas.edit' },
+      { label: 'Histórico', to: '/admin/historico', icon: History, permissao: 'metas.edit' },
       {
         label: 'Cadastro de representantes',
         to: '/admin/representantes',

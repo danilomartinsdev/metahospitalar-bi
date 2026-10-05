@@ -156,12 +156,28 @@ export class DashboardService {
     const pctPublico = (ls: LinhaVenda[]) =>
       fracao(totalDe(ls.filter((l) => l.segmento === 'PUBLICO')), totalDe(ls));
 
+    // Total vendido por intervalo de meses, com o faturamento manual nos meses sem pedidos.
+    const manual = await this.totaisManuais(u, f);
+    const totalPeriodo = (a: string, b: string) =>
+      mesesEntre(a, b).reduce((s, m) => s.plus(manual?.get(m) ?? totalDe(noPeriodo(todas, m, m))), zero());
+    const kpiTotal = (): Kpi => {
+      const v = totalPeriodo(de, ate);
+      const ma = totalPeriodo(deslocarMes(de, -n), deslocarMes(ate, -n));
+      const aa = totalPeriodo(deslocarMes(de, -12), deslocarMes(ate, -12));
+      return {
+        valor: v.toFixed(2),
+        mesAnterior: { anterior: ma.toFixed(2), pct: variacao(v, ma) },
+        anoAnterior: { anterior: aa.toFixed(2), pct: variacao(v, aa) },
+        serie: mesesSerie.map((m) => ({ mes: m, valor: totalPeriodo(m, m).toFixed(2) })),
+      };
+    };
+
     // Evolução mensal: ignora o filtro de mês (usa o ano de "até").
     const metas = await this.metasMensais(u, f, ano);
     const realMes = new Map(
       Array.from({ length: 12 }, (_, i) => {
         const m = `${ano}-${String(i + 1).padStart(2, '0')}`;
-        return [i + 1, totalDe(noPeriodo(todas, m, m))] as const;
+        return [i + 1, totalPeriodo(m, m)] as const;
       }),
     );
     const evolucao = Array.from({ length: 12 }, (_, i) => {
@@ -169,7 +185,7 @@ export class DashboardService {
       return {
         mes: i + 1,
         real: realMes.get(i + 1)!.toFixed(2),
-        anoAnterior: totalDe(noPeriodo(todas, `${ano - 1}-${m}`, `${ano - 1}-${m}`)).toFixed(2),
+        anoAnterior: totalPeriodo(`${ano - 1}-${m}`, `${ano - 1}-${m}`).toFixed(2),
         meta: metas?.get(i + 1)?.toFixed(2) ?? null,
       };
     });
@@ -177,7 +193,7 @@ export class DashboardService {
     return {
       periodo: { de, ate },
       kpis: {
-        total: kpi(totalDe),
+        total: kpiTotal(),
         qtd: kpi(qtdDe),
         ticket: kpi(ticketDe),
         pctPublico: {
@@ -212,7 +228,49 @@ export class DashboardService {
         (l) => l.gestorId,
         (l) => l.gestorNome,
       ).slice(0, 10),
-      acumuladoSegmento: acumuladoPorSegmento(todas, ano, Number(ate.slice(5, 7))),
+      acumuladoSegmento: this.comTotalManual(
+        acumuladoPorSegmento(todas, ano, Number(ate.slice(5, 7))),
+        totalPeriodo(`${ano}-01`, `${ano}-${ate.slice(5, 7)}`),
+        totalPeriodo(`${ano - 1}-01`, `${ano - 1}-${ate.slice(5, 7)}`),
+      ),
+    };
+  }
+
+  /**
+   * Faturamento manual (FaturamentoHistorico) por mês "AAAA-MM", só nos meses sem nenhum pedido importado.
+   * É um total da empresa: vale só para escopo "todos" e sem filtros (mesmo critério das metas); senão null.
+   */
+  private async totaisManuais(
+    u: UsuarioAutenticado,
+    f: Filtros,
+  ): Promise<Map<string, Prisma.Decimal> | null> {
+    if (u.escopo.tipo !== 'todos') return null;
+    if (f.regiao.length || f.uf.length || f.gestor.length || f.segmento.length || f.status.length || f.q) {
+      return null;
+    }
+    const [linhas, meses] = await Promise.all([
+      this.prisma.faturamentoHistorico.findMany(),
+      this.mesesDisponiveis(u),
+    ]);
+    if (!linhas.length) return null;
+    const comPedidos = new Set(meses);
+    const m = new Map<string, Prisma.Decimal>();
+    for (const l of linhas) {
+      const chave = `${l.ano}-${String(l.mes).padStart(2, '0')}`;
+      if (!comPedidos.has(chave)) m.set(chave, l.valor);
+    }
+    return m;
+  }
+
+  /** Total do acumulado com o faturamento manual (os segmentos seguem só com pedidos). */
+  private comTotalManual(
+    a: VisaoGeral['acumuladoSegmento'],
+    atual: Prisma.Decimal,
+    anterior: Prisma.Decimal,
+  ): VisaoGeral['acumuladoSegmento'] {
+    return {
+      ...a,
+      total: { atual: atual.toFixed(2), anterior: anterior.toFixed(2), pct: variacao(atual, anterior) },
     };
   }
 
@@ -320,7 +378,11 @@ export class DashboardService {
   }
 
   /** Todos os pedidos do filtro (no escopo), para exportação; até `limite` linhas. */
-  async pedidosParaExportar(u: UsuarioAutenticado, q: Filtros & Pick<PedidosQuery, 'sort' | 'dir'>, limite: number) {
+  async pedidosParaExportar(
+    u: UsuarioAutenticado,
+    q: Filtros & Pick<PedidosQuery, 'sort' | 'dir'>,
+    limite: number,
+  ) {
     return this.consultarPedidos(u, q, { take: limite });
   }
 

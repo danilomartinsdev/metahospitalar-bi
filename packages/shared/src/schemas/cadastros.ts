@@ -53,3 +53,19 @@ export const metasSalvarSchema = z.object({
     .max(12 * 200),
 });
 export type MetasSalvar = z.infer<typeof metasSalvarSchema>;
+
+/** Faturamento manual da empresa por mês (só para comparativos; vale em meses sem pedidos importados). */
+export const historicoSalvarSchema = z.object({
+  ano: z.number().int().min(2000).max(2100),
+  meses: z
+    .array(z.object({ mes: z.number().int().min(1).max(12), valor: valorMetaSchema.nullable() }))
+    .max(12),
+});
+export type HistoricoSalvar = z.infer<typeof historicoSalvarSchema>;
+export interface HistoricoMes {
+  mes: number;
+  /** Valor digitado ("1234.56") ou null. */
+  valor: string | null;
+  /** Mês já tem pedidos importados: o valor manual é ignorado nos números. */
+  temPedidos: boolean;
+}
