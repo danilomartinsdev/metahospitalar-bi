@@ -292,7 +292,7 @@ export class FaturamentoService {
       temDados: !!ultimo,
       kpis,
       mensal: { ano, meses, total: texto(somaDe(noPeriodo(`${ano}-01`, ate))) },
-      diario: doPeriodo.map((d) => ({ data: isoDia(d.data), dre: d.dre.toFixed(2) })),
+      diario: doPeriodo.map((d) => ({ data: isoDia(d.data), ano: d.ano, semana: d.semana, dre: d.dre.toFixed(2) })),
       semanal: [...semanas.values()].map((s) => ({ ...s, dre: s.dre.toFixed(2) })),
     };
   }

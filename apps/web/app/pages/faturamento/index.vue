@@ -73,27 +73,6 @@ const ABAS = [
   { label: 'Por semana', value: 'semana' },
   { label: 'Por dia', value: 'dia' },
 ];
-const SEMANA = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
-const pontos = computed(() => {
-  if (!r.value) return [];
-  if (visao.value === 'dia') {
-    return r.value.diario.map((d) => {
-      const dt = new Date(`${d.data}T12:00:00Z`);
-      const dm = `${d.data.slice(8, 10)}/${d.data.slice(5, 7)}`;
-      return {
-        rotulo: dm,
-        dica: `${SEMANA[dt.getUTCDay()]}, ${dm}/${d.data.slice(0, 4)}`,
-        valor: Number(d.dre),
-      };
-    });
-  }
-  return r.value.semanal.map((s) => ({
-    rotulo: `S${s.semana}`,
-    dica: `Semana ${s.semana} (a partir de ${s.inicio.slice(8, 10)}/${s.inicio.slice(5, 7)}/${s.inicio.slice(0, 4)})`,
-    valor: Number(s.dre),
-  }));
-});
-
 const MESES_EXTENSO = [
   'Janeiro',
   'Fevereiro',
@@ -108,6 +87,62 @@ const MESES_EXTENSO = [
   'Novembro',
   'Dezembro',
 ];
+const SEMANA = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
+const ddmm = (iso: string) => `${iso.slice(8, 10)}/${iso.slice(5, 7)}`;
+const pontoDia = (d: { data: string; dre: string }) => {
+  const dia = SEMANA[new Date(`${d.data}T12:00:00Z`).getUTCDay()];
+  return {
+    rotulo: `${dia} ${ddmm(d.data)}`,
+    dica: `${dia}, ${ddmm(d.data)}/${d.data.slice(0, 4)}`,
+    valor: Number(d.dre),
+  };
+};
+
+// "Por dia": um mês por vez (padrão: o último mês do período).
+const mesesDoPeriodo = computed(() => [...new Set((r.value?.diario ?? []).map((d) => d.data.slice(0, 7)))]);
+const mesDia = ref<string>();
+watch(
+  mesesDoPeriodo,
+  (ms) => {
+    if (!mesDia.value || !ms.includes(mesDia.value)) mesDia.value = ms.at(-1);
+  },
+  { immediate: true },
+);
+const opcoesMesDia = computed(() =>
+  [...mesesDoPeriodo.value]
+    .reverse()
+    .map((m) => ({ label: `${MESES_EXTENSO[Number(m.slice(5)) - 1]} de ${m.slice(0, 4)}`, value: m })),
+);
+
+// "Por semana": todas as semanas do período ou os dias de uma semana escolhida.
+const TODAS = 'todas';
+const chaveSemana = (s: { ano: number; semana: number }) => `${s.ano}-${s.semana}`;
+const semanaSel = ref<string>(TODAS);
+watch(qs, () => (semanaSel.value = TODAS));
+const opcoesSemana = computed(() => [
+  { label: 'Todas as semanas', value: TODAS },
+  ...[...(r.value?.semanal ?? [])].reverse().map((s) => {
+    const fim =
+      (r.value?.diario ?? []).filter((d) => chaveSemana(d) === chaveSemana(s)).at(-1)?.data ?? s.inicio;
+    return { label: `Semana ${s.semana} · ${ddmm(s.inicio)} a ${ddmm(fim)}`, value: chaveSemana(s) };
+  }),
+]);
+
+const pontos = computed(() => {
+  if (!r.value) return [];
+  if (visao.value === 'dia')
+    return r.value.diario.filter((d) => d.data.startsWith(mesDia.value ?? '')).map(pontoDia);
+  if (semanaSel.value !== TODAS) {
+    return r.value.diario.filter((d) => chaveSemana(d) === semanaSel.value).map(pontoDia);
+  }
+  return r.value.semanal.map((s) => ({
+    rotulo: `S${s.semana}`,
+    dica: `Semana ${s.semana} (a partir de ${ddmm(s.inicio)}/${s.inicio.slice(0, 4)})`,
+    valor: Number(s.dre),
+  }));
+});
+/** Total do que está no gráfico (só para leitura; os totais oficiais vêm da API em Decimal). */
+const totalPontos = computed(() => pontos.value.reduce((t, p) => t + p.valor, 0));
 const COLUNAS_TABELA = [
   { k: 'bruto', r: 'Bruto' },
   { k: 'antecipado', r: 'Antecipado' },
@@ -182,7 +217,7 @@ const atalho = (tipo: 'ano' | 'mes') => {
     <template v-else>
       <section
         aria-label="Indicadores de faturamento"
-        class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-5"
+        class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5"
       >
         <DashboardKpiCard
           v-for="c in CARDS"
@@ -212,6 +247,27 @@ const atalho = (tipo: 'ano' | 'mes') => {
           <div class="flex items-center justify-between gap-2">
             <h3 class="text-sm font-medium text-muted-foreground">Fatura DRE no período</h3>
             <UTabs v-model="visao" :items="ABAS" :content="false" size="xs" aria-label="Agrupar por" />
+          </div>
+          <div class="mt-3 flex flex-wrap items-center justify-between gap-2">
+            <USelect
+              v-if="visao === 'dia'"
+              v-model="mesDia"
+              :items="opcoesMesDia"
+              size="sm"
+              class="w-52"
+              aria-label="Mês do gráfico por dia"
+            />
+            <USelect
+              v-else
+              v-model="semanaSel"
+              :items="opcoesSemana"
+              size="sm"
+              class="w-64"
+              aria-label="Semana do gráfico"
+            />
+            <span v-if="pontos.length" class="text-xs text-muted-foreground">
+              Total: <b class="num text-foreground">{{ formatBRL(totalPontos) }}</b>
+            </span>
           </div>
           <div v-if="carregando" class="mt-4 h-72 animate-pulse rounded-lg bg-muted" />
           <p v-else-if="!pontos.length" class="py-24 text-center text-sm text-muted-foreground">

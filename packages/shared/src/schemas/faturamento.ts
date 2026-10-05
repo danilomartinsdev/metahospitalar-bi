@@ -137,6 +137,7 @@ export interface FaturamentoResumo {
     meses: (TotaisFaturamento & { mes: number; dreAnoAnterior: string })[];
     total: TotaisFaturamento;
   };
-  diario: { data: string; dre: string }[];
+  /** Dias do período, com a semana do relatório (SEMANA) para filtrar por semana. */
+  diario: { data: string; ano: number; semana: number; dre: string }[];
   semanal: { ano: number; semana: number; inicio: string; dre: string }[];
 }
