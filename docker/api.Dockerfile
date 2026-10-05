@@ -29,6 +29,9 @@ ENV NODE_ENV=production TZ=America/Sao_Paulo PDF_CHROMIUM_PATH=/usr/bin/chromium
 RUN apk add --no-cache tzdata chromium font-noto ttf-freefont
 WORKDIR /app
 COPY --from=build --chown=node:node /out ./
+# Pasta dos uploads já pertencendo ao usuário da API: o volume "storage" é montado aqui e, vazio, herda
+# este dono. Sem isso o volume nasce do root e a importação falha com EACCES (a API roda como node).
+RUN mkdir -p /app/storage/uploads && chown -R node:node /app/storage
 USER node
 EXPOSE 4318
 HEALTHCHECK --interval=30s --timeout=5s --retries=3 \
