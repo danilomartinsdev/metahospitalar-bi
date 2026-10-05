@@ -16,8 +16,7 @@ Aceite: agosto/2026 = 65 pedidos, R$ 6.049.414,77, ticket R$ 93.067,92 — igual
 Variação "vs. período anterior" = mesmo número de meses imediatamente antes (para 1 mês, é o mês anterior).
 Período e busca ficaram na barra de filtros de cada tela (não na topbar).
 
-**Pendente de configuração (dados, não código):** segmento dos representantes (ex.: MURILLO = Público) em
-Administração › Representantes — sem isso, % Público fica 0%. Tela de override de segmento por cliente: Fase 4.
+**Segmento configurado (2026-10-05):** MURILLO = Público (licitações); todos os demais representantes = Privado.
 
 ## Pendências
 
@@ -38,6 +37,8 @@ Administração › Representantes — sem isso, % Público fica 0%. Tela de ove
 
 - **Histórico manual para comparativo (2026-10-05):** o usuário cadastra o **faturamento total da empresa por mês** de anos anteriores. O valor manual só vale em meses **sem nenhum pedido importado** (pedidos importados têm prioridade). Consequência (segurança/coerência): como é um total da empresa, só entra nos números para quem tem escopo "todos" e sem filtros de região/UF/representante/segmento/status/busca — mesmo critério das metas. Tela: Administração › Histórico (permissão metas.edit).
 
+- **Segmento por representante (2026-10-05):** pedidos do MURILLO são licitações (Público); os demais representantes são Privado. Aplicado nos 20 representantes atuais via Administração › Representantes (auditado). Representante novo vindo da importação entra como Privado.
+
 ## Decisões pendentes
 
 Não implementar nada que dependa destes itens sem resposta do usuário.
@@ -46,7 +47,6 @@ Não implementar nada que dependa destes itens sem resposta do usuário.
 2. **SMTP:** servidor e remetente para "esqueci minha senha".
 3. **Escopo "por região":** um usuário com escopo de região vê todos os pedidos cuja UF pertence à região, independentemente do representante? (assumido sim, a confirmar)
 4. **Visualizador × exportação:** padrão do papel Visualizador é sem exportação? (a permissão é configurável; falta o default)
-5. **Segmento:** valores possíveis além de Público/Privado? Default de representante sem segmento?
 6. **Metas por representante:** por valor apenas, ou também por quantidade de pedidos?
 7. **Timeout de inatividade:** valor (sugestão: 30 min) e duração do refresh (sugestão: 7 dias); duração do bloqueio após 5 falhas (sugestão: 15 min).
 8. **Propostas escritas nos docs na Fase 0, a confirmar:**

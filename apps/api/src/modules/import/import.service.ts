@@ -294,7 +294,8 @@ export class ImportService {
       await tx.representante.upsert({
         where: { codigo },
         update: {},
-        create: { codigo, nomeExibicao: codigo },
+        // Representante novo entra como Privado (decisão de 2026-10-05; licitações são exceção ajustada à mão).
+        create: { codigo, nomeExibicao: codigo, segmentoPadrao: 'PRIVADO' },
       });
     }
     const todos = await tx.representante.findMany({ select: { id: true, codigo: true } });

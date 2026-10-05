@@ -21,11 +21,12 @@ UF fora da lista → erro de validação na linha da importação.
 - Cadastro: `codigo` (como vem do Focco, ex.: `BL REPR`), `nomeExibicao` (ex.: `BL REPR (BRUNA)`),
   `segmentoPadrao` (ex.: MURILLO = Público), `ativo`.
 - Representante novo encontrado na importação é criado com `nomeExibicao = codigo`,
-  sem segmento **[PENDENTE: default]**, e listado na prévia.
+  segmento **Privado** (decidido em 2026-10-05: só o MURILLO é Público, por ser licitação; outra exceção
+  futura é ajustada em Administração › Representantes), e listado na prévia.
 - Inativo continua aparecendo no histórico; só deixa de aparecer em listas de seleção.
 
 ## Segmento
-- Valores: Público, Privado **[PENDENTE: há outros?]**.
+- Valores: Público (licitações — hoje só o MURILLO) e Privado (demais representantes).
 - Segmento efetivo de um pedido = `cliente.segmentoOverride` ?? `representante.segmentoPadrao`.
 - Calculado na consulta (não gravado no pedido), para que mudanças de cadastro reflitam no histórico.
 
