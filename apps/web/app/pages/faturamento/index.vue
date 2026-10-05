@@ -119,13 +119,17 @@ const TODAS = 'todas';
 const chaveSemana = (s: { ano: number; semana: number }) => `${s.ano}-${s.semana}`;
 const semanaSel = ref<string>(TODAS);
 watch(qs, () => (semanaSel.value = TODAS));
-const opcoesSemana = computed(() => [
-  { label: 'Todas as semanas', value: TODAS },
-  ...[...(r.value?.semanal ?? [])].reverse().map((s) => {
+/** Semanas do período com o primeiro e o último dia (as semanas são identificadas pelas datas, não pelo número). */
+const semanas = computed(() =>
+  (r.value?.semanal ?? []).map((s) => {
     const fim =
       (r.value?.diario ?? []).filter((d) => chaveSemana(d) === chaveSemana(s)).at(-1)?.data ?? s.inicio;
-    return { label: `Semana ${s.semana} · ${ddmm(s.inicio)} a ${ddmm(fim)}`, value: chaveSemana(s) };
+    return { ...s, fim, intervalo: `${ddmm(s.inicio)} a ${ddmm(fim)}/${fim.slice(0, 4)}` };
   }),
+);
+const opcoesSemana = computed(() => [
+  { label: 'Todas as semanas', value: TODAS },
+  ...[...semanas.value].reverse().map((s) => ({ label: s.intervalo, value: chaveSemana(s) })),
 ]);
 
 const pontos = computed(() => {
@@ -135,9 +139,10 @@ const pontos = computed(() => {
   if (semanaSel.value !== TODAS) {
     return r.value.diario.filter((d) => chaveSemana(d) === semanaSel.value).map(pontoDia);
   }
-  return r.value.semanal.map((s) => ({
-    rotulo: `S${s.semana}`,
-    dica: `Semana ${s.semana} (a partir de ${ddmm(s.inicio)}/${s.inicio.slice(0, 4)})`,
+  // Cada barra = uma semana, rotulada pela data em que ela começa.
+  return semanas.value.map((s) => ({
+    rotulo: ddmm(s.inicio),
+    dica: `Semana de ${s.intervalo}`,
     valor: Number(s.dre),
   }));
 });
