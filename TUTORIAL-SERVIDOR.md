@@ -29,7 +29,7 @@ Na pasta do projeto:
 
 ```bash
 git status                    # deve dizer "nothing to commit"
-git push -u origin fase-4b-ui
+git push origin main
 ```
 
 ### 2. Gerar o backup da base atual
@@ -84,7 +84,7 @@ Copie a linha que aparecer e cole em **GitHub › metahospitalar-bi › Settings
 (deixe "Allow write access" desmarcado). Depois:
 
 ```bash
-git clone -b fase-4b-ui git@github.com:danilomartinsdev/metahospitalar-bi.git
+git clone -b main git@github.com:danilomartinsdev/metahospitalar-bi.git
 cd metahospitalar-bi
 ```
 

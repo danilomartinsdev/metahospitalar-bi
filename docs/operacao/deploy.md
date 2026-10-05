@@ -27,7 +27,7 @@ DNS do domínio apontando para o servidor e portas 80/443 liberadas no firewall 
 ## 2. Baixar o projeto
 
 ```bash
-git clone -b fase-4b-ui git@github.com:danilomartinsdev/metahospitalar-bi.git
+git clone -b main git@github.com:danilomartinsdev/metahospitalar-bi.git
 cd metahospitalar-bi
 ```
 
