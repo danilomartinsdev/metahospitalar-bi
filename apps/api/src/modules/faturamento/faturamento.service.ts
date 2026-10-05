@@ -1,7 +1,5 @@
 import { createHash } from 'node:crypto';
-import fs from 'node:fs/promises';
-import path from 'node:path';
-import { HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import {
   COLUNAS_FATURAMENTO,
   type ErroLinha,
@@ -15,9 +13,9 @@ import {
 } from '@meta-bi/shared';
 import type { ContextoRequisicao, UsuarioAutenticado } from '../../common/auth/types.js';
 import { ApiException } from '../../common/errors.js';
-import { ENV, type Env } from '../../config/env.js';
 import { Prisma } from '../../generated/prisma/client.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
+import { ArquivosTemporariosService } from '../arquivos/arquivos-temporarios.service.js';
 import { AuditService } from '../audit/audit.service.js';
 import { deslocarMes, mesesEntre, variacao } from '../dashboard/metricas.js';
 import { ArquivoInvalidoError, extrairLinhas, lerMatriz } from '../import/parser.js';
@@ -59,29 +57,17 @@ interface Analise {
 @Injectable()
 export class FaturamentoService {
   constructor(
-    @Inject(ENV) private readonly env: Env,
     private readonly prisma: PrismaService,
     private readonly audit: AuditService,
+    private readonly arquivos: ArquivosTemporariosService,
   ) {}
 
-  private pasta() {
-    return path.resolve(this.env.UPLOAD_DIR, 'faturamento');
-  }
-
-  /** Lê, valida e resume o arquivo. Guarda o original (fora do webroot) para o confirmar. */
+  /** Lê, valida e resume o arquivo. Guarda o original no banco até o confirmar. */
   async previa(buf: Buffer, arquivoNome: string, usuarioId: string): Promise<PreviaFaturamento> {
     const hash = createHash('sha256').update(buf).digest('hex');
     const { previa } = await this.analisar(buf, hash, arquivoNome);
-    await fs.mkdir(this.pasta(), { recursive: true });
-    await fs.writeFile(path.join(this.pasta(), `${hash}.bin`), buf, { mode: 0o600 });
     // A prévia pertence a quem enviou: o confirmar só aceita o mesmo usuário.
-    await fs.writeFile(
-      path.join(this.pasta(), `${hash}.${usuarioId}.json`),
-      JSON.stringify({ arquivoNome }),
-      {
-        mode: 0o600,
-      },
-    );
+    await this.arquivos.guardar('faturamento', hash, usuarioId, arquivoNome, buf);
     return previa;
   }
 
@@ -153,20 +139,8 @@ export class FaturamentoService {
 
   /** Grava o arquivo da prévia: substitui todos os dias do ano dele (decisão do usuário). */
   async confirmar(hash: string, usuario: UsuarioAutenticado, ctx: ContextoRequisicao) {
-    const meta = await fs
-      .readFile(path.join(this.pasta(), `${hash}.${usuario.id}.json`), 'utf8')
-      .then((t) => JSON.parse(t) as { arquivoNome: string })
-      .catch(() => {
-        throw new ApiException(
-          HttpStatus.NOT_FOUND,
-          'NOT_FOUND',
-          'Prévia não encontrada. Envie o arquivo de novo.',
-        );
-      });
-    const buf = await fs.readFile(path.join(this.pasta(), `${hash}.bin`)).catch(() => {
-      throw new ApiException(HttpStatus.NOT_FOUND, 'NOT_FOUND', 'Prévia expirada. Envie o arquivo de novo.');
-    });
-    const { previa, validas } = await this.analisar(buf, hash, meta.arquivoNome);
+    const { arquivoNome, conteudo: buf } = await this.arquivos.recuperar('faturamento', hash, usuario.id);
+    const { previa, validas } = await this.analisar(buf, hash, arquivoNome);
     if (!validas.length || previa.ano === null) {
       throw new ApiException(HttpStatus.BAD_REQUEST, 'VALIDATION', 'Nenhuma linha válida.');
     }
@@ -183,7 +157,7 @@ export class FaturamentoService {
       const novo = await tx.faturamentoLote.create({
         data: {
           ano,
-          arquivoNome: meta.arquivoNome,
+          arquivoNome: arquivoNome,
           arquivoHash: hash,
           dias: validas.length,
           totalDre: new D(previa.totais.dre),
@@ -217,7 +191,7 @@ export class FaturamentoService {
       detalhes: { ano, dias: validas.length, substituidos: lote.substituidos, totalDre: previa.totais.dre },
       ctx,
     });
-    await fs.rm(path.join(this.pasta(), `${hash}.${usuario.id}.json`), { force: true });
+    await this.arquivos.descartar('faturamento', hash, usuario.id);
     return { loteId: lote.id, ano, dias: validas.length, substituidos: lote.substituidos };
   }
 
@@ -292,7 +266,12 @@ export class FaturamentoService {
       temDados: !!ultimo,
       kpis,
       mensal: { ano, meses, total: texto(somaDe(noPeriodo(`${ano}-01`, ate))) },
-      diario: doPeriodo.map((d) => ({ data: isoDia(d.data), ano: d.ano, semana: d.semana, dre: d.dre.toFixed(2) })),
+      diario: doPeriodo.map((d) => ({
+        data: isoDia(d.data),
+        ano: d.ano,
+        semana: d.semana,
+        dre: d.dre.toFixed(2),
+      })),
       semanal: [...semanas.values()].map((s) => ({ ...s, dre: s.dre.toFixed(2) })),
     };
   }

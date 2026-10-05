@@ -113,7 +113,7 @@ export class ExportService {
 
   async pdf(u: UsuarioAutenticado, f: Filtros, ctx: ContextoRequisicao): Promise<Arquivo> {
     const periodo = await this.dashboard.periodo(u, f);
-    const token = this.tokens.criar(u, f);
+    const token = await this.tokens.criar(u, f);
     const base = (this.env.PRINT_BASE_URL ?? this.env.WEB_ORIGIN).replace(/\/$/, '');
     const quando = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
     let conteudo: Buffer;
@@ -131,7 +131,7 @@ export class ExportService {
       );
     } finally {
       // Se a página não chegou a consumir o token, ele morre aqui.
-      this.tokens.descartar(token);
+      await this.tokens.descartar(token);
     }
     await this.audit.registrar({
       acao: 'export.pdf',
@@ -148,7 +148,7 @@ export class ExportService {
 
   /** Dados da página de impressão: consome o token (uso único) e aplica o escopo de quem pediu o PDF. */
   async relatorio(token: string): Promise<RelatorioImpressao> {
-    const e = this.tokens.consumir(token);
+    const e = await this.tokens.consumir(token);
     if (!e) throw Erros.naoAutenticado();
     const { usuario: u, filtros: f } = e;
     const [visaoGeral, gestores, estados, regioes] = await Promise.all([

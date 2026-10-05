@@ -349,3 +349,20 @@ model FaturamentoLote {
 
   @@index([ano])
 }
+
+// Arquivo enviado na prévia de uma importação, guardado até o "confirmar" (substitui o disco local:
+// em serverless cada requisição pode cair numa instância diferente). Expira em 2 horas.
+model ArquivoTemporario {
+  id          String   @id @default(uuid()) @db.Uuid
+  hash        String
+  usuarioId   String   @db.Uuid
+  tipo        String // "pedidos" | "faturamento"
+  arquivoNome String
+  conteudo    Bytes
+  expiraEm    DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([hash, usuarioId, tipo])
+  @@index([expiraEm])
+}

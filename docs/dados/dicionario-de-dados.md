@@ -109,6 +109,12 @@ Papéis editáveis; permissões fixas (lista em `packages/shared/src/constants/p
 ### TokenRedefinicaoSenha / TokenImpressao
 
 `id`, `usuarioId`, `tokenHash`, `expiraEm`, `usadoEm?` (+ `filtros` JSON no de impressão).
+O de impressão vale 60 s e uma vez só (consumido de forma atômica por `usadoEm`); só o hash sha256 é gravado.
+
+### ArquivoTemporario
+`id`, `hash`, `usuarioId`, `tipo` (pedidos | faturamento), `arquivoNome`, `conteudo` (Bytes), `expiraEm` (2 h).
+Arquivo da prévia de importação guardado até o "confirmar" (substitui o disco local — necessário em serverless).
+Único em (`hash`, `usuarioId`, `tipo`): a prévia pertence a quem enviou.
 
 ### AuditLog
 

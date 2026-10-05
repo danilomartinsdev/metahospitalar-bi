@@ -5,6 +5,7 @@ import { LoggerModule } from 'nestjs-pino';
 import { AuthGuard } from './common/auth/auth.guard.js';
 import { HttpExceptionFilter } from './common/http-exception.filter.js';
 import { ConfigModule } from './config/config.module.js';
+import { ArquivosModule } from './modules/arquivos/arquivos.module.js';
 import { AuditModule } from './modules/audit/audit.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
 import { HealthController } from './modules/health/health.controller.js';
@@ -46,6 +47,7 @@ const dev = process.env.NODE_ENV !== 'production';
     ConfigModule,
     PrismaModule,
     AuditModule,
+    ArquivosModule,
     MailModule,
     AuthModule,
     UsuariosModule,

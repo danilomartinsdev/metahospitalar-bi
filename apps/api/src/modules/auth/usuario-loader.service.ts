@@ -7,6 +7,7 @@ import {
   type Permission,
   type UsuarioLogado,
 } from '@meta-bi/shared';
+import type { Prisma } from '../../generated/prisma/client.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import type { UsuarioAutenticado } from '../../common/auth/types.js';
 import { REGIAO_ROTULO } from '../../common/regiao.js';
@@ -25,13 +26,28 @@ export class UsuarioLoader {
   constructor(private readonly prisma: PrismaService) {}
 
   /** Retorna null se o usuário estiver inativo ou a família de sessão revogada/expirada. */
-  async carregar(usuarioId: string, familia: string): Promise<UsuarioAutenticado | null> {
-    const u = await this.prisma.usuario.findFirst({
-      where: {
+  carregar(usuarioId: string, familia: string): Promise<UsuarioAutenticado | null> {
+    return this.buscar(
+      {
         id: usuarioId,
         ativo: true,
         sessoes: { some: { familia, revogadaEm: null, expiraEm: { gt: new Date() } } },
       },
+      familia,
+    );
+  }
+
+  /**
+   * Usuário ativo, sem exigir sessão — só para a página de impressão do PDF, que se autentica pelo token de
+   * uso único (já validado) emitido para esse usuário. Permissões e escopo são os atuais dele.
+   */
+  carregarAtivo(usuarioId: string): Promise<UsuarioAutenticado | null> {
+    return this.buscar({ id: usuarioId, ativo: true }, 'impressao');
+  }
+
+  private async buscar(where: Prisma.UsuarioWhereInput, familia: string): Promise<UsuarioAutenticado | null> {
+    const u = await this.prisma.usuario.findFirst({
+      where,
       include: {
         role: { include: { permissoes: true } },
         representantes: { select: { representanteId: true } },

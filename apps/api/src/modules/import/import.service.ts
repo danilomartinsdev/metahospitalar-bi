@@ -1,14 +1,12 @@
 import { createHash } from 'node:crypto';
-import fs from 'node:fs/promises';
-import path from 'node:path';
-import { HttpStatus, Inject, Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { type ErroLinha, type LinhaFocco, linhaFoccoSchema, type PreviaImportacao } from '@meta-bi/shared';
-import { ENV, type Env } from '../../config/env.js';
 import { ApiException, Erros } from '../../common/errors.js';
 import { REGIAO_ENUM } from '../../common/regiao.js';
 import type { ContextoRequisicao, UsuarioAutenticado } from '../../common/auth/types.js';
 import { Prisma } from '../../generated/prisma/client.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
+import { ArquivosTemporariosService } from '../arquivos/arquivos-temporarios.service.js';
 import { AuditService } from '../audit/audit.service.js';
 import { PedidosEscritaRepository } from '../pedidos/scoped-pedidos.repository.js';
 import { ArquivoInvalidoError, type Formato, lerRelatorio } from './parser.js';
@@ -27,29 +25,19 @@ const dataISO = (d: Date | null) => (d ? d.toISOString().slice(0, 10) : null);
 @Injectable()
 export class ImportService {
   constructor(
-    @Inject(ENV) private readonly env: Env,
     private readonly prisma: PrismaService,
     private readonly pedidos: PedidosEscritaRepository,
     private readonly audit: AuditService,
+    private readonly arquivos: ArquivosTemporariosService,
   ) {}
 
-  private caminho(hash: string) {
-    return path.resolve(this.env.UPLOAD_DIR, `${hash}.bin`);
-  }
-
-  /** Etapas 2 e 3: parse, validação e prévia. Guarda o arquivo original (fora do webroot). */
+  /** Etapas 2 e 3: parse, validação e prévia. Guarda o arquivo original no banco até o confirmar. */
   async previa(buf: Buffer, arquivoNome: string, usuarioId: string): Promise<PreviaImportacao> {
     const hash = createHash('sha256').update(buf).digest('hex');
     const analise = await this.analisar(buf, hash, arquivoNome);
-    await fs.mkdir(path.resolve(this.env.UPLOAD_DIR), { recursive: true });
-    await fs.writeFile(this.caminho(hash), buf, { mode: 0o600 });
     // A prévia pertence a quem enviou: o confirmar só aceita o mesmo usuário (e usa o nome original guardado).
-    await fs.writeFile(this.caminhoMeta(hash, usuarioId), JSON.stringify({ arquivoNome }), { mode: 0o600 });
+    await this.arquivos.guardar('pedidos', hash, usuarioId, arquivoNome, buf);
     return analise.previa;
-  }
-
-  private caminhoMeta(hash: string, usuarioId: string) {
-    return path.resolve(this.env.UPLOAD_DIR, `${hash}.${usuarioId}.json`);
   }
 
   private async analisar(buf: Buffer, hash: string, arquivoNome: string): Promise<Analise> {
@@ -165,20 +153,7 @@ export class ImportService {
   /** Etapas 4 e 5: confirma e grava tudo numa transação, criando um lote reversível. */
   async confirmar(hash: string, usuario: UsuarioAutenticado, ctx: ContextoRequisicao) {
     if (!/^[a-f0-9]{64}$/.test(hash)) throw Erros.naoEncontrado();
-    const meta = await fs
-      .readFile(this.caminhoMeta(hash, usuario.id), 'utf8')
-      .then((t) => JSON.parse(t) as { arquivoNome: string })
-      .catch(() => {
-        throw new ApiException(
-          HttpStatus.NOT_FOUND,
-          'NOT_FOUND',
-          'Prévia não encontrada. Envie o arquivo de novo.',
-        );
-      });
-    const arquivoNome = meta.arquivoNome;
-    const buf = await fs.readFile(this.caminho(hash)).catch(() => {
-      throw new ApiException(HttpStatus.NOT_FOUND, 'NOT_FOUND', 'Prévia expirada. Envie o arquivo de novo.');
-    });
+    const { arquivoNome, conteudo: buf } = await this.arquivos.recuperar('pedidos', hash, usuario.id);
     const { previa, validas, novas, alteradas } = await this.analisar(buf, hash, arquivoNome);
     if (validas.length === 0)
       throw new ApiException(HttpStatus.BAD_REQUEST, 'VALIDATION', 'Nenhuma linha válida.');
