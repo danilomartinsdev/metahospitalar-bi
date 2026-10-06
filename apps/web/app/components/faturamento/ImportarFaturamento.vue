@@ -220,7 +220,7 @@ const podeConfirmar = computed(
         <UButton color="neutral" variant="ghost" label="Cancelar" @click="aberto = false" />
         <UButton
           icon="i-lucide-check"
-          :label="selecionados.length && previa ? `Importar ${nomesEscolhidos}` : 'Importar'"
+          label="Importar"
           :disabled="!podeConfirmar"
           :loading="confirmarMut.isPending.value"
           @click="confirmar"
