@@ -55,7 +55,7 @@ export class FaturamentoController {
     @Req() req: FastifyRequest,
   ) {
     exigirEscopoTodos(u);
-    return this.service.confirmar(dados.hash, u, ctx(req));
+    return this.service.confirmar(dados.hash, dados.meses, u, ctx(req));
   }
 
   @RequirePermission('faturamento.import')

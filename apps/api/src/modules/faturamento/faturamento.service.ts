@@ -48,7 +48,7 @@ const fimMes = (m: string) => new Date(Date.UTC(Number(m.slice(0, 4)), Number(m.
 interface Analise {
   previa: PreviaFaturamento;
   validas: LinhaFaturamento[];
-  /** Meses (1–12) presentes no arquivo — os únicos substituídos ao confirmar. */
+  /** Meses (1–12) presentes no arquivo — só eles podem ser escolhidos (e substituídos) ao confirmar. */
   meses: number[];
 }
 
@@ -120,10 +120,19 @@ export class FaturamentoService {
       m.dre = m.dre.plus(l.dre);
       porMes.set(l.mes, m);
     }
-    // Reimportar substitui só os meses presentes no arquivo (decisão de 2026-10-06): importar outubro não apaga jan–set.
-    const meses = [...porMes.keys()];
-    const diasSubstituidos =
-      ano === null ? 0 : await this.prisma.faturamentoDia.count({ where: { ano, mes: { in: meses } } });
+    // Reimportar substitui só os meses escolhidos entre os do arquivo (decisão de 2026-10-06):
+    // importar outubro não apaga jan–set. A prévia mostra o que já está gravado em cada mês.
+    const meses = [...porMes.keys()].sort((a, b) => a - b);
+    const existentes =
+      ano === null
+        ? []
+        : await this.prisma.faturamentoDia.groupBy({
+            by: ['mes'],
+            where: { ano, mes: { in: meses } },
+            _count: { _all: true },
+            _sum: { dre: true },
+          });
+    const existente = new Map(existentes.map((e) => [e.mes, e]));
 
     return {
       validas,
@@ -133,21 +142,38 @@ export class FaturamentoService {
         arquivoNome,
         ano,
         dias: validas.length,
-        meses: [...porMes]
-          .sort(([a], [b]) => a - b)
-          .map(([mes, v]) => ({ mes, dias: v.dias, dre: v.dre.toFixed(2) })),
+        meses: meses.map((mes) => {
+          const v = porMes.get(mes)!;
+          const e = existente.get(mes);
+          return {
+            mes,
+            dias: v.dias,
+            dre: v.dre.toFixed(2),
+            diasExistentes: e?._count._all ?? 0,
+            dreExistente: (e?._sum.dre ?? new D(0)).toFixed(2),
+          };
+        }),
         totais: texto(totais),
-        diasSubstituidos,
+        diasSubstituidos: existentes.reduce((n, e) => n + e._count._all, 0),
         erros,
       },
     };
   }
 
-  /** Grava o arquivo da prévia: substitui os dias dos meses que ele traz; os demais meses ficam intactos. */
-  async confirmar(hash: string, usuario: UsuarioAutenticado, ctx: ContextoRequisicao) {
+  /**
+   * Grava os meses escolhidos do arquivo da prévia (padrão: todos os do arquivo): apaga o que já estava
+   * gravado nesses meses e grava os dias do arquivo. Os demais meses ficam intactos.
+   */
+  async confirmar(
+    hash: string,
+    mesesEscolhidos: number[] | undefined,
+    usuario: UsuarioAutenticado,
+    ctx: ContextoRequisicao,
+  ) {
     const { arquivoNome, conteudo: buf } = await this.arquivos.recuperar('faturamento', hash, usuario.id);
-    const { previa, validas, meses } = await this.analisar(buf, hash, arquivoNome);
-    if (!validas.length || previa.ano === null) {
+    const analise = await this.analisar(buf, hash, arquivoNome);
+    const { previa } = analise;
+    if (!analise.validas.length || previa.ano === null) {
       throw new ApiException(HttpStatus.BAD_REQUEST, 'VALIDATION', 'Nenhuma linha válida.');
     }
     if (previa.erros.length) {
@@ -158,6 +184,17 @@ export class FaturamentoService {
       );
     }
     const ano = previa.ano;
+    const meses = [...new Set(mesesEscolhidos ?? analise.meses)].sort((a, b) => a - b);
+    const fora = meses.filter((m) => !analise.meses.includes(m));
+    if (fora.length) {
+      throw new ApiException(
+        HttpStatus.BAD_REQUEST,
+        'VALIDATION',
+        `Mês(es) ${fora.join(', ')} não estão no arquivo.`,
+      );
+    }
+    const validas = analise.validas.filter((l) => meses.includes(l.mes));
+    const totalDre = validas.reduce((t, l) => t.plus(l.dre), new D(0));
 
     const lote = await this.prisma.$transaction(async (tx) => {
       const novo = await tx.faturamentoLote.create({
@@ -166,7 +203,7 @@ export class FaturamentoService {
           arquivoNome: arquivoNome,
           arquivoHash: hash,
           dias: validas.length,
-          totalDre: new D(previa.totais.dre),
+          totalDre,
           usuarioId: usuario.id,
         },
       });
@@ -199,12 +236,12 @@ export class FaturamentoService {
         meses,
         dias: validas.length,
         substituidos: lote.substituidos,
-        totalDre: previa.totais.dre,
+        totalDre: totalDre.toFixed(2),
       },
       ctx,
     });
     await this.arquivos.descartar('faturamento', hash, usuario.id);
-    return { loteId: lote.id, ano, dias: validas.length, substituidos: lote.substituidos };
+    return { loteId: lote.id, ano, meses, dias: validas.length, substituidos: lote.substituidos };
   }
 
   async lotes(): Promise<LoteFaturamento[]> {

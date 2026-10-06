@@ -28,8 +28,8 @@ export function useConfirmarFaturamento() {
   const { request } = useApi();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (p: { hash: string; arquivoNome: string }) =>
-      request<{ loteId: string; ano: number; dias: number; substituidos: number }>(
+    mutationFn: (p: { hash: string; arquivoNome: string; meses: number[] }) =>
+      request<{ loteId: string; ano: number; meses: number[]; dias: number; substituidos: number }>(
         '/faturamento/import/confirmar',
         { method: 'POST', body: p },
       ),

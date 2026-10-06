@@ -66,7 +66,7 @@ Histórico). Único em (`ano`, `mes`). Só entra nos números em meses **sem ped
 
 `id`, `empresa`, `data` (Date, **única**), `ano`, `mes`, `semana`, `bruto`, `antecipado`, `remessa`,
 `devolucao`, `dre` (todos Decimal(14,2); `dre` = bruto + antecipado + remessa + devolucao), `loteId`.
-Reimportar um arquivo **substitui só os dias dos meses que ele traz** (os outros meses do ano ficam intactos). Índice (`ano`, `mes`).
+Na importação, a prévia lista os meses da planilha (com o que já está gravado em cada um) e o usuário escolhe quais importar: cada mês escolhido é **substituído por completo** pelos dias do arquivo; os demais meses ficam intactos. Índice (`ano`, `mes`).
 
 ### FaturamentoLote
 

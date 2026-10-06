@@ -26,7 +26,7 @@ function multipart(arquivo: Buffer, nome = 'faturamento.xls') {
 const req = (method: 'GET' | 'POST', url: string, token: string, extra: object = {}) =>
   ctx.app.inject({ method, url, headers: { authorization: `Bearer ${token}` }, ...extra });
 
-async function importar(token: string, arquivo = fs.readFileSync(AMOSTRA)) {
+async function importar(token: string, arquivo = fs.readFileSync(AMOSTRA), meses?: unknown) {
   const m = multipart(arquivo);
   const previa = await req('POST', '/api/faturamento/import/previa', token, {
     payload: m.payload,
@@ -34,7 +34,7 @@ async function importar(token: string, arquivo = fs.readFileSync(AMOSTRA)) {
   });
   const p = previa.json();
   const conf = await req('POST', '/api/faturamento/import/confirmar', token, {
-    payload: { hash: p.hash, arquivoNome: 'faturamento.xls' },
+    payload: { hash: p.hash, arquivoNome: 'faturamento.xls', ...(meses === undefined ? {} : { meses }) },
   });
   return { previa: p, statusPrevia: previa.statusCode, confirmar: conf };
 }
@@ -67,8 +67,8 @@ describe('faturamento — importação', () => {
         dre: '7800.25',
       },
       meses: [
-        { mes: 1, dias: 4, dre: '4400.25' },
-        { mes: 2, dias: 2, dre: '3400.00' },
+        { mes: 1, dias: 4, dre: '4400.25', diasExistentes: 0, dreExistente: '0.00' },
+        { mes: 2, dias: 2, dre: '3400.00', diasExistentes: 0, dreExistente: '0.00' },
       ],
     });
   });
@@ -96,6 +96,30 @@ describe('faturamento — importação', () => {
     expect(await ctx.prisma.faturamentoDia.count({ where: { mes: 1 } })).toBe(4);
     expect(await ctx.prisma.faturamentoDia.count({ where: { mes: 1, loteId: loteNovo } })).toBe(0);
     expect(await ctx.prisma.faturamentoDia.count({ where: { mes: 2, loteId: loteNovo } })).toBe(2);
+  });
+
+  it('com meses escolhidos: grava e substitui só eles (prévia mostra o que já existe em cada mês)', async () => {
+    const { previa, confirmar } = await importar(tokenGestor, undefined, [1]);
+    expect(previa.meses).toMatchObject([
+      { mes: 1, diasExistentes: 4, dreExistente: '4400.25' },
+      { mes: 2, diasExistentes: 2, dreExistente: '3400.00' },
+    ]);
+    expect(confirmar.json()).toMatchObject({ meses: [1], dias: 4, substituidos: 4 });
+
+    const loteNovo = confirmar.json().loteId;
+    expect(await ctx.prisma.faturamentoDia.count({ where: { mes: 1, loteId: loteNovo } })).toBe(4);
+    expect(await ctx.prisma.faturamentoDia.count({ where: { mes: 2, loteId: loteNovo } })).toBe(0);
+    expect(await ctx.prisma.faturamentoDia.count()).toBe(6);
+    const lote = await ctx.prisma.faturamentoLote.findUniqueOrThrow({ where: { id: loteNovo } });
+    expect(lote.totalDre.toFixed(2)).toBe('4400.25');
+  });
+
+  it('mês que não está no arquivo ou lista vazia: 400 e nada muda', async () => {
+    const antes = await ctx.prisma.faturamentoLote.count();
+    expect((await importar(tokenGestor, undefined, [3])).confirmar.statusCode).toBe(400);
+    expect((await importar(tokenGestor, undefined, [])).confirmar.statusCode).toBe(400);
+    expect(await ctx.prisma.faturamentoLote.count()).toBe(antes);
+    expect(await ctx.prisma.faturamentoDia.count()).toBe(6);
   });
 
   it('arquivo com DRE que não fecha aparece como erro de linha e não é gravado', async () => {

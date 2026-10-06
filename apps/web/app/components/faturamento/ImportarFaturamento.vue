@@ -12,10 +12,39 @@ const arrastando = ref(false);
 const EXTENSOES = ['.xls', '.xlsx', '.csv', '.html', '.htm'];
 const TAMANHO_MAX = 4 * 1024 * 1024;
 const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+const MESES_LONGOS = [
+  'janeiro',
+  'fevereiro',
+  'março',
+  'abril',
+  'maio',
+  'junho',
+  'julho',
+  'agosto',
+  'setembro',
+  'outubro',
+  'novembro',
+  'dezembro',
+];
+/** Meses da planilha marcados para importar (todos, por padrão). */
+const selecionados = ref<number[]>([]);
+
+function alternar(mes: number, marcado: boolean) {
+  selecionados.value = marcado
+    ? [...new Set([...selecionados.value, mes])].sort((a, b) => a - b)
+    : selecionados.value.filter((m) => m !== mes);
+}
+
+const escolhidos = computed(
+  () => previa.value?.meses.filter((m) => selecionados.value.includes(m.mes)) ?? [],
+);
+const diasSubstituidos = computed(() => escolhidos.value.reduce((n, m) => n + m.diasExistentes, 0));
+const nomesEscolhidos = computed(() => escolhidos.value.map((m) => MESES[m.mes - 1]).join(', '));
 
 watch(aberto, (v) => {
   if (!v) {
     previa.value = null;
+    selecionados.value = [];
     previaMut.reset();
   }
 });
@@ -33,6 +62,7 @@ async function enviar(arquivo?: File) {
   previa.value = null;
   try {
     previa.value = await previaMut.mutateAsync(arquivo);
+    selecionados.value = previa.value.meses.map((m) => m.mes);
   } catch (e) {
     aviso.erro(e, 'Não foi possível ler o arquivo.');
   }
@@ -44,9 +74,11 @@ async function confirmar() {
     const r = await confirmarMut.mutateAsync({
       hash: previa.value.hash,
       arquivoNome: previa.value.arquivoNome,
+      meses: selecionados.value,
     });
+    const meses = r.meses.map((m) => MESES[m - 1]).join(', ');
     aviso.sucesso(
-      `Faturamento de ${r.ano} importado: ${r.dias} dias${r.substituidos ? ` (substituiu ${r.substituidos})` : ''}.`,
+      `Faturamento de ${meses}/${r.ano} importado: ${r.dias} dias${r.substituidos ? ` (substituiu ${r.substituidos} já existentes)` : ''}.`,
     );
     aberto.value = false;
   } catch (e) {
@@ -55,7 +87,11 @@ async function confirmar() {
 }
 
 const podeConfirmar = computed(
-  () => !!previa.value && previa.value.ano !== null && !previa.value.erros.length,
+  () =>
+    !!previa.value &&
+    previa.value.ano !== null &&
+    !previa.value.erros.length &&
+    selecionados.value.length > 0,
 );
 </script>
 
@@ -63,7 +99,7 @@ const podeConfirmar = computed(
   <UModal
     v-model:open="aberto"
     title="Importar faturamento"
-    description="Relatório diário de faturamento do Focco (uma linha por dia). Substitui só os meses que estão no arquivo."
+    description="Relatório diário de faturamento do Focco (uma linha por dia). Você escolhe quais meses da planilha importar."
     :ui="{ content: 'sm:max-w-2xl' }"
   >
     <template #body>
@@ -109,21 +145,57 @@ const podeConfirmar = computed(
           </div>
         </div>
 
-        <p class="text-xs text-muted-foreground">
-          Meses:
-          {{
-            previa.meses.map((m) => `${MESES[m.mes - 1]} (${m.dias} dias, ${formatBRL(m.dre)})`).join(' · ')
-          }}
-        </p>
+        <fieldset v-if="previa.meses.length" class="space-y-2">
+          <legend class="mb-2 text-sm font-medium">Quais meses importar?</legend>
+          <p class="mb-2 text-xs text-muted-foreground">
+            Cada mês marcado é <strong>substituído por completo</strong>: o que já existe no sistema para ele
+            é apagado e trocado pelos dias desta planilha. Meses não marcados, e os demais meses do ano, não
+            mudam.
+          </p>
+          <label
+            v-for="m in previa.meses"
+            :key="m.mes"
+            class="flex cursor-pointer items-start gap-3 rounded-lg border p-3 transition-colors hover:bg-elevated/50"
+            :class="selecionados.includes(m.mes) ? 'border-primary/60' : ''"
+          >
+            <UCheckbox
+              :model-value="selecionados.includes(m.mes)"
+              class="mt-0.5"
+              :aria-label="`Importar ${MESES_LONGOS[m.mes - 1]}`"
+              @update:model-value="alternar(m.mes, $event === true)"
+            />
+            <span class="min-w-0 flex-1">
+              <span class="block font-medium capitalize">{{ MESES_LONGOS[m.mes - 1] }}/{{ previa.ano }}</span>
+              <span class="num block text-xs text-muted-foreground">
+                Na planilha: {{ formatInt(m.dias) }} {{ m.dias === 1 ? 'dia' : 'dias' }} ·
+                {{ formatBRL(m.dre) }}
+              </span>
+              <span
+                class="num block text-xs"
+                :class="m.diasExistentes ? 'text-warning' : 'text-muted-foreground'"
+              >
+                <template v-if="m.diasExistentes">
+                  No sistema hoje: {{ formatInt(m.diasExistentes) }}
+                  {{ m.diasExistentes === 1 ? 'dia' : 'dias' }} · {{ formatBRL(m.dreExistente) }} — será
+                  substituído
+                </template>
+                <template v-else>Mês novo — nada a substituir</template>
+              </span>
+            </span>
+          </label>
+        </fieldset>
 
         <UAlert
-          v-if="previa.diasSubstituidos"
+          v-if="diasSubstituidos"
           color="warning"
           variant="subtle"
           icon="i-lucide-triangle-alert"
-          :title="`Vai substituir ${previa.diasSubstituidos} dias já importados de ${previa.meses.map((m) => MESES[m.mes - 1]).join(', ')}/${previa.ano}`"
-          description="O faturamento desses meses será trocado pelo deste arquivo; os outros meses não mudam."
+          :title="`Vai substituir ${formatInt(diasSubstituidos)} dias já importados de ${nomesEscolhidos}/${previa.ano}`"
+          description="O faturamento desses meses no sistema será trocado pelo desta planilha."
         />
+        <p v-else-if="!selecionados.length && !previa.erros.length" class="text-xs text-warning">
+          Marque ao menos um mês para importar.
+        </p>
 
         <UAlert
           v-if="previa.erros.length"
@@ -148,7 +220,7 @@ const podeConfirmar = computed(
         <UButton color="neutral" variant="ghost" label="Cancelar" @click="aberto = false" />
         <UButton
           icon="i-lucide-check"
-          label="Importar"
+          :label="selecionados.length && previa ? `Importar ${nomesEscolhidos}` : 'Importar'"
           :disabled="!podeConfirmar"
           :loading="confirmarMut.isPending.value"
           @click="confirmar"

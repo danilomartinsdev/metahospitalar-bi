@@ -94,6 +94,12 @@ export type FaturamentoQuery = z.output<typeof faturamentoQuerySchema>;
 export const confirmarFaturamentoSchema = z.object({
   hash: z.string().regex(/^[a-f0-9]{64}$/),
   arquivoNome: z.string().trim().min(1).max(200),
+  /** Meses (1–12) do arquivo escolhidos para importar; só eles são substituídos. Ausente = todos do arquivo. */
+  meses: z
+    .array(z.number().int().min(1).max(12))
+    .min(1, { error: 'Escolha ao menos um mês' })
+    .max(12)
+    .optional(),
 });
 
 /** Totais (strings decimais) das colunas do relatório. */
@@ -110,9 +116,10 @@ export interface PreviaFaturamento {
   arquivoNome: string;
   ano: number | null;
   dias: number;
-  meses: { mes: number; dias: number; dre: string }[];
+  /** Por mês do arquivo: o que vem nele e o que já está gravado (será substituído se o mês for importado). */
+  meses: { mes: number; dias: number; dre: string; diasExistentes: number; dreExistente: string }[];
   totais: TotaisFaturamento;
-  /** Dias do mesmo ano já gravados, que serão apagados ao confirmar. */
+  /** Dias já gravados nos meses do arquivo (todos os meses; o confirmar apaga só os escolhidos). */
   diasSubstituidos: number;
   erros: ErroLinha[];
 }
