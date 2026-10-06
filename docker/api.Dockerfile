@@ -25,6 +25,10 @@ CMD ["pnpm", "exec", "prisma", "migrate", "deploy"]
 
 FROM node:24-alpine AS runtime
 ENV NODE_ENV=production TZ=America/Sao_Paulo PDF_CHROMIUM_PATH=/usr/bin/chromium-browser
+# O container roda com o disco somente leitura (read_only no compose; só /tmp é gravável). O Chromium
+# precisa gravar perfil e o banco de relatórios de falha: sem isto ele morre ao abrir
+# ("chrome_crashpad_handler: --database is required") e o PDF falha.
+ENV XDG_CONFIG_HOME=/tmp/.chromium XDG_CACHE_HOME=/tmp/.chromium
 # Chromium do sistema (o empacotado pelo Playwright não roda em musl) + fontes para o PDF (ADR 0004).
 RUN apk add --no-cache tzdata chromium font-noto ttf-freefont
 WORKDIR /app

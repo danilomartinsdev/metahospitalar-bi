@@ -131,7 +131,7 @@ Backup e restauração do banco: ver [backup-restore.md](backup-restore.md).
 
 ## A validar no primeiro deploy
 
-- [ ] PDF em produção: a API usa o Chromium do Alpine (`PDF_CHROMIUM_PATH`), diferente do usado em dev.
+- [ ] PDF em produção: a API usa o Chromium do Alpine (`PDF_CHROMIUM_PATH`), diferente do usado em dev. Com o disco somente leitura, o Chromium precisa de `XDG_CONFIG_HOME`/`XDG_CACHE_HOME` em `/tmp` (já no `api.Dockerfile`; sem isso ele morre ao abrir: "chrome_crashpad_handler: --database is required").
 - [ ] HTTPS emitido pelo Caddy para o domínio.
 - [ ] Backup diário agendado e restauração testada.
 - [ ] Login, importação, exportação Excel/PDF testados em produção.
