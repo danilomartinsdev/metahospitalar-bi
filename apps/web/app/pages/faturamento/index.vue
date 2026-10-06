@@ -1,5 +1,11 @@
 <script setup lang="ts">
-import { useFaturamentoResumoQuery } from '~/composables/api/useFaturamento';
+import type { CampoTotalFaturamento } from '@meta-bi/shared';
+import {
+  useFaturamentoAnosQuery,
+  useFaturamentoComparativoQuery,
+  useFaturamentoMensalQuery,
+  useFaturamentoResumoQuery,
+} from '~/composables/api/useFaturamento';
 import {
   alturaBarrasFaturamento,
   barrasFaturamentoOptions,
@@ -172,6 +178,57 @@ const COLUNAS_TABELA = [
   { k: 'remessa', r: 'Remessa' },
   { k: 'devolucao', r: 'Devolução' },
 ] as const;
+// Tabela mês a mês: qualquer ano importado (padrão: o ano do período escolhido).
+const anosQ = useFaturamentoAnosQuery();
+const anos = computed(() => anosQ.data.value ?? []);
+const opcoesAno = computed(() => anos.value.map((a) => ({ label: String(a), value: a })));
+const anoTabela = ref<number>();
+watch(
+  () => r.value?.mensal.ano,
+  (a) => {
+    if (a) anoTabela.value = a;
+  },
+  { immediate: true },
+);
+const mensalQ = useFaturamentoMensalQuery(anoTabela);
+const mensal = computed(() => mensalQ.data.value);
+
+// Comparativo entre anos: padrão = os dois anos mais recentes (base = o mais antigo).
+const anoA = ref<number>();
+const anoB = ref<number>();
+watch(
+  anos,
+  (as) => {
+    if (!anoB.value && as.length >= 2) {
+      anoB.value = as[0];
+      anoA.value = as[1];
+    }
+  },
+  { immediate: true },
+);
+const compQ = useFaturamentoComparativoQuery(anoA, anoB);
+const comp = computed(() => compQ.data.value);
+const INDICADORES: { label: string; value: CampoTotalFaturamento }[] = [
+  { label: 'Fatura DRE', value: 'dre' },
+  { label: 'Faturamento bruto', value: 'bruto' },
+  { label: 'Antecipações', value: 'antecipado' },
+  { label: 'Remessas', value: 'remessa' },
+  { label: 'Devoluções', value: 'devolucao' },
+];
+const indicador = ref<CampoTotalFaturamento>('dre');
+const nomeIndicador = computed(() => INDICADORES.find((i) => i.value === indicador.value)?.label ?? '');
+// Cor pela diferença (B − A): subir é bom em todos os indicadores — em antecipações e devoluções,
+// que são negativos, uma diferença positiva significa valor menor.
+const classeDif = (d: string) =>
+  Number(d) > 0 ? 'text-success' : Number(d) < 0 ? 'text-danger' : 'text-muted-foreground';
+const comSinal = (d: string) => `${Number(d) > 0 ? '+' : ''}${formatBRL(d)}`;
+const pctComSinal = (p: number | null) => (p === null ? '—' : `${p > 0 ? '+' : ''}${formatPct(p)}`);
+const rotuloEmComum = computed(() => {
+  const ms = comp.value?.emComum.meses ?? [];
+  if (!ms.length) return '';
+  return ms.length === 1 ? NOMES[ms[0]! - 1] : `${NOMES[ms[0]! - 1]}–${NOMES[ms.at(-1)! - 1]}`;
+});
+
 const atalho = (tipo: 'ano' | 'mes') => {
   const fim = r.value?.periodo.ate;
   if (!fim) return;
@@ -308,16 +365,37 @@ const atalho = (tipo: 'ano' | 'mes') => {
       </section>
 
       <section class="rounded-xl border bg-card" aria-labelledby="titulo-fat-mes">
-        <div class="px-5 pt-5 pb-3">
-          <h3 id="titulo-fat-mes" class="text-sm font-medium text-muted-foreground">Faturamento mês a mês</h3>
-          <p v-if="r" class="text-xs text-muted-foreground">
-            {{ periodoPorExtenso(`${r.mensal.ano}-01`, r.periodo.ate) }}
-          </p>
+        <div class="flex flex-wrap items-end justify-between gap-3 px-5 pt-5 pb-3">
+          <div>
+            <h3 id="titulo-fat-mes" class="text-sm font-medium text-muted-foreground">
+              Faturamento mês a mês
+            </h3>
+            <p v-if="mensal" class="text-xs text-muted-foreground">
+              {{ mensal.meses.length }} {{ mensal.meses.length === 1 ? 'mês' : 'meses' }} com faturamento em
+              {{ mensal.ano }}
+            </p>
+          </div>
+          <USelect
+            v-model="anoTabela"
+            :items="opcoesAno"
+            size="sm"
+            class="w-28"
+            aria-label="Ano da tabela"
+            :disabled="!opcoesAno.length"
+          />
         </div>
-        <div v-if="carregando" class="space-y-2 px-5 pb-5">
+        <UiExtraEstadoBloco
+          v-if="mensalQ.error.value"
+          :erro="mensalQ.error.value"
+          @tentar-de-novo="mensalQ.refetch()"
+        />
+        <div v-else-if="!mensal" class="space-y-2 px-5 pb-5">
           <div v-for="i in 6" :key="i" class="h-8 animate-pulse rounded bg-muted" />
         </div>
-        <div v-else-if="r" class="overflow-x-auto">
+        <p v-else-if="!mensal.meses.length" class="px-5 pb-8 pt-4 text-center text-sm text-muted-foreground">
+          Sem faturamento importado em {{ mensal.ano }}.
+        </p>
+        <div v-else class="overflow-x-auto">
           <table class="w-full text-sm">
             <thead class="text-xs text-muted-foreground">
               <tr>
@@ -339,7 +417,7 @@ const atalho = (tipo: 'ano' | 'mes') => {
               </tr>
             </thead>
             <tbody class="divide-y">
-              <tr v-for="m in r.mensal.meses" :key="m.mes" class="hover:bg-muted/30">
+              <tr v-for="m in mensal.meses" :key="m.mes" class="hover:bg-muted/30">
                 <th scope="row" class="px-5 py-2 text-left font-medium">{{ MESES_EXTENSO[m.mes - 1] }}</th>
                 <td
                   v-for="c in COLUNAS_TABELA"
@@ -361,17 +439,142 @@ const atalho = (tipo: 'ano' | 'mes') => {
                   v-for="c in COLUNAS_TABELA"
                   :key="c.k"
                   class="num px-5 py-3 text-right"
-                  :class="Number(r.mensal.total[c.k]) < 0 && 'text-danger'"
+                  :class="Number(mensal.total[c.k]) < 0 && 'text-danger'"
                 >
-                  {{ formatBRL(r.mensal.total[c.k]) }}
+                  {{ formatBRL(mensal.total[c.k]) }}
                 </td>
                 <td class="num bg-grafico-principal-forte px-5 py-3 text-right">
-                  {{ formatBRL(r.mensal.total.dre) }}
+                  {{ formatBRL(mensal.total.dre) }}
                 </td>
               </tr>
             </tfoot>
           </table>
         </div>
+      </section>
+
+      <section class="rounded-xl border bg-card" aria-labelledby="titulo-fat-comp">
+        <div class="flex flex-wrap items-end justify-between gap-3 px-5 pt-5 pb-3">
+          <div>
+            <h3 id="titulo-fat-comp" class="text-sm font-medium text-muted-foreground">
+              Comparativo entre anos
+            </h3>
+            <p v-if="anoA && anoB" class="text-xs text-muted-foreground">
+              {{ nomeIndicador }} de {{ anoB }} em relação a {{ anoA }}
+            </p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <USelect
+              v-model="indicador"
+              :items="INDICADORES"
+              size="sm"
+              class="w-44"
+              aria-label="Indicador do comparativo"
+            />
+            <USelect
+              v-model="anoA"
+              :items="opcoesAno"
+              size="sm"
+              class="w-24"
+              aria-label="Ano base"
+              :disabled="anos.length < 2"
+            />
+            <span class="text-sm text-muted-foreground">vs.</span>
+            <USelect
+              v-model="anoB"
+              :items="opcoesAno"
+              size="sm"
+              class="w-24"
+              aria-label="Ano comparado"
+              :disabled="anos.length < 2"
+            />
+          </div>
+        </div>
+
+        <p v-if="anos.length < 2" class="px-5 pb-8 pt-4 text-center text-sm text-muted-foreground">
+          Importe o faturamento de outro ano para comparar.
+        </p>
+        <p v-else-if="anoA === anoB" class="px-5 pb-8 pt-4 text-center text-sm text-warning">
+          Escolha dois anos diferentes.
+        </p>
+        <UiExtraEstadoBloco
+          v-else-if="compQ.error.value"
+          :erro="compQ.error.value"
+          @tentar-de-novo="compQ.refetch()"
+        />
+        <div v-else-if="!comp" class="space-y-2 px-5 pb-5">
+          <div v-for="i in 6" :key="i" class="h-8 animate-pulse rounded bg-muted" />
+        </div>
+        <template v-else>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead class="text-xs text-muted-foreground">
+                <tr>
+                  <th scope="col" class="px-5 py-2 text-left font-medium">Mês</th>
+                  <th scope="col" class="px-5 py-2 text-right font-medium">{{ comp.anoA }}</th>
+                  <th scope="col" class="px-5 py-2 text-right font-medium">{{ comp.anoB }}</th>
+                  <th scope="col" class="px-5 py-2 text-right font-medium">Diferença</th>
+                  <th scope="col" class="px-5 py-2 text-right font-medium">Variação</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y">
+                <tr v-for="m in comp.meses" :key="m.mes" class="hover:bg-muted/30">
+                  <th scope="row" class="px-5 py-2 text-left font-medium">{{ MESES_EXTENSO[m.mes - 1] }}</th>
+                  <td class="num px-5 py-2 text-right" :class="!m.temA && 'text-muted-foreground'">
+                    {{ m.temA ? formatBRL(m.a[indicador]) : '—' }}
+                  </td>
+                  <td class="num px-5 py-2 text-right" :class="!m.temB && 'text-muted-foreground'">
+                    {{ m.temB ? formatBRL(m.b[indicador]) : '—' }}
+                  </td>
+                  <template v-if="m.temA && m.temB">
+                    <td class="num px-5 py-2 text-right" :class="classeDif(m.diferenca[indicador])">
+                      {{ comSinal(m.diferenca[indicador]) }}
+                    </td>
+                    <td class="num px-5 py-2 text-right" :class="classeDif(m.diferenca[indicador])">
+                      {{ pctComSinal(m.pct[indicador]) }}
+                    </td>
+                  </template>
+                  <td v-else colspan="2" class="px-5 py-2 text-right text-xs text-muted-foreground">
+                    sem dado em {{ m.temA ? comp.anoB : comp.anoA }}
+                  </td>
+                </tr>
+              </tbody>
+              <tfoot class="border-t-2 border-foreground/20 bg-muted font-bold">
+                <tr v-if="comp.emComum.meses.length && comp.emComum.meses.length !== comp.meses.length">
+                  <th scope="row" class="px-5 py-3 text-left">
+                    Acumulado comparável
+                    <span class="block text-xs font-normal text-muted-foreground">
+                      meses com dado nos dois anos ({{ rotuloEmComum }})
+                    </span>
+                  </th>
+                  <td class="num px-5 py-3 text-right">{{ formatBRL(comp.emComum.a[indicador]) }}</td>
+                  <td class="num px-5 py-3 text-right">{{ formatBRL(comp.emComum.b[indicador]) }}</td>
+                  <td class="num px-5 py-3 text-right" :class="classeDif(comp.emComum.diferenca[indicador])">
+                    {{ comSinal(comp.emComum.diferenca[indicador]) }}
+                  </td>
+                  <td class="num px-5 py-3 text-right" :class="classeDif(comp.emComum.diferenca[indicador])">
+                    {{ pctComSinal(comp.emComum.pct[indicador]) }}
+                  </td>
+                </tr>
+                <tr class="text-base">
+                  <th scope="row" class="px-5 py-3 text-left uppercase tracking-wide">Total</th>
+                  <td class="num px-5 py-3 text-right">{{ formatBRL(comp.total.a[indicador]) }}</td>
+                  <td class="num px-5 py-3 text-right">{{ formatBRL(comp.total.b[indicador]) }}</td>
+                  <td class="num px-5 py-3 text-right" :class="classeDif(comp.total.diferenca[indicador])">
+                    {{ comSinal(comp.total.diferenca[indicador]) }}
+                  </td>
+                  <td class="num px-5 py-3 text-right" :class="classeDif(comp.total.diferenca[indicador])">
+                    {{ pctComSinal(comp.total.pct[indicador]) }}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+          <p class="px-5 py-3 text-xs text-muted-foreground">
+            Diferença = {{ comp.anoB }} − {{ comp.anoA }}. Verde quando {{ comp.anoB }} foi melhor (em
+            antecipações e devoluções, que são valores negativos, melhor é um valor menor). O total soma todos
+            os meses de cada ano; o acumulado comparável usa só os meses com faturamento nos dois.
+          </p>
+        </template>
       </section>
     </template>
 

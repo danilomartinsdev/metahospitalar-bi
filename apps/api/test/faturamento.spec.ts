@@ -163,6 +163,9 @@ describe('faturamento — acesso', () => {
     await criarUsuario(ctx.prisma, { email: 'rep@meta.com', papel: 'representante' });
     const t = (await login(ctx.app, 'rep@meta.com')).body.accessToken;
     expect((await req('GET', '/api/faturamento/resumo', t)).statusCode).toBe(403);
+    expect((await req('GET', '/api/faturamento/anos', t)).statusCode).toBe(403);
+    expect((await req('GET', '/api/faturamento/mensal?ano=2026', t)).statusCode).toBe(403);
+    expect((await req('GET', '/api/faturamento/comparativo?anoA=2025&anoB=2026', t)).statusCode).toBe(403);
   });
 
   it('com a permissão mas escopo parcial (por representante) recebe 403', async () => {
@@ -170,6 +173,7 @@ describe('faturamento — acesso', () => {
     await ctx.prisma.usuario.update({ where: { id: u.id }, data: { escopoTipo: 'REPRESENTANTES' } });
     const t = (await login(ctx.app, 'gestor-parcial@meta.com')).body.accessToken;
     expect((await req('GET', '/api/faturamento/resumo', t)).statusCode).toBe(403);
+    expect((await req('GET', '/api/faturamento/comparativo?anoA=2025&anoB=2026', t)).statusCode).toBe(403);
     const m = multipart(fs.readFileSync(AMOSTRA));
     const r = await req('POST', '/api/faturamento/import/previa', t, {
       payload: m.payload,
@@ -180,5 +184,90 @@ describe('faturamento — acesso', () => {
 
   it('sem login recebe 401', async () => {
     expect((await ctx.app.inject({ method: 'GET', url: '/api/faturamento/resumo' })).statusCode).toBe(401);
+  });
+});
+
+describe('faturamento — anos, mês a mês e comparativo', () => {
+  // 2025: só janeiro, com os mesmos valores da amostra de 2026.
+  const so2025Janeiro = () =>
+    Buffer.from(
+      fs
+        .readFileSync(AMOSTRA, 'latin1')
+        .split('\n')
+        .filter((l) => !l.includes('/02/2026'))
+        .join('\n')
+        .replaceAll('2026', '2025'),
+      'latin1',
+    );
+
+  beforeAll(async () => {
+    const { confirmar } = await importar(tokenGestor, so2025Janeiro());
+    expect(confirmar.json()).toMatchObject({ ano: 2025, dias: 4 });
+  });
+
+  it('lista os anos importados (mais recente primeiro)', async () => {
+    expect((await req('GET', '/api/faturamento/anos', tokenGestor)).json()).toEqual([2026, 2025]);
+  });
+
+  it('mês a mês de um ano escolhido', async () => {
+    const b = (await req('GET', '/api/faturamento/mensal?ano=2025', tokenGestor)).json();
+    expect(b.ano).toBe(2025);
+    expect(b.meses).toEqual([
+      {
+        mes: 1,
+        dias: 4,
+        bruto: '4500.50',
+        antecipado: '-300.00',
+        remessa: '250.00',
+        devolucao: '-50.25',
+        dre: '4400.25',
+      },
+    ]);
+    expect(b.total.dre).toBe('4400.25');
+    const vazio = (await req('GET', '/api/faturamento/mensal?ano=2024', tokenGestor)).json();
+    expect(vazio).toMatchObject({ ano: 2024, meses: [], total: { dre: '0.00' } });
+  });
+
+  it('comparativo: diferença e variação por mês, no ano todo e só nos meses em comum', async () => {
+    const r = await req('GET', '/api/faturamento/comparativo?anoA=2025&anoB=2026', tokenGestor);
+    expect(r.statusCode).toBe(200);
+    const b = r.json();
+    expect(
+      b.meses.map((m: { mes: number; temA: boolean; temB: boolean }) => [m.mes, m.temA, m.temB]),
+    ).toEqual([
+      [1, true, true],
+      [2, false, true],
+    ]);
+    expect(b.meses[0]).toMatchObject({
+      a: { dre: '4400.25' },
+      b: { dre: '4400.25' },
+      diferenca: { dre: '0.00' },
+    });
+    expect(b.meses[0].pct.dre).toBe(0);
+    expect(b.meses[1]).toMatchObject({
+      a: { dre: '0.00' },
+      b: { dre: '3400.00' },
+      diferenca: { dre: '3400.00' },
+    });
+    expect(b.meses[1].pct.dre).toBeNull();
+    // Ano todo: 7800,25 vs. 4400,25 → +3400,00 (+77,27%).
+    expect(b.total).toMatchObject({
+      a: { dre: '4400.25' },
+      b: { dre: '7800.25' },
+      diferenca: { dre: '3400.00' },
+    });
+    expect(b.total.pct.dre).toBeCloseTo(3400 / 4400.25, 10);
+    // Meses em comum: só janeiro.
+    expect(b.emComum).toMatchObject({ meses: [1], a: { dre: '4400.25' }, b: { dre: '4400.25' } });
+    expect(b.emComum.pct.dre).toBe(0);
+  });
+
+  it('comparativo com o mesmo ano ou ano inválido: 400', async () => {
+    expect(
+      (await req('GET', '/api/faturamento/comparativo?anoA=2026&anoB=2026', tokenGestor)).statusCode,
+    ).toBe(400);
+    expect(
+      (await req('GET', '/api/faturamento/comparativo?anoA=abc&anoB=2026', tokenGestor)).statusCode,
+    ).toBe(400);
   });
 });

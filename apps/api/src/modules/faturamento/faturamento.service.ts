@@ -2,7 +2,10 @@ import { createHash } from 'node:crypto';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import {
   COLUNAS_FATURAMENTO,
+  type ComparacaoFaturamento,
   type ErroLinha,
+  type FaturamentoComparativo,
+  type FaturamentoMensal,
   type FaturamentoQuery,
   type FaturamentoResumo,
   type LinhaFaturamento,
@@ -322,6 +325,75 @@ export class FaturamentoService {
         dre: d.dre.toFixed(2),
       })),
       semanal: [...semanas.values()].map((s) => ({ ...s, dre: s.dre.toFixed(2) })),
+    };
+  }
+
+  /** Anos com faturamento importado (mais recente primeiro). */
+  async anos(): Promise<number[]> {
+    const rs = await this.prisma.faturamentoDia.groupBy({ by: ['ano'], orderBy: { ano: 'desc' } });
+    return rs.map((r) => r.ano);
+  }
+
+  /** Somas por mês de cada ano pedido (só meses com faturamento). */
+  private async somasPorMes(anos: number[]): Promise<Map<number, Map<number, Somas & { dias: number }>>> {
+    const rs = await this.prisma.faturamentoDia.groupBy({
+      by: ['ano', 'mes'],
+      where: { ano: { in: anos } },
+      _sum: { bruto: true, antecipado: true, remessa: true, devolucao: true, dre: true },
+      _count: { _all: true },
+    });
+    const porAno = new Map(anos.map((a) => [a, new Map<number, Somas & { dias: number }>()]));
+    for (const r of rs) {
+      const somas = zeros();
+      for (const c of CAMPOS) somas[c] = r._sum[c] ?? new D(0);
+      porAno.get(r.ano)!.set(r.mes, { ...somas, dias: r._count._all });
+    }
+    return porAno;
+  }
+
+  /** Tabela mês a mês de um ano qualquer (seletor de ano da página de Faturamento). */
+  async mensal(ano: number): Promise<FaturamentoMensal> {
+    const meses = (await this.somasPorMes([ano])).get(ano)!;
+    const ordenados = [...meses].sort(([a], [b]) => a - b);
+    const total = ordenados.reduce((t, [, m]) => somar(t, m), zeros());
+    return {
+      ano,
+      meses: ordenados.map(([mes, m]) => ({ mes, dias: m.dias, ...texto(m) })),
+      total: texto(total),
+    };
+  }
+
+  /** Comparativo entre dois anos: A é a base, B o comparado (diferença = B − A). */
+  async comparativo(anoA: number, anoB: number): Promise<FaturamentoComparativo> {
+    const porAno = await this.somasPorMes([anoA, anoB]);
+    const mA = porAno.get(anoA)!;
+    const mB = porAno.get(anoB)!;
+    const comparar = (a: Somas, b: Somas): ComparacaoFaturamento => {
+      const diferenca = zeros();
+      for (const c of CAMPOS) diferenca[c] = b[c].minus(a[c]);
+      return {
+        a: texto(a),
+        b: texto(b),
+        diferenca: texto(diferenca),
+        pct: Object.fromEntries(CAMPOS.map((c) => [c, variacao(b[c], a[c])])) as ComparacaoFaturamento['pct'],
+      };
+    };
+    const somaMeses = (m: Map<number, Somas>, meses: number[]) =>
+      meses.reduce((t, mes) => (m.has(mes) ? somar(t, m.get(mes)!) : t), zeros());
+
+    const todos = [...new Set([...mA.keys(), ...mB.keys()])].sort((a, b) => a - b);
+    const emComum = todos.filter((mes) => mA.has(mes) && mB.has(mes));
+    return {
+      anoA,
+      anoB,
+      meses: todos.map((mes) => ({
+        mes,
+        temA: mA.has(mes),
+        temB: mB.has(mes),
+        ...comparar(mA.get(mes) ?? zeros(), mB.get(mes) ?? zeros()),
+      })),
+      total: comparar(somaMeses(mA, todos), somaMeses(mB, todos)),
+      emComum: { meses: emComum, ...comparar(somaMeses(mA, emComum), somaMeses(mB, emComum)) },
     };
   }
 }

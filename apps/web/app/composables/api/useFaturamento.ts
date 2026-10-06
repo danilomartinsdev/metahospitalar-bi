@@ -1,4 +1,10 @@
-import type { FaturamentoResumo, LoteFaturamento, PreviaFaturamento } from '@meta-bi/shared';
+import type {
+  FaturamentoComparativo,
+  FaturamentoMensal,
+  FaturamentoResumo,
+  LoteFaturamento,
+  PreviaFaturamento,
+} from '@meta-bi/shared';
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/vue-query';
 import type { MaybeRefOrGetter } from 'vue';
 import { useApi } from './useApi';
@@ -9,6 +15,38 @@ export function useFaturamentoResumoQuery(qs: MaybeRefOrGetter<string>) {
   return useQuery({
     queryKey: ['faturamento-resumo', qs],
     queryFn: () => request<FaturamentoResumo>(`/faturamento/resumo?${toValue(qs)}`),
+    placeholderData: keepPreviousData,
+  });
+}
+
+/** Anos com faturamento importado (mais recente primeiro). */
+export function useFaturamentoAnosQuery() {
+  const { request } = useApi();
+  return useQuery({ queryKey: ['faturamento-anos'], queryFn: () => request<number[]>('/faturamento/anos') });
+}
+
+/** Tabela mês a mês de um ano. */
+export function useFaturamentoMensalQuery(ano: MaybeRefOrGetter<number | undefined>) {
+  const { request } = useApi();
+  return useQuery({
+    queryKey: ['faturamento-mensal', ano],
+    queryFn: () => request<FaturamentoMensal>(`/faturamento/mensal?ano=${toValue(ano)}`),
+    enabled: () => !!toValue(ano),
+    placeholderData: keepPreviousData,
+  });
+}
+
+/** Comparativo entre dois anos (A = base, B = comparado). */
+export function useFaturamentoComparativoQuery(
+  anoA: MaybeRefOrGetter<number | undefined>,
+  anoB: MaybeRefOrGetter<number | undefined>,
+) {
+  const { request } = useApi();
+  return useQuery({
+    queryKey: ['faturamento-comparativo', anoA, anoB],
+    queryFn: () =>
+      request<FaturamentoComparativo>(`/faturamento/comparativo?anoA=${toValue(anoA)}&anoB=${toValue(anoB)}`),
+    enabled: () => !!toValue(anoA) && !!toValue(anoB) && toValue(anoA) !== toValue(anoB),
     placeholderData: keepPreviousData,
   });
 }
@@ -36,6 +74,9 @@ export function useConfirmarFaturamento() {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ['faturamento-resumo'] });
       void qc.invalidateQueries({ queryKey: ['faturamento-lotes'] });
+      void qc.invalidateQueries({ queryKey: ['faturamento-anos'] });
+      void qc.invalidateQueries({ queryKey: ['faturamento-mensal'] });
+      void qc.invalidateQueries({ queryKey: ['faturamento-comparativo'] });
     },
   });
 }

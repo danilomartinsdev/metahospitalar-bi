@@ -148,3 +148,38 @@ export interface FaturamentoResumo {
   diario: { data: string; ano: number; semana: number; dre: string }[];
   semanal: { ano: number; semana: number; inicio: string; dre: string }[];
 }
+
+const anoParam = z.coerce.number().int().min(2000).max(2100);
+export const faturamentoAnoQuerySchema = z.object({ ano: anoParam });
+export const faturamentoComparativoQuerySchema = z
+  .object({ anoA: anoParam, anoB: anoParam })
+  .refine((q) => q.anoA !== q.anoB, { error: 'Escolha dois anos diferentes', path: ['anoB'] });
+export type FaturamentoComparativoQuery = z.output<typeof faturamentoComparativoQuerySchema>;
+
+export type CampoTotalFaturamento = keyof TotaisFaturamento;
+
+/** Tabela mês a mês de um ano (só os meses com faturamento importado). */
+export interface FaturamentoMensal {
+  ano: number;
+  meses: (TotaisFaturamento & { mes: number; dias: number })[];
+  total: TotaisFaturamento;
+}
+
+/** Valores dos dois anos num recorte (mês, ano todo ou meses em comum): diferença = B − A; pct = (B − A) / A. */
+export interface ComparacaoFaturamento {
+  a: TotaisFaturamento;
+  b: TotaisFaturamento;
+  diferenca: TotaisFaturamento;
+  pct: Record<CampoTotalFaturamento, number | null>;
+}
+
+/** Comparativo entre dois anos (A = base, B = comparado), mês a mês. */
+export interface FaturamentoComparativo {
+  anoA: number;
+  anoB: number;
+  /** Meses com faturamento em pelo menos um dos anos; `temA`/`temB` dizem em qual há dado. */
+  meses: (ComparacaoFaturamento & { mes: number; temA: boolean; temB: boolean })[];
+  total: ComparacaoFaturamento;
+  /** Só os meses com dado nos dois anos (comparação justa de acumulado, como o YTD). */
+  emComum: ComparacaoFaturamento & { meses: number[] };
+}

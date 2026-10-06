@@ -32,3 +32,21 @@ describe('lerMatriz — planilha salva pelo Excel', () => {
     ]);
   });
 });
+
+describe('lerMatriz — CSV', () => {
+  it('lê CSV com ";" e números pt-BR (milhar com ponto, decimal com vírgula)', () => {
+    const csv = [
+      Object.values(COLUNAS_FATURAMENTO).join(';'),
+      '1 - META MOVEIS;2026;10;40;01/10/2026 00:00:00;71639,14;;;;71639,14',
+      '1 - META MOVEIS;2026;10;41;05/10/2026;1.263.399,94;;102600;;1.365.999,94',
+    ].join('\r\n');
+    const { formato, matriz } = lerMatriz(Buffer.from(csv, 'latin1'));
+    expect(formato).toBe('csv');
+
+    const linhas = extrairLinhas(matriz, COLUNAS_FATURAMENTO).map((l) => linhaFaturamentoSchema.parse(l));
+    expect(linhas.map((l) => [l.data, l.bruto, l.remessa, l.dre])).toEqual([
+      ['2026-10-01', '71639.14', '0.00', '71639.14'],
+      ['2026-10-05', '1263399.94', '102600.00', '1365999.94'],
+    ]);
+  });
+});

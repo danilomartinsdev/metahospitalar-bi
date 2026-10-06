@@ -1,5 +1,12 @@
 import { Body, Controller, Get, HttpCode, HttpStatus, Post, Query, Req } from '@nestjs/common';
-import { confirmarFaturamentoSchema, type FaturamentoQuery, faturamentoQuerySchema } from '@meta-bi/shared';
+import {
+  confirmarFaturamentoSchema,
+  type FaturamentoComparativoQuery,
+  type FaturamentoQuery,
+  faturamentoAnoQuerySchema,
+  faturamentoComparativoQuerySchema,
+  faturamentoQuerySchema,
+} from '@meta-bi/shared';
 import type { FastifyRequest } from 'fastify';
 import type { z } from 'zod';
 import { CurrentUser, RequirePermission } from '../../common/auth/decorators.js';
@@ -27,6 +34,33 @@ export class FaturamentoController {
   ) {
     exigirEscopoTodos(u);
     return this.service.resumo(q);
+  }
+
+  @RequirePermission('faturamento.view')
+  @Get('anos')
+  anos(@CurrentUser() u: UsuarioAutenticado) {
+    exigirEscopoTodos(u);
+    return this.service.anos();
+  }
+
+  @RequirePermission('faturamento.view')
+  @Get('mensal')
+  mensal(
+    @Query(new ZodPipe(faturamentoAnoQuerySchema)) q: z.infer<typeof faturamentoAnoQuerySchema>,
+    @CurrentUser() u: UsuarioAutenticado,
+  ) {
+    exigirEscopoTodos(u);
+    return this.service.mensal(q.ano);
+  }
+
+  @RequirePermission('faturamento.view')
+  @Get('comparativo')
+  comparativo(
+    @Query(new ZodPipe(faturamentoComparativoQuerySchema)) q: FaturamentoComparativoQuery,
+    @CurrentUser() u: UsuarioAutenticado,
+  ) {
+    exigirEscopoTodos(u);
+    return this.service.comparativo(q.anoA, q.anoB);
   }
 
   @RequirePermission('faturamento.import')
