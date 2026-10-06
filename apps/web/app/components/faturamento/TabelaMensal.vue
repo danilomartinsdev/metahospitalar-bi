@@ -33,7 +33,10 @@ const COLUNAS_TABELA = [
 <template>
   <div
     class="overflow-x-auto"
-    :class="compacto && '[&_td]:px-2 [&_th]:px-2 [&_table]:text-xs [&_tfoot]:text-sm'"
+    :class="
+      compacto &&
+      '[&_td]:px-1.5 [&_th]:px-1.5 [&_table]:text-[11px] [&_tfoot]:text-xs [&_tr]:break-inside-avoid'
+    "
   >
     <table class="w-full text-sm">
       <thead class="text-xs text-muted-foreground">

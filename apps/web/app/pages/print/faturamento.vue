@@ -143,6 +143,7 @@ const mesesEscolhidos = computed(() => dados.value?.params.meses ?? []);
           :comp="dados.comparativo"
           :indicador="dados.params.indicador"
           :filtrando-meses="mesesEscolhidos.length > 0"
+          compacto
         />
       </section>
     </template>
