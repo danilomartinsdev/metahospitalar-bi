@@ -69,7 +69,7 @@ function ativo(to: string) {
                 ]"
                 @click="emit('navegou')"
               >
-                <component :is="item.icon" class="size-[18px] shrink-0" aria-hidden="true" />
+                <UIcon :name="item.icon" class="size-[18px] shrink-0" aria-hidden="true" />
                 <span v-if="!recolhida" class="flex-1 truncate">{{ item.label }}</span>
                 <span
                   v-if="!recolhida && item.fase"

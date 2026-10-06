@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { type PaletaGrafico, REGIAO_ENUM_ROTULO, type RelatorioImpressao } from '@meta-bi/shared';
-import { DollarSign, Landmark, Receipt, ShoppingCart } from 'lucide-vue-next';
 import { barrasRankingOptions, donutOptions, evolucaoOptions } from '~/utils/charts/options';
 import { periodoPorExtenso, variacoesKpi } from '~/utils/periodo';
 
@@ -96,28 +95,28 @@ const TABELAS = computed(() =>
     <section class="grid grid-cols-2 gap-3" aria-label="Indicadores">
       <DashboardKpiCard
         rotulo="Total vendido"
-        :icone="DollarSign"
+        icone="i-lucide-dollar-sign"
         :valor="formatBRL(v.kpis.total.valor)"
         :variacoes="variacoes('total')"
         :serie="serie('total')"
       />
       <DashboardKpiCard
         rotulo="Pedidos"
-        :icone="ShoppingCart"
+        icone="i-lucide-shopping-cart"
         :valor="formatInt(v.kpis.qtd.valor)"
         :variacoes="variacoes('qtd')"
         :serie="serie('qtd')"
       />
       <DashboardKpiCard
         rotulo="Ticket médio"
-        :icone="Receipt"
+        icone="i-lucide-receipt"
         :valor="formatBRL(v.kpis.ticket.valor)"
         :variacoes="variacoes('ticket')"
         :serie="serie('ticket')"
       />
       <DashboardKpiCard
         rotulo="% Público"
-        :icone="Landmark"
+        icone="i-lucide-landmark"
         :valor="formatPct(v.kpis.pctPublico.valor)"
         :variacoes="[{ rotulo: `no ano anterior: ${formatPct(v.kpis.pctPublico.anoAnterior)}`, pct: null }]"
         :serie="v.kpis.pctPublico.serie.map((s) => s.valor)"

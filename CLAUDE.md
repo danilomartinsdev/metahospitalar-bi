@@ -5,7 +5,7 @@ apresenta KPIs, rankings e comparativos com controle de acesso por papel.
 
 ## Stack
 
-Monorepo pnpm · Nuxt 4 (SPA) + Tailwind v4 + shadcn-vue + ECharts ·
+Monorepo pnpm · Nuxt 4 (SPA) + Tailwind v4 + Nuxt UI v4 + ECharts ·
 NestJS (Fastify) + Prisma + PostgreSQL · Zod compartilhado em packages/shared.
 
 ## Comandos

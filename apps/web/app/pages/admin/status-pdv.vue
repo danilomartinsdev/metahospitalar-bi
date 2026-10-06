@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { CORES_STATUS } from '@meta-bi/shared';
-import { Info } from 'lucide-vue-next';
 import { type StatusPdv, useAtualizarStatus, useStatusQuery } from '~/composables/api/useCadastros';
 
 const aviso = useAviso();
@@ -46,8 +45,8 @@ async function salvar(s: StatusPdv, dados: Parameters<typeof atualizar.mutateAsy
       descricao="Significado de cada código da coluna POS PDV e se entra no total vendido."
     />
     <p class="flex items-start gap-2 rounded-lg border bg-primary-soft px-4 py-3 text-sm text-foreground">
-      <Info class="mt-0.5 size-4 shrink-0 text-primary" />
-      Decisão pendente: o significado de A, PE e AC e se pedidos PE contam no total. Até lá, todos contam.
+      <UIcon name="i-lucide-info" class="mt-0.5 size-4 shrink-0 text-primary" /> Decisão pendente: o significado de A, PE
+      e AC e se pedidos PE contam no total. Até lá, todos contam.
     </p>
     <section class="rounded-xl border bg-card">
       <UiExtraEstadoBloco

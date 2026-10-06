@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from '@nuxt/ui';
-import { ArrowDown, ArrowUp } from 'lucide-vue-next';
 import { useLocalStorage } from '@vueuse/core';
 import { usePedidosQuery } from '~/composables/api/useDashboard';
 
@@ -134,9 +133,9 @@ const total = computed(() => q.data.value?.meta.total ?? 0);
                     @click="ordenar(c.ordem)"
                   >
                     {{ c.r }}
-                    <component
-                      :is="dir === 'asc' ? ArrowUp : ArrowDown"
+                    <UIcon
                       v-if="sort === c.ordem"
+                      :name="dir === 'asc' ? 'i-lucide-arrow-up' : 'i-lucide-arrow-down'"
                       class="size-3"
                     />
                   </button>

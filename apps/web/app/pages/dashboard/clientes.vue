@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Repeat, Sparkles, Users } from 'lucide-vue-next';
 import { useClientesQuery } from '~/composables/api/useDashboard';
 
 definePageMeta({ titulo: 'Clientes', permissao: 'dashboard.view' });
@@ -36,9 +35,14 @@ watch([filtro, qs, porPagina], () => (pagina.value = 1));
     <section class="grid gap-4 sm:grid-cols-3">
       <button
         v-for="c in [
-          { k: 'todos', r: 'Clientes com compra', n: q.data.value?.total, i: Users },
-          { k: 'novos', r: 'Clientes novos', n: q.data.value?.novos, i: Sparkles },
-          { k: 'recorrentes', r: 'Compraram em mais de 1 mês', n: q.data.value?.recorrentes, i: Repeat },
+          { k: 'todos', r: 'Clientes com compra', n: q.data.value?.total, i: 'i-lucide-users' },
+          { k: 'novos', r: 'Clientes novos', n: q.data.value?.novos, i: 'i-lucide-sparkles' },
+          {
+            k: 'recorrentes',
+            r: 'Compraram em mais de 1 mês',
+            n: q.data.value?.recorrentes,
+            i: 'i-lucide-repeat',
+          },
         ] as const"
         :key="c.k"
         type="button"
@@ -54,7 +58,7 @@ watch([filtro, qs, porPagina], () => (pagina.value = 1));
           }}</span>
         </span>
         <span class="grid size-9 place-items-center rounded-lg bg-primary-soft text-primary"
-          ><component :is="c.i" class="size-4"
+          ><UIcon :name="c.i" class="size-4"
         /></span>
       </button>
     </section>

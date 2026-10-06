@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Construction } from 'lucide-vue-next';
 import { NAV } from '~/components/layout/nav';
 
 const route = useRoute();
@@ -10,7 +9,7 @@ useHead({ title: () => `${item.value?.label ?? 'Página não encontrada'} — BI
 
 <template>
   <div class="mx-auto flex max-w-md flex-col items-center gap-4 py-16 text-center">
-    <Construction class="size-12 text-muted-foreground" aria-hidden="true" />
+    <UIcon name="i-lucide-construction" class="size-12 text-muted-foreground" aria-hidden="true" />
     <template v-if="item">
       <h2 class="text-xl font-semibold">{{ item.label }}</h2>
       <p class="text-sm text-muted-foreground">Esta tela será entregue na Fase {{ item.fase }}.</p>

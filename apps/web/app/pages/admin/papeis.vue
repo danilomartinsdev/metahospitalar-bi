@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { PERMISSION_LABELS, PERMISSIONS, type PapelAdmin, type Permission } from '@meta-bi/shared';
-import { Lock } from 'lucide-vue-next';
 import { usePapeisQuery, useRemoverPapel, useSalvarPapel } from '~/composables/api/useAdmin';
 
 const aviso = useAviso();
@@ -109,7 +108,7 @@ async function apagar(p: PapelAdmin) {
           </div>
 
           <p v-if="p.chave === 'admin'" class="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
-            <Lock class="size-3.5" /> Admin sempre tem todas as permissões.
+            <UIcon name="i-lucide-lock" class="size-3.5" /> Admin sempre tem todas as permissões.
           </p>
           <ul class="mt-3 flex-1 space-y-1">
             <li

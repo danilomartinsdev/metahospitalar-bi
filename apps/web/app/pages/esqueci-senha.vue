@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { esqueciSenhaSchema } from '@meta-bi/shared';
-import { MailCheck } from 'lucide-vue-next';
 import type { FormSubmitEvent } from '@nuxt/ui';
 import type { z } from 'zod';
 
@@ -24,7 +23,7 @@ async function enviar({ data: dados }: FormSubmitEvent<z.output<typeof esqueciSe
 
 <template>
   <div v-if="enviado" class="space-y-4 text-center">
-    <MailCheck class="mx-auto size-10 text-highlight" aria-hidden="true" />
+    <UIcon name="i-lucide-mail-check" class="mx-auto size-10 text-highlight" aria-hidden="true" />
     <h1 class="text-xl font-semibold">Verifique seu e-mail</h1>
     <p class="text-sm text-muted-foreground">
       Se houver uma conta com esse e-mail, enviamos um link para redefinir a senha. O link vale por 1 hora.

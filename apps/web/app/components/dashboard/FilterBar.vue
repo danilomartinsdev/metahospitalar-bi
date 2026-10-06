@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { REGIAO_ENUM_ROTULO, REGIOES_ENUM, UFS } from '@meta-bi/shared';
 import { useDebounceFn } from '@vueuse/core';
-import { CalendarDays } from 'lucide-vue-next';
 import { useRepresentantesQuery, useStatusQuery } from '~/composables/api/useCadastros';
 import { useMesesQuery } from '~/composables/api/useDashboard';
 
@@ -73,7 +72,7 @@ const opcoes = computed(() => ({
 <template>
   <div class="flex flex-col gap-3 rounded-xl border bg-card p-3 lg:flex-row lg:items-center">
     <div v-if="!semPeriodo" class="flex flex-wrap items-center gap-2">
-      <CalendarDays class="size-4 text-muted-foreground" aria-hidden="true" />
+      <UIcon name="i-lucide-calendar-days" class="size-4 text-muted-foreground" aria-hidden="true" />
       <USelect
         :model-value="de"
         :items="opcoesMes"

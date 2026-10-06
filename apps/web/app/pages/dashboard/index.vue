@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { DollarSign, Landmark, Receipt, ShoppingCart } from 'lucide-vue-next';
 import { useMesesQuery, useVisaoGeralQuery } from '~/composables/api/useDashboard';
 import { periodoPorExtenso, variacoesKpi } from '~/utils/periodo';
 import { barrasRankingOptions, donutOptions, evolucaoOptions } from '~/utils/charts/options';
@@ -77,7 +76,7 @@ const ABAS_DONUT = [
       <section aria-label="Indicadores" class="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <DashboardKpiCard
           rotulo="Total vendido"
-          :icone="DollarSign"
+          icone="i-lucide-dollar-sign"
           :carregando="carregando"
           :valor="formatBRL(v?.kpis.total.valor)"
           :variacoes="variacoes('total')"
@@ -85,7 +84,7 @@ const ABAS_DONUT = [
         />
         <DashboardKpiCard
           rotulo="Pedidos"
-          :icone="ShoppingCart"
+          icone="i-lucide-shopping-cart"
           :carregando="carregando"
           :valor="formatInt(v?.kpis.qtd.valor)"
           :variacoes="variacoes('qtd')"
@@ -93,7 +92,7 @@ const ABAS_DONUT = [
         />
         <DashboardKpiCard
           rotulo="Ticket médio"
-          :icone="Receipt"
+          icone="i-lucide-receipt"
           :carregando="carregando"
           :valor="formatBRL(v?.kpis.ticket.valor)"
           :variacoes="variacoes('ticket')"
@@ -101,7 +100,7 @@ const ABAS_DONUT = [
         />
         <DashboardKpiCard
           rotulo="% Público"
-          :icone="Landmark"
+          icone="i-lucide-landmark"
           :carregando="carregando"
           :valor="formatPct(v?.kpis.pctPublico.valor)"
           :serie="v?.kpis.pctPublico.serie.map((s) => s.valor)"

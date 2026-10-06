@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { PreviaImportacao } from '@meta-bi/shared';
-import { FileUp, Loader2, TriangleAlert, Upload } from 'lucide-vue-next';
 import {
   useConfirmarImportacao,
   useLotesQuery,
@@ -98,7 +97,7 @@ const resumo = computed(() =>
       descricao='Envie o relatório "DASHBOARD_Extrator PDV" exportado do Focco3i.'
     />
 
-    <!-- 1. Upload -->
+    <!-- 1. 'i-lucide-upload' -->
     <label
       class="flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed bg-card px-6 py-10 text-center transition-colors focus-within:border-primary focus-within:ring-2 focus-within:ring-ring/50"
       :class="arrastando ? 'border-primary bg-primary-soft' : 'hover:border-primary/60'"
@@ -106,8 +105,8 @@ const resumo = computed(() =>
       @dragleave.prevent="arrastando = false"
       @drop.prevent="soltar"
     >
-      <Loader2 v-if="previaMut.isPending.value" class="size-8 animate-spin text-primary" />
-      <Upload v-else class="size-8 text-primary" aria-hidden="true" />
+      <UIcon v-if="previaMut.isPending.value" name="i-lucide-loader-circle" class="size-8 animate-spin text-primary" />
+      <UIcon v-else name="i-lucide-upload" class="size-8 text-primary" aria-hidden="true" />
       <span class="font-medium">{{
         previaMut.isPending.value ? 'Lendo arquivo…' : 'Arraste o arquivo aqui ou clique para escolher'
       }}</span>
@@ -129,7 +128,7 @@ const resumo = computed(() =>
       <div class="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h3 class="flex items-center gap-2 font-semibold">
-            <FileUp class="size-4" /> {{ previa.arquivoNome }}
+            <UIcon name="i-lucide-file-up" class="size-4" /> {{ previa.arquivoNome }}
           </h3>
           <p class="text-sm text-muted-foreground">
             {{ previa.totalLinhas }} linhas · formato {{ previa.formato.toUpperCase() }}
@@ -173,7 +172,8 @@ const resumo = computed(() =>
         <p
           class="flex items-center gap-2 border-b border-danger/30 bg-danger/10 px-3 py-2 text-sm font-medium text-danger"
         >
-          <TriangleAlert class="size-4" /> {{ previa.erros.length }} linha(s) com erro — serão ignoradas
+          <UIcon name="i-lucide-triangle-alert" class="size-4" /> {{ previa.erros.length }} linha(s) com erro — serão
+          ignoradas
         </p>
         <ul class="max-h-56 divide-y overflow-y-auto text-sm">
           <li v-for="e in previa.erros" :key="e.linha" class="flex gap-3 px-3 py-2">

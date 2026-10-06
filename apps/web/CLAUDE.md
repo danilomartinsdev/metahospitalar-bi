@@ -7,7 +7,8 @@ Status: código começa na Fase 1.
 - Dados do servidor sempre via composables em composables/api (TanStack Query)
 - Filtros globais: store `filters`, sincronizada com a query string
 - Rotas /print/* existem só para o gerador de PDF — sem interação, sem sidebar
-- Componentes: ui/ (shadcn-vue, gerado) · charts/ · dashboard/ · layout/
+- Componentes: Nuxt UI v4 (UButton, UTable, UModal…; ADR 0007) · ui-extra/ · charts/ · dashboard/ · layout/
+- Ícones: `<UIcon name="i-lucide-…">` (bundle local via @iconify-json/lucide; nada de pacote lucide-vue)
 - utils/format.ts (pt-BR) e utils/charts/*.ts (options puras + palette.ts)
 - assets/css/tokens.css define os tokens; ver docs/design/design-system.md
 - Logos em public/brand/

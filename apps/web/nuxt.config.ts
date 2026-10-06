@@ -9,7 +9,7 @@ export default defineNuxtConfig({
   // Permite um segundo servidor (E2E) rodar junto com o de dev sem disputar a pasta .nuxt.
   buildDir: process.env.NUXT_BUILD_DIR ?? '.nuxt',
   devtools: { enabled: false },
-  modules: ['@nuxt/ui', '@pinia/nuxt', 'shadcn-nuxt'],
+  modules: ['@nuxt/ui', '@pinia/nuxt'],
   colorMode: { storageKey: 'meta-bi-tema', classSuffix: '' },
   // Ícones usados no código (i-lucide-*) entram no bundle: nada de buscar na API do Iconify em produção
   // (a CSP só permite conexões ao próprio site).
@@ -26,7 +26,6 @@ export default defineNuxtConfig({
         '@tanstack/vue-query',
         '@vueuse/core',
         'zod',
-        'lucide-vue-next',
         'vue-echarts',
         'echarts/core',
         'echarts/charts',
@@ -37,7 +36,6 @@ export default defineNuxtConfig({
     // O servidor do E2E (outro buildDir) usa cache próprio para não invalidar o do dev.
     ...(process.env.NUXT_BUILD_DIR ? { cacheDir: 'node_modules/.cache/vite-e2e' } : {}),
   },
-  shadcn: { prefix: '', componentDir: './app/components/ui' },
   fonts: { families: [{ name: 'Inter', provider: 'google', weights: [400, 500, 600] }] },
   app: {
     head: {

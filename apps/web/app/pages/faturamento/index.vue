@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ArrowDownLeft, CalendarClock, DollarSign, Receipt, Truck } from 'lucide-vue-next';
 import { useFaturamentoResumoQuery } from '~/composables/api/useFaturamento';
 import {
   alturaBarrasFaturamento,
@@ -65,11 +64,11 @@ const variacoes = (k: 'dre' | 'bruto' | 'antecipado' | 'remessa' | 'devolucao') 
   r.value ? [{ rotulo: rotuloAnterior.value, pct: r.value.kpis[k].pct }] : [];
 
 const CARDS = [
-  { k: 'dre', rotulo: 'Fatura DRE', icone: DollarSign },
-  { k: 'bruto', rotulo: 'Faturamento bruto', icone: Receipt },
-  { k: 'devolucao', rotulo: 'Devoluções', icone: ArrowDownLeft },
-  { k: 'antecipado', rotulo: 'Antecipações', icone: CalendarClock },
-  { k: 'remessa', rotulo: 'Remessas', icone: Truck },
+  { k: 'dre', rotulo: 'Fatura DRE', icone: 'i-lucide-dollar-sign' },
+  { k: 'bruto', rotulo: 'Faturamento bruto', icone: 'i-lucide-receipt' },
+  { k: 'devolucao', rotulo: 'Devoluções', icone: 'i-lucide-arrow-down-left' },
+  { k: 'antecipado', rotulo: 'Antecipações', icone: 'i-lucide-calendar-clock' },
+  { k: 'remessa', rotulo: 'Remessas', icone: 'i-lucide-truck' },
 ] as const;
 
 const visao = ref<'dia' | 'semana'>('semana');
