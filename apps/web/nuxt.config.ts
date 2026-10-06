@@ -13,7 +13,11 @@ export default defineNuxtConfig({
   colorMode: { storageKey: 'meta-bi-tema', classSuffix: '' },
   // Ícones usados no código (i-lucide-*) entram no bundle: nada de buscar na API do Iconify em produção
   // (a CSP só permite conexões ao próprio site).
-  icon: { clientBundle: { scan: true }, serverBundle: 'local' },
+  // .ts entra na varredura: os ícones do menu ficam em components/layout/nav.ts (o padrão só lê .vue/.tsx/...).
+  icon: {
+    clientBundle: { scan: { globInclude: ['**/*.{vue,ts,tsx}'] } },
+    serverBundle: 'local',
+  },
   css: ['~/assets/css/main.css'],
   // Usa o código-fonte do pacote compartilhado (sem depender do build em dist/ durante o dev).
   alias: { '@meta-bi/shared': fileURLToPath(new URL('../../packages/shared/src/index.ts', import.meta.url)) },
