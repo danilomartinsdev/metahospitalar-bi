@@ -206,8 +206,15 @@ watch(
   },
   { immediate: true },
 );
-const compQ = useFaturamentoComparativoQuery(anoA, anoB);
+// Meses do comparativo (vazio = todos os meses com dado em algum dos dois anos).
+const mesesSel = ref<number[]>([]);
+watch([anoA, anoB], () => (mesesSel.value = []));
+const compQ = useFaturamentoComparativoQuery(anoA, anoB, mesesSel);
 const comp = computed(() => compQ.data.value);
+const opcoesMesesComp = computed(() =>
+  (comp.value?.mesesDisponiveis ?? []).map((m) => ({ label: MESES_EXTENSO[m - 1]!, value: m })),
+);
+const filtrandoMeses = computed(() => mesesSel.value.length > 0);
 const INDICADORES: { label: string; value: CampoTotalFaturamento }[] = [
   { label: 'Fatura DRE', value: 'dre' },
   { label: 'Faturamento bruto', value: 'bruto' },
@@ -489,6 +496,28 @@ const atalho = (tipo: 'ano' | 'mes') => {
             />
           </div>
         </div>
+        <div v-if="anos.length >= 2 && anoA !== anoB" class="flex flex-wrap items-center gap-2 px-5 pb-3">
+          <span class="text-sm text-muted-foreground">Meses:</span>
+          <USelectMenu
+            v-model="mesesSel"
+            :items="opcoesMesesComp"
+            value-key="value"
+            multiple
+            :search-input="false"
+            size="sm"
+            class="w-64"
+            placeholder="Todos os meses"
+            aria-label="Meses do comparativo"
+          />
+          <UButton
+            v-if="filtrandoMeses"
+            color="neutral"
+            variant="ghost"
+            size="sm"
+            label="Todos os meses"
+            @click="mesesSel = []"
+          />
+        </div>
 
         <p v-if="anos.length < 2" class="px-5 pb-8 pt-4 text-center text-sm text-muted-foreground">
           Importe o faturamento de outro ano para comparar.
@@ -556,7 +585,12 @@ const atalho = (tipo: 'ano' | 'mes') => {
                   </td>
                 </tr>
                 <tr class="text-base">
-                  <th scope="row" class="px-5 py-3 text-left uppercase tracking-wide">Total</th>
+                  <th scope="row" class="px-5 py-3 text-left">
+                    <span class="uppercase tracking-wide">Total</span>
+                    <span v-if="filtrandoMeses" class="block text-xs font-normal text-muted-foreground">
+                      dos meses selecionados
+                    </span>
+                  </th>
                   <td class="num px-5 py-3 text-right">{{ formatBRL(comp.total.a[indicador]) }}</td>
                   <td class="num px-5 py-3 text-right">{{ formatBRL(comp.total.b[indicador]) }}</td>
                   <td class="num px-5 py-3 text-right" :class="classeDif(comp.total.diferenca[indicador])">
@@ -571,8 +605,9 @@ const atalho = (tipo: 'ano' | 'mes') => {
           </div>
           <p class="px-5 py-3 text-xs text-muted-foreground">
             Diferença = {{ comp.anoB }} − {{ comp.anoA }}. Verde quando {{ comp.anoB }} foi melhor (em
-            antecipações e devoluções, que são valores negativos, melhor é um valor menor). O total soma todos
-            os meses de cada ano; o acumulado comparável usa só os meses com faturamento nos dois.
+            antecipações e devoluções, que são valores negativos, melhor é um valor menor). O total soma os
+            meses da tabela (todos, ou só os selecionados); o acumulado comparável usa, entre eles, só os
+            meses com faturamento nos dois anos.
           </p>
         </template>
       </section>

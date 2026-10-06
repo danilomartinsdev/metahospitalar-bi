@@ -151,8 +151,14 @@ export interface FaturamentoResumo {
 
 const anoParam = z.coerce.number().int().min(2000).max(2100);
 export const faturamentoAnoQuerySchema = z.object({ ano: anoParam });
+/** "8,9,10" → [8, 9, 10] (meses escolhidos para o comparativo). */
+const listaMeses = z
+  .string()
+  .regex(/^\d{1,2}(,\d{1,2})*$/, { error: 'Meses no formato 1,2,3' })
+  .transform((s) => [...new Set(s.split(',').map(Number))].sort((a, b) => a - b))
+  .pipe(z.array(z.number().int().min(1).max(12)).min(1).max(12));
 export const faturamentoComparativoQuerySchema = z
-  .object({ anoA: anoParam, anoB: anoParam })
+  .object({ anoA: anoParam, anoB: anoParam, meses: listaMeses.optional() })
   .refine((q) => q.anoA !== q.anoB, { error: 'Escolha dois anos diferentes', path: ['anoB'] });
 export type FaturamentoComparativoQuery = z.output<typeof faturamentoComparativoQuerySchema>;
 
@@ -177,9 +183,12 @@ export interface ComparacaoFaturamento {
 export interface FaturamentoComparativo {
   anoA: number;
   anoB: number;
-  /** Meses com faturamento em pelo menos um dos anos; `temA`/`temB` dizem em qual há dado. */
+  /** Todos os meses com faturamento em pelo menos um dos anos (opções do seletor de meses). */
+  mesesDisponiveis: number[];
+  /** Meses comparados (os escolhidos, ou todos os disponíveis); `temA`/`temB` dizem em qual há dado. */
   meses: (ComparacaoFaturamento & { mes: number; temA: boolean; temB: boolean })[];
+  /** Soma dos meses comparados. */
   total: ComparacaoFaturamento;
-  /** Só os meses com dado nos dois anos (comparação justa de acumulado, como o YTD). */
+  /** Só os meses comparados com dado nos dois anos (comparação justa de acumulado, como o YTD). */
   emComum: ComparacaoFaturamento & { meses: number[] };
 }

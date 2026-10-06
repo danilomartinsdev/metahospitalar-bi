@@ -40,12 +40,19 @@ export function useFaturamentoMensalQuery(ano: MaybeRefOrGetter<number | undefin
 export function useFaturamentoComparativoQuery(
   anoA: MaybeRefOrGetter<number | undefined>,
   anoB: MaybeRefOrGetter<number | undefined>,
+  /** Meses escolhidos (vazio = todos os meses com dado). */
+  meses: MaybeRefOrGetter<number[]> = [],
 ) {
   const { request } = useApi();
   return useQuery({
-    queryKey: ['faturamento-comparativo', anoA, anoB],
-    queryFn: () =>
-      request<FaturamentoComparativo>(`/faturamento/comparativo?anoA=${toValue(anoA)}&anoB=${toValue(anoB)}`),
+    queryKey: ['faturamento-comparativo', anoA, anoB, meses],
+    queryFn: () => {
+      const ms = toValue(meses);
+      const filtro = ms.length ? `&meses=${ms.join(',')}` : '';
+      return request<FaturamentoComparativo>(
+        `/faturamento/comparativo?anoA=${toValue(anoA)}&anoB=${toValue(anoB)}${filtro}`,
+      );
+    },
     enabled: () => !!toValue(anoA) && !!toValue(anoB) && toValue(anoA) !== toValue(anoB),
     placeholderData: keepPreviousData,
   });

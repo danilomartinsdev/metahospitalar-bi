@@ -262,6 +262,36 @@ describe('faturamento — anos, mês a mês e comparativo', () => {
     expect(b.emComum.pct.dre).toBe(0);
   });
 
+  it('comparativo só com os meses escolhidos: linhas e totais restritos a eles', async () => {
+    const b = (
+      await req('GET', '/api/faturamento/comparativo?anoA=2025&anoB=2026&meses=2', tokenGestor)
+    ).json();
+    expect(b.mesesDisponiveis).toEqual([1, 2]);
+    expect(b.meses.map((m: { mes: number }) => m.mes)).toEqual([2]);
+    expect(b.total).toMatchObject({ a: { dre: '0.00' }, b: { dre: '3400.00' } });
+    expect(b.emComum).toMatchObject({ meses: [], a: { dre: '0.00' }, b: { dre: '0.00' } });
+
+    const jan = (
+      await req('GET', '/api/faturamento/comparativo?anoA=2025&anoB=2026&meses=1', tokenGestor)
+    ).json();
+    expect(jan.total).toMatchObject({
+      a: { dre: '4400.25' },
+      b: { dre: '4400.25' },
+      diferenca: { dre: '0.00' },
+    });
+  });
+
+  it('meses inválidos no comparativo: 400', async () => {
+    for (const meses of ['13', '0', 'jan', '1,,2']) {
+      const r = await req(
+        'GET',
+        `/api/faturamento/comparativo?anoA=2025&anoB=2026&meses=${meses}`,
+        tokenGestor,
+      );
+      expect(r.statusCode, meses).toBe(400);
+    }
+  });
+
   it('comparativo com o mesmo ano ou ano inválido: 400', async () => {
     expect(
       (await req('GET', '/api/faturamento/comparativo?anoA=2026&anoB=2026', tokenGestor)).statusCode,

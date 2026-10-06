@@ -60,7 +60,7 @@ export class FaturamentoController {
     @CurrentUser() u: UsuarioAutenticado,
   ) {
     exigirEscopoTodos(u);
-    return this.service.comparativo(q.anoA, q.anoB);
+    return this.service.comparativo(q.anoA, q.anoB, q.meses);
   }
 
   @RequirePermission('faturamento.import')

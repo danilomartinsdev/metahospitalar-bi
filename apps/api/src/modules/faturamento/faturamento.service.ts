@@ -363,8 +363,11 @@ export class FaturamentoService {
     };
   }
 
-  /** Comparativo entre dois anos: A é a base, B o comparado (diferença = B − A). */
-  async comparativo(anoA: number, anoB: number): Promise<FaturamentoComparativo> {
+  /**
+   * Comparativo entre dois anos: A é a base, B o comparado (diferença = B − A).
+   * `meses` restringe a comparação (linhas e totais) aos meses escolhidos.
+   */
+  async comparativo(anoA: number, anoB: number, meses?: number[]): Promise<FaturamentoComparativo> {
     const porAno = await this.somasPorMes([anoA, anoB]);
     const mA = porAno.get(anoA)!;
     const mB = porAno.get(anoB)!;
@@ -381,11 +384,13 @@ export class FaturamentoService {
     const somaMeses = (m: Map<number, Somas>, meses: number[]) =>
       meses.reduce((t, mes) => (m.has(mes) ? somar(t, m.get(mes)!) : t), zeros());
 
-    const todos = [...new Set([...mA.keys(), ...mB.keys()])].sort((a, b) => a - b);
+    const disponiveis = [...new Set([...mA.keys(), ...mB.keys()])].sort((a, b) => a - b);
+    const todos = meses ? disponiveis.filter((m) => meses.includes(m)) : disponiveis;
     const emComum = todos.filter((mes) => mA.has(mes) && mB.has(mes));
     return {
       anoA,
       anoB,
+      mesesDisponiveis: disponiveis,
       meses: todos.map((mes) => ({
         mes,
         temA: mA.has(mes),
