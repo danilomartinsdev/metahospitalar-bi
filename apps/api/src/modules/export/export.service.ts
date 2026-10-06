@@ -1,11 +1,21 @@
 import { HttpStatus, Inject, Injectable, Logger } from '@nestjs/common';
-import type { ExportXlsxQuery, ExportXlsxTipo, Filtros, RelatorioImpressao } from '@meta-bi/shared';
+import type {
+  ExportXlsxQuery,
+  ExportXlsxTipo,
+  FaturamentoImpressao,
+  FaturamentoPdfQuery,
+  Filtros,
+  SolicitacaoImpressao,
+  RelatorioImpressao,
+} from '@meta-bi/shared';
+import { exigirEscopoTodos } from '../../common/auth/privilegios.js';
 import type { ContextoRequisicao, UsuarioAutenticado } from '../../common/auth/types.js';
 import { ApiException, Erros } from '../../common/errors.js';
 import { ENV, type Env } from '../../config/env.js';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import { AuditService } from '../audit/audit.service.js';
 import { DashboardService } from '../dashboard/dashboard.service.js';
+import { FaturamentoService } from '../faturamento/faturamento.service.js';
 import { PdfRenderer } from './pdf-renderer.service.js';
 import { type InfoExportacao, planilhaClientes, planilhaPedidos, planilhaRanking } from './planilhas.js';
 import { PrintTokenService } from './print-token.service.js';
@@ -36,6 +46,7 @@ export class ExportService {
 
   constructor(
     private readonly dashboard: DashboardService,
+    private readonly faturamento: FaturamentoService,
     private readonly tokens: PrintTokenService,
     private readonly renderer: PdfRenderer,
     private readonly audit: AuditService,
@@ -111,19 +122,21 @@ export class ExportService {
     };
   }
 
-  async pdf(u: UsuarioAutenticado, f: Filtros, ctx: ContextoRequisicao): Promise<Arquivo> {
-    const periodo = await this.dashboard.periodo(u, f);
-    const token = await this.tokens.criar(u, f);
+  /**
+   * Gera o PDF de uma página /print/* da SPA (ADR 0004): cria o token de uso único com o solicitacao,
+   * abre a página no Chromium e descarta o token se ela não chegou a consumi-lo.
+   */
+  private async gerarPdf(u: UsuarioAutenticado, solicitacao: SolicitacaoImpressao, pagina: string): Promise<Buffer> {
+    const token = await this.tokens.criar(u, solicitacao);
     const base = (this.env.PRINT_BASE_URL ?? this.env.WEB_ORIGIN).replace(/\/$/, '');
     const quando = new Date().toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' });
-    let conteudo: Buffer;
     try {
-      conteudo = await this.renderer.renderizar(
-        `${base}/print/relatorio?token=${token}`,
+      return await this.renderer.renderizar(
+        `${base}/print/${pagina}?token=${token}`,
         `Metahospitalar · BI Executivo — gerado por ${u.nome} em ${quando} · uso interno`,
       );
     } catch (e) {
-      this.logger.error(`Falha ao gerar PDF: ${(e as Error).message}`);
+      this.logger.error(`Falha ao gerar PDF (${pagina}): ${(e as Error).message}`);
       throw new ApiException(
         HttpStatus.SERVICE_UNAVAILABLE,
         'INTERNAL',
@@ -133,6 +146,11 @@ export class ExportService {
       // Se a página não chegou a consumir o token, ele morre aqui.
       await this.tokens.descartar(token);
     }
+  }
+
+  async pdf(u: UsuarioAutenticado, f: Filtros, ctx: ContextoRequisicao): Promise<Arquivo> {
+    const periodo = await this.dashboard.periodo(u, f);
+    const conteudo = await this.gerarPdf(u, { tipo: 'vendas', filtros: f }, 'relatorio');
     await this.audit.registrar({
       acao: 'export.pdf',
       usuarioId: u.id,
@@ -146,11 +164,34 @@ export class ExportService {
     };
   }
 
+  /** PDF da página de Faturamento: número da empresa inteira — exige a permissão e escopo "todos". */
+  async pdfFaturamento(
+    u: UsuarioAutenticado,
+    p: FaturamentoPdfQuery,
+    ctx: ContextoRequisicao,
+  ): Promise<Arquivo> {
+    exigirFaturamento(u);
+    const { periodo } = await this.faturamento.resumo({ de: p.de, ate: p.ate });
+    const conteudo = await this.gerarPdf(u, { tipo: 'faturamento', params: p }, 'faturamento');
+    await this.audit.registrar({
+      acao: 'export.pdf',
+      usuarioId: u.id,
+      detalhes: { relatorio: 'faturamento', ...periodo, ...p },
+      ctx,
+    });
+    return {
+      conteudo,
+      nome: `meta-bi-faturamento-${periodo.de}_${periodo.ate}.pdf`,
+      tipo: 'application/pdf',
+    };
+  }
+
   /** Dados da página de impressão: consome o token (uso único) e aplica o escopo de quem pediu o PDF. */
   async relatorio(token: string): Promise<RelatorioImpressao> {
-    const e = await this.tokens.consumir(token);
+    const e = await this.tokens.consumir(token, 'vendas');
     if (!e) throw Erros.naoAutenticado();
-    const { usuario: u, filtros: f } = e;
+    const { usuario: u } = e;
+    const f = e.solicitacao.filtros;
     const [visaoGeral, gestores, estados, regioes] = await Promise.all([
       this.dashboard.visaoGeral(u, f),
       this.dashboard.ranking(u, f, 'gestores'),
@@ -166,6 +207,31 @@ export class ExportService {
       rankings: { gestores, estados, regioes },
     };
   }
+
+  /** Dados do PDF de faturamento. Revalida permissão e escopo com o usuário atual (recarregado pelo token). */
+  async faturamentoImpressao(token: string): Promise<FaturamentoImpressao> {
+    const e = await this.tokens.consumir(token, 'faturamento');
+    if (!e) throw Erros.naoAutenticado();
+    const { usuario: u, solicitacao } = e;
+    exigirFaturamento(u);
+    const p = solicitacao.params;
+    const resumo = await this.faturamento.resumo({ de: p.de, ate: p.ate });
+    const [mensal, comparativo] = await Promise.all([
+      this.faturamento.mensal(p.ano ?? resumo.mensal.ano),
+      p.anoA !== undefined && p.anoB !== undefined
+        ? this.faturamento.comparativo(p.anoA, p.anoB, p.meses)
+        : Promise.resolve(null),
+    ]);
+    return {
+      geradoPor: u.nome,
+      geradoEm: new Date().toISOString(),
+      paletaGraficos: u.paletaGraficos,
+      params: p,
+      resumo,
+      mensal,
+      comparativo,
+    };
+  }
 }
 
 /** Só os filtros preenchidos (sem ordenação), para o log de auditoria. */
@@ -176,4 +242,12 @@ function filtrosParaAuditoria(f: Filtros): Record<string, string | string[]> {
     if (Array.isArray(v) ? v.length : v) r[k] = v as string | string[];
   }
   return r;
+}
+
+/** Faturamento é da empresa inteira: além do PDF, exige ver faturamento e escopo "todos". */
+function exigirFaturamento(u: UsuarioAutenticado): void {
+  if (!u.permissoes.includes('faturamento.view')) {
+    throw new ApiException(HttpStatus.FORBIDDEN, 'FORBIDDEN', 'Sem permissão para ver o faturamento.');
+  }
+  exigirEscopoTodos(u);
 }

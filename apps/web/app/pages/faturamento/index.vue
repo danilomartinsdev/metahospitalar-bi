@@ -11,6 +11,7 @@ import {
   barrasFaturamentoOptions,
   evolucaoFaturamentoOptions,
 } from '~/utils/charts/faturamento';
+import { useApi } from '~/composables/api/useApi';
 import { anoAnterior, deslocarMes, periodoCurto, periodoPorExtenso } from '~/utils/periodo';
 
 // Faturamento: domínio separado dos pedidos (relatório diário do Focco). Não altera outras telas.
@@ -172,12 +173,6 @@ const pontos = computed(() => {
 });
 /** Total do que está no gráfico (só para leitura; os totais oficiais vêm da API em Decimal). */
 const totalPontos = computed(() => pontos.value.reduce((t, p) => t + p.valor, 0));
-const COLUNAS_TABELA = [
-  { k: 'bruto', r: 'Bruto' },
-  { k: 'antecipado', r: 'Antecipado' },
-  { k: 'remessa', r: 'Remessa' },
-  { k: 'devolucao', r: 'Devolução' },
-] as const;
 // Tabela mês a mês: qualquer ano importado (padrão: o ano do período escolhido).
 const anosQ = useFaturamentoAnosQuery();
 const anos = computed(() => anosQ.data.value ?? []);
@@ -224,17 +219,34 @@ const INDICADORES: { label: string; value: CampoTotalFaturamento }[] = [
 ];
 const indicador = ref<CampoTotalFaturamento>('dre');
 const nomeIndicador = computed(() => INDICADORES.find((i) => i.value === indicador.value)?.label ?? '');
-// Cor pela diferença (B − A): subir é bom em todos os indicadores — em antecipações e devoluções,
-// que são negativos, uma diferença positiva significa valor menor.
-const classeDif = (d: string) =>
-  Number(d) > 0 ? 'text-success' : Number(d) < 0 ? 'text-danger' : 'text-muted-foreground';
-const comSinal = (d: string) => `${Number(d) > 0 ? '+' : ''}${formatBRL(d)}`;
-const pctComSinal = (p: number | null) => (p === null ? '—' : `${p > 0 ? '+' : ''}${formatPct(p)}`);
-const rotuloEmComum = computed(() => {
-  const ms = comp.value?.emComum.meses ?? [];
-  if (!ms.length) return '';
-  return ms.length === 1 ? NOMES[ms[0]! - 1] : `${NOMES[ms[0]! - 1]}–${NOMES[ms.at(-1)! - 1]}`;
-});
+
+// PDF: o que está na tela — período, ano da tabela e o comparativo (anos, meses e indicador).
+const { baixar } = useApi();
+const aviso = useAviso();
+const gerandoPdf = ref(false);
+async function exportarPdf() {
+  const p = new URLSearchParams();
+  if (periodo.value) {
+    p.set('de', periodo.value.de);
+    p.set('ate', periodo.value.ate);
+  }
+  if (anoTabela.value) p.set('ano', String(anoTabela.value));
+  if (anoA.value && anoB.value && anoA.value !== anoB.value) {
+    p.set('anoA', String(anoA.value));
+    p.set('anoB', String(anoB.value));
+    p.set('indicador', indicador.value);
+    if (mesesSel.value.length) p.set('meses', mesesSel.value.join(','));
+  }
+  gerandoPdf.value = true;
+  try {
+    await baixar(`/export/pdf/faturamento?${p.toString()}`);
+    aviso.sucesso('PDF gerado.');
+  } catch (e) {
+    aviso.erro(e, 'Não foi possível gerar o PDF.');
+  } finally {
+    gerandoPdf.value = false;
+  }
+}
 
 const atalho = (tipo: 'ano' | 'mes') => {
   const fim = r.value?.periodo.ate;
@@ -253,12 +265,23 @@ const atalho = (tipo: 'ano' | 'mes') => {
           <template v-if="r?.temDados"> · relatório diário de faturamento do Focco</template>
         </p>
       </div>
-      <UButton
-        v-if="can('faturamento.import')"
-        icon="i-lucide-file-up"
-        label="Importar planilha"
-        @click="importando = true"
-      />
+      <div class="flex flex-wrap gap-2">
+        <UButton
+          v-if="can('export.pdf') && r?.temDados"
+          color="neutral"
+          variant="outline"
+          icon="i-lucide-file-text"
+          :label="gerandoPdf ? 'Gerando PDF…' : 'Exportar PDF'"
+          :loading="gerandoPdf"
+          @click="exportarPdf"
+        />
+        <UButton
+          v-if="can('faturamento.import')"
+          icon="i-lucide-file-up"
+          label="Importar planilha"
+          @click="importando = true"
+        />
+      </div>
     </div>
 
     <div class="flex flex-wrap items-center gap-2 rounded-xl border bg-card p-3">
@@ -402,61 +425,7 @@ const atalho = (tipo: 'ano' | 'mes') => {
         <p v-else-if="!mensal.meses.length" class="px-5 pb-8 pt-4 text-center text-sm text-muted-foreground">
           Sem faturamento importado em {{ mensal.ano }}.
         </p>
-        <div v-else class="overflow-x-auto">
-          <table class="w-full text-sm">
-            <thead class="text-xs text-muted-foreground">
-              <tr>
-                <th scope="col" class="px-5 py-2 text-left font-medium">Mês</th>
-                <th
-                  v-for="c in COLUNAS_TABELA"
-                  :key="c.k"
-                  scope="col"
-                  class="px-5 py-2 text-right font-medium"
-                >
-                  {{ c.r }}
-                </th>
-                <th
-                  scope="col"
-                  class="bg-grafico-principal-forte px-5 py-2 text-right font-semibold text-foreground"
-                >
-                  Fatura DRE
-                </th>
-              </tr>
-            </thead>
-            <tbody class="divide-y">
-              <tr v-for="m in mensal.meses" :key="m.mes" class="hover:bg-muted/30">
-                <th scope="row" class="px-5 py-2 text-left font-medium">{{ MESES_EXTENSO[m.mes - 1] }}</th>
-                <td
-                  v-for="c in COLUNAS_TABELA"
-                  :key="c.k"
-                  class="num px-5 py-2 text-right"
-                  :class="Number(m[c.k]) < 0 && 'text-danger'"
-                >
-                  {{ Number(m[c.k]) === 0 ? '—' : formatBRL(m[c.k]) }}
-                </td>
-                <td class="num bg-grafico-principal-soft px-5 py-2 text-right font-medium">
-                  {{ formatBRL(m.dre) }}
-                </td>
-              </tr>
-            </tbody>
-            <tfoot class="border-t-2 border-foreground/20 bg-muted text-base font-bold">
-              <tr>
-                <th scope="row" class="px-5 py-3 text-left uppercase tracking-wide">Total</th>
-                <td
-                  v-for="c in COLUNAS_TABELA"
-                  :key="c.k"
-                  class="num px-5 py-3 text-right"
-                  :class="Number(mensal.total[c.k]) < 0 && 'text-danger'"
-                >
-                  {{ formatBRL(mensal.total[c.k]) }}
-                </td>
-                <td class="num bg-grafico-principal-forte px-5 py-3 text-right">
-                  {{ formatBRL(mensal.total.dre) }}
-                </td>
-              </tr>
-            </tfoot>
-          </table>
-        </div>
+        <FaturamentoTabelaMensal v-else :mensal="mensal" />
       </section>
 
       <section class="rounded-xl border bg-card" aria-labelledby="titulo-fat-comp">
@@ -533,83 +502,12 @@ const atalho = (tipo: 'ano' | 'mes') => {
         <div v-else-if="!comp" class="space-y-2 px-5 pb-5">
           <div v-for="i in 6" :key="i" class="h-8 animate-pulse rounded bg-muted" />
         </div>
-        <template v-else>
-          <div class="overflow-x-auto">
-            <table class="w-full text-sm">
-              <thead class="text-xs text-muted-foreground">
-                <tr>
-                  <th scope="col" class="px-5 py-2 text-left font-medium">Mês</th>
-                  <th scope="col" class="px-5 py-2 text-right font-medium">{{ comp.anoA }}</th>
-                  <th scope="col" class="px-5 py-2 text-right font-medium">{{ comp.anoB }}</th>
-                  <th scope="col" class="px-5 py-2 text-right font-medium">Diferença</th>
-                  <th scope="col" class="px-5 py-2 text-right font-medium">Variação</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y">
-                <tr v-for="m in comp.meses" :key="m.mes" class="hover:bg-muted/30">
-                  <th scope="row" class="px-5 py-2 text-left font-medium">{{ MESES_EXTENSO[m.mes - 1] }}</th>
-                  <td class="num px-5 py-2 text-right" :class="!m.temA && 'text-muted-foreground'">
-                    {{ m.temA ? formatBRL(m.a[indicador]) : '—' }}
-                  </td>
-                  <td class="num px-5 py-2 text-right" :class="!m.temB && 'text-muted-foreground'">
-                    {{ m.temB ? formatBRL(m.b[indicador]) : '—' }}
-                  </td>
-                  <template v-if="m.temA && m.temB">
-                    <td class="num px-5 py-2 text-right" :class="classeDif(m.diferenca[indicador])">
-                      {{ comSinal(m.diferenca[indicador]) }}
-                    </td>
-                    <td class="num px-5 py-2 text-right" :class="classeDif(m.diferenca[indicador])">
-                      {{ pctComSinal(m.pct[indicador]) }}
-                    </td>
-                  </template>
-                  <td v-else colspan="2" class="px-5 py-2 text-right text-xs text-muted-foreground">
-                    sem dado em {{ m.temA ? comp.anoB : comp.anoA }}
-                  </td>
-                </tr>
-              </tbody>
-              <tfoot class="border-t-2 border-foreground/20 bg-muted font-bold">
-                <tr v-if="comp.emComum.meses.length && comp.emComum.meses.length !== comp.meses.length">
-                  <th scope="row" class="px-5 py-3 text-left">
-                    Acumulado comparável
-                    <span class="block text-xs font-normal text-muted-foreground">
-                      meses com dado nos dois anos ({{ rotuloEmComum }})
-                    </span>
-                  </th>
-                  <td class="num px-5 py-3 text-right">{{ formatBRL(comp.emComum.a[indicador]) }}</td>
-                  <td class="num px-5 py-3 text-right">{{ formatBRL(comp.emComum.b[indicador]) }}</td>
-                  <td class="num px-5 py-3 text-right" :class="classeDif(comp.emComum.diferenca[indicador])">
-                    {{ comSinal(comp.emComum.diferenca[indicador]) }}
-                  </td>
-                  <td class="num px-5 py-3 text-right" :class="classeDif(comp.emComum.diferenca[indicador])">
-                    {{ pctComSinal(comp.emComum.pct[indicador]) }}
-                  </td>
-                </tr>
-                <tr class="text-base">
-                  <th scope="row" class="px-5 py-3 text-left">
-                    <span class="uppercase tracking-wide">Total</span>
-                    <span v-if="filtrandoMeses" class="block text-xs font-normal text-muted-foreground">
-                      dos meses selecionados
-                    </span>
-                  </th>
-                  <td class="num px-5 py-3 text-right">{{ formatBRL(comp.total.a[indicador]) }}</td>
-                  <td class="num px-5 py-3 text-right">{{ formatBRL(comp.total.b[indicador]) }}</td>
-                  <td class="num px-5 py-3 text-right" :class="classeDif(comp.total.diferenca[indicador])">
-                    {{ comSinal(comp.total.diferenca[indicador]) }}
-                  </td>
-                  <td class="num px-5 py-3 text-right" :class="classeDif(comp.total.diferenca[indicador])">
-                    {{ pctComSinal(comp.total.pct[indicador]) }}
-                  </td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
-          <p class="px-5 py-3 text-xs text-muted-foreground">
-            Diferença = {{ comp.anoB }} − {{ comp.anoA }}. Verde quando {{ comp.anoB }} foi melhor (em
-            antecipações e devoluções, que são valores negativos, melhor é um valor menor). O total soma os
-            meses da tabela (todos, ou só os selecionados); o acumulado comparável usa, entre eles, só os
-            meses com faturamento nos dois anos.
-          </p>
-        </template>
+        <FaturamentoTabelaComparativo
+          v-else
+          :comp="comp"
+          :indicador="indicador"
+          :filtrando-meses="filtrandoMeses"
+        />
       </section>
     </template>
 

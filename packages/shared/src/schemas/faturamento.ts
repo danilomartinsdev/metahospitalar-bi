@@ -151,18 +151,48 @@ export interface FaturamentoResumo {
 
 const anoParam = z.coerce.number().int().min(2000).max(2100);
 export const faturamentoAnoQuerySchema = z.object({ ano: anoParam });
-/** "8,9,10" → [8, 9, 10] (meses escolhidos para o comparativo). */
+/**
+ * "8,9,10" (query string) ou [8, 9, 10] → [8, 9, 10], sem repetidos e em ordem. Aceitar a lista já
+ * convertida deixa o schema idempotente (o PDF guarda os parâmetros validados no token e valida de novo).
+ */
 const listaMeses = z
-  .string()
-  .regex(/^\d{1,2}(,\d{1,2})*$/, { error: 'Meses no formato 1,2,3' })
-  .transform((s) => [...new Set(s.split(',').map(Number))].sort((a, b) => a - b))
-  .pipe(z.array(z.number().int().min(1).max(12)).min(1).max(12));
+  .preprocess(
+    (v) => (typeof v === 'string' && /^\d{1,2}(,\d{1,2})*$/.test(v) ? v.split(',').map(Number) : v),
+    z.array(z.number().int().min(1).max(12), { error: 'Meses no formato 1,2,3' }).min(1).max(12),
+  )
+  .transform((ms) => [...new Set(ms)].sort((a, b) => a - b));
 export const faturamentoComparativoQuerySchema = z
   .object({ anoA: anoParam, anoB: anoParam, meses: listaMeses.optional() })
   .refine((q) => q.anoA !== q.anoB, { error: 'Escolha dois anos diferentes', path: ['anoB'] });
 export type FaturamentoComparativoQuery = z.output<typeof faturamentoComparativoQuerySchema>;
 
 export type CampoTotalFaturamento = keyof TotaisFaturamento;
+export const CAMPOS_FATURAMENTO = ['dre', 'bruto', 'antecipado', 'remessa', 'devolucao'] as const;
+
+/**
+ * PDF de faturamento: o que está na tela — período (de/ate), ano da tabela mês a mês e, se houver,
+ * o comparativo (anos, meses escolhidos e indicador).
+ */
+export const faturamentoPdfQuerySchema = z
+  .object({
+    de: mes.optional(),
+    ate: mes.optional(),
+    ano: anoParam.optional(),
+    anoA: anoParam.optional(),
+    anoB: anoParam.optional(),
+    meses: listaMeses.optional(),
+    indicador: z.enum(CAMPOS_FATURAMENTO).default('dre'),
+  })
+  .refine((q) => !q.de || !q.ate || q.de <= q.ate, { error: 'Período inválido', path: ['ate'] })
+  .refine((q) => (q.anoA === undefined) === (q.anoB === undefined), {
+    error: 'Informe os dois anos do comparativo',
+    path: ['anoB'],
+  })
+  .refine((q) => q.anoA === undefined || q.anoA !== q.anoB, {
+    error: 'Escolha dois anos diferentes',
+    path: ['anoB'],
+  });
+export type FaturamentoPdfQuery = z.output<typeof faturamentoPdfQuerySchema>;
 
 /** Tabela mês a mês de um ano (só os meses com faturamento importado). */
 export interface FaturamentoMensal {

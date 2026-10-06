@@ -4,7 +4,9 @@ import {
   type ExportXlsxQuery,
   type ExportXlsxTipo,
   exportXlsxQuerySchema,
+  type FaturamentoPdfQuery,
   type Filtros,
+  faturamentoPdfQuerySchema,
   filtrosSchema,
   printTokenSchema,
 } from '@meta-bi/shared';
@@ -56,11 +58,31 @@ export class ExportController {
     enviar(reply, await this.service.pdf(u, f, contexto(req)));
   }
 
+  /** PDF da página de Faturamento (permissão de PDF + faturamento.view + escopo "todos", checados no serviço). */
+  @RequirePermission('export.pdf')
+  @Get('export/pdf/faturamento')
+  async pdfFaturamento(
+    @CurrentUser() u: UsuarioAutenticado,
+    @Query(new ZodPipe(faturamentoPdfQuerySchema)) q: FaturamentoPdfQuery,
+    @Req() req: FastifyRequest,
+    @Res() reply: FastifyReply,
+  ) {
+    enviar(reply, await this.service.pdfFaturamento(u, q, contexto(req)));
+  }
+
   /** Lido pela página /print/relatorio aberta pelo Chromium da API. O token é a credencial (uso único). */
   @Public()
   @Get('print/relatorio')
   @Header('cache-control', 'no-store')
   relatorio(@Query(new ZodPipe(printTokenSchema)) q: { token: string }) {
     return this.service.relatorio(q.token);
+  }
+
+  /** Lido pela página /print/faturamento (mesmo esquema de token de uso único). */
+  @Public()
+  @Get('print/faturamento')
+  @Header('cache-control', 'no-store')
+  faturamento(@Query(new ZodPipe(printTokenSchema)) q: { token: string }) {
+    return this.service.faturamentoImpressao(q.token);
   }
 }
