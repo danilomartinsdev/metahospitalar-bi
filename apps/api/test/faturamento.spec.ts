@@ -82,6 +82,22 @@ describe('faturamento — importação', () => {
     expect(await ctx.prisma.faturamentoLote.count()).toBe(2);
   });
 
+  it('arquivo só com fevereiro substitui fevereiro e mantém janeiro', async () => {
+    const soFevereiro = fs
+      .readFileSync(AMOSTRA, 'latin1')
+      .split('\n')
+      .filter((l) => !l.includes('/01/2026'))
+      .join('\n');
+    const { previa, confirmar } = await importar(tokenGestor, Buffer.from(soFevereiro, 'latin1'));
+    expect(previa).toMatchObject({ dias: 2, diasSubstituidos: 2, meses: [{ mes: 2, dias: 2 }] });
+    expect(confirmar.json()).toMatchObject({ dias: 2, substituidos: 2 });
+
+    const loteNovo = confirmar.json().loteId;
+    expect(await ctx.prisma.faturamentoDia.count({ where: { mes: 1 } })).toBe(4);
+    expect(await ctx.prisma.faturamentoDia.count({ where: { mes: 1, loteId: loteNovo } })).toBe(0);
+    expect(await ctx.prisma.faturamentoDia.count({ where: { mes: 2, loteId: loteNovo } })).toBe(2);
+  });
+
   it('arquivo com DRE que não fecha aparece como erro de linha e não é gravado', async () => {
     const quebrado = fs.readFileSync(AMOSTRA, 'latin1').replace('<td>1649,75</td>', '<td>1600</td>');
     const { previa, confirmar } = await importar(tokenGestor, Buffer.from(quebrado, 'latin1'));

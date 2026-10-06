@@ -48,6 +48,8 @@ const fimMes = (m: string) => new Date(Date.UTC(Number(m.slice(0, 4)), Number(m.
 interface Analise {
   previa: PreviaFaturamento;
   validas: LinhaFaturamento[];
+  /** Meses (1–12) presentes no arquivo — os únicos substituídos ao confirmar. */
+  meses: number[];
 }
 
 /**
@@ -118,10 +120,14 @@ export class FaturamentoService {
       m.dre = m.dre.plus(l.dre);
       porMes.set(l.mes, m);
     }
-    const diasSubstituidos = ano === null ? 0 : await this.prisma.faturamentoDia.count({ where: { ano } });
+    // Reimportar substitui só os meses presentes no arquivo (decisão de 2026-10-06): importar outubro não apaga jan–set.
+    const meses = [...porMes.keys()];
+    const diasSubstituidos =
+      ano === null ? 0 : await this.prisma.faturamentoDia.count({ where: { ano, mes: { in: meses } } });
 
     return {
       validas,
+      meses,
       previa: {
         hash,
         arquivoNome,
@@ -137,10 +143,10 @@ export class FaturamentoService {
     };
   }
 
-  /** Grava o arquivo da prévia: substitui todos os dias do ano dele (decisão do usuário). */
+  /** Grava o arquivo da prévia: substitui os dias dos meses que ele traz; os demais meses ficam intactos. */
   async confirmar(hash: string, usuario: UsuarioAutenticado, ctx: ContextoRequisicao) {
     const { arquivoNome, conteudo: buf } = await this.arquivos.recuperar('faturamento', hash, usuario.id);
-    const { previa, validas } = await this.analisar(buf, hash, arquivoNome);
+    const { previa, validas, meses } = await this.analisar(buf, hash, arquivoNome);
     if (!validas.length || previa.ano === null) {
       throw new ApiException(HttpStatus.BAD_REQUEST, 'VALIDATION', 'Nenhuma linha válida.');
     }
@@ -164,7 +170,7 @@ export class FaturamentoService {
           usuarioId: usuario.id,
         },
       });
-      const apagados = await tx.faturamentoDia.deleteMany({ where: { ano } });
+      const apagados = await tx.faturamentoDia.deleteMany({ where: { ano, mes: { in: meses } } });
       await tx.faturamentoDia.createMany({
         data: validas.map((l) => ({
           empresa: l.empresa,
@@ -188,7 +194,13 @@ export class FaturamentoService {
       usuarioId: usuario.id,
       entidade: 'FaturamentoLote',
       entidadeId: lote.id,
-      detalhes: { ano, dias: validas.length, substituidos: lote.substituidos, totalDre: previa.totais.dre },
+      detalhes: {
+        ano,
+        meses,
+        dias: validas.length,
+        substituidos: lote.substituidos,
+        totalDre: previa.totais.dre,
+      },
       ctx,
     });
     await this.arquivos.descartar('faturamento', hash, usuario.id);

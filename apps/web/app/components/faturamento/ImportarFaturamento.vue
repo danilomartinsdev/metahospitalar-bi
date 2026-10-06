@@ -63,7 +63,7 @@ const podeConfirmar = computed(
   <UModal
     v-model:open="aberto"
     title="Importar faturamento"
-    description="Relatório diário de faturamento do Focco (uma linha por dia). Substitui o ano inteiro do arquivo."
+    description="Relatório diário de faturamento do Focco (uma linha por dia). Substitui só os meses que estão no arquivo."
     :ui="{ content: 'sm:max-w-2xl' }"
   >
     <template #body>
@@ -121,8 +121,8 @@ const podeConfirmar = computed(
           color="warning"
           variant="subtle"
           icon="i-lucide-triangle-alert"
-          :title="`Vai substituir ${previa.diasSubstituidos} dias já importados de ${previa.ano}`"
-          description="Todo o faturamento desse ano será trocado pelo deste arquivo."
+          :title="`Vai substituir ${previa.diasSubstituidos} dias já importados de ${previa.meses.map((m) => MESES[m.mes - 1]).join(', ')}/${previa.ano}`"
+          description="O faturamento desses meses será trocado pelo deste arquivo; os outros meses não mudam."
         />
 
         <UAlert

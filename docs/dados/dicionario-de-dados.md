@@ -61,12 +61,15 @@ Histórico). Único em (`ano`, `mes`). Só entra nos números em meses **sem ped
 "todos" e sem filtros (ver docs/progresso.md › Decisões tomadas).
 
 ## Faturamento (relatório diário do Focco — separado dos pedidos)
+
 ### FaturamentoDia
+
 `id`, `empresa`, `data` (Date, **única**), `ano`, `mes`, `semana`, `bruto`, `antecipado`, `remessa`,
 `devolucao`, `dre` (todos Decimal(14,2); `dre` = bruto + antecipado + remessa + devolucao), `loteId`.
-Reimportar um arquivo **substitui todos os dias do ano** dele. Índice (`ano`, `mes`).
+Reimportar um arquivo **substitui só os dias dos meses que ele traz** (os outros meses do ano ficam intactos). Índice (`ano`, `mes`).
 
 ### FaturamentoLote
+
 `id`, `ano`, `arquivoNome`, `arquivoHash`, `dias`, `totalDre` Decimal(14,2), `usuarioId?` — histórico das
 importações de faturamento.
 
@@ -112,6 +115,7 @@ Papéis editáveis; permissões fixas (lista em `packages/shared/src/constants/p
 O de impressão vale 60 s e uma vez só (consumido de forma atômica por `usadoEm`); só o hash sha256 é gravado.
 
 ### ArquivoTemporario
+
 `id`, `hash`, `usuarioId`, `tipo` (pedidos | faturamento), `arquivoNome`, `conteudo` (Bytes), `expiraEm` (2 h).
 Arquivo da prévia de importação guardado até o "confirmar" (substitui o disco local — necessário em serverless).
 Único em (`hash`, `usuarioId`, `tipo`): a prévia pertence a quem enviou.

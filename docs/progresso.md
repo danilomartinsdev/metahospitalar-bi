@@ -35,6 +35,8 @@ Período e busca ficaram na barra de filtros de cada tela (não na topbar).
 
 ## Decisões tomadas
 
+- **Reimportação de faturamento (2026-10-06):** o arquivo substitui **só os meses que traz** (antes: o ano inteiro). Assim dá para importar mês a mês — importar outubro não apaga jan–set; reimportar outubro atualizado troca outubro inteiro, sem duplicar.
+
 - **Histórico manual para comparativo (2026-10-05):** o usuário cadastra o **faturamento total da empresa por mês** de anos anteriores. O valor manual só vale em meses **sem nenhum pedido importado** (pedidos importados têm prioridade). Consequência (segurança/coerência): como é um total da empresa, só entra nos números para quem tem escopo "todos" e sem filtros de região/UF/representante/segmento/status/busca — mesmo critério das metas. Tela: Administração › Histórico (permissão metas.edit).
 
 - **Segmento por representante (2026-10-05):** pedidos do MURILLO são licitações (Público); os demais representantes são Privado. Aplicado nos 20 representantes atuais via Administração › Representantes (auditado). Representante novo vindo da importação entra como Privado.
@@ -47,9 +49,9 @@ Não implementar nada que dependa destes itens sem resposta do usuário.
 2. **SMTP:** servidor e remetente para "esqueci minha senha".
 3. **Escopo "por região":** um usuário com escopo de região vê todos os pedidos cuja UF pertence à região, independentemente do representante? (assumido sim, a confirmar)
 4. **Visualizador × exportação:** padrão do papel Visualizador é sem exportação? (a permissão é configurável; falta o default)
-6. **Metas por representante:** por valor apenas, ou também por quantidade de pedidos?
-7. **Timeout de inatividade:** valor (sugestão: 30 min) e duração do refresh (sugestão: 7 dias); duração do bloqueio após 5 falhas (sugestão: 15 min).
-8. **Propostas escritas nos docs na Fase 0, a confirmar:**
+5. **Metas por representante:** por valor apenas, ou também por quantidade de pedidos?
+6. **Timeout de inatividade:** valor (sugestão: 30 min) e duração do refresh (sugestão: 7 dias); duração do bloqueio após 5 falhas (sugestão: 15 min).
+7. **Propostas escritas nos docs na Fase 0, a confirmar:**
    - Cliente novo = 1º pedido dentro do período e nenhum antes; recorrência = nº de meses distintos com pedido.
    - Meta total cadastrada explicitamente (não é a soma das metas por representante); com filtro de gestor, a evolução usa a soma das metas dos gestores filtrados.
    - Importação com linhas inválidas: segue só com as válidas após confirmação explícita (alternativa: bloquear tudo).
