@@ -391,6 +391,8 @@ export class FaturamentoService {
       anoA,
       anoB,
       mesesDisponiveis: disponiveis,
+      mesesA: [...mA.keys()].sort((a, b) => a - b),
+      mesesB: [...mB.keys()].sort((a, b) => a - b),
       meses: todos.map((mes) => ({
         mes,
         temA: mA.has(mes),

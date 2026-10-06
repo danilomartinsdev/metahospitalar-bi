@@ -206,10 +206,49 @@ const mesesSel = ref<number[]>([]);
 watch([anoA, anoB], () => (mesesSel.value = []));
 const compQ = useFaturamentoComparativoQuery(anoA, anoB, mesesSel);
 const comp = computed(() => compQ.data.value);
-const opcoesMesesComp = computed(() =>
-  (comp.value?.mesesDisponiveis ?? []).map((m) => ({ label: MESES_EXTENSO[m - 1]!, value: m })),
-);
 const filtrandoMeses = computed(() => mesesSel.value.length > 0);
+
+// Botões de mês (checkbox): marcado = entra no comparativo. Sem nada escolhido, todos os meses com dado
+// entram; marcar todos de novo volta a "sem filtro". Pelo menos um mês fica sempre marcado.
+const disponiveis = computed(() => comp.value?.mesesDisponiveis ?? []);
+const emComumAnos = computed(() => {
+  const b = new Set(comp.value?.mesesB ?? []);
+  return (comp.value?.mesesA ?? []).filter((m) => b.has(m));
+});
+const incluidos = computed(() => (mesesSel.value.length ? mesesSel.value : disponiveis.value));
+const temDado = (m: number) => disponiveis.value.includes(m);
+const soUmAno = (m: number) => temDado(m) && !emComumAnos.value.includes(m);
+function definirMeses(ms: number[]) {
+  const validos = [...new Set(ms)].filter(temDado).sort((a, b) => a - b);
+  if (!validos.length) return;
+  mesesSel.value = validos.length === disponiveis.value.length ? [] : validos;
+}
+function alternarMes(m: number) {
+  const atual = incluidos.value;
+  definirMeses(atual.includes(m) ? atual.filter((x) => x !== m) : [...atual, m]);
+}
+const dicaMes = (m: number) => {
+  if (!temDado(m)) return `Sem faturamento em ${anoA.value} nem em ${anoB.value}`;
+  if (soUmAno(m)) {
+    const ano = comp.value?.mesesA.includes(m) ? anoA.value : anoB.value;
+    return `Só há faturamento em ${ano}`;
+  }
+  return '';
+};
+const ATALHOS_MESES = computed(() => [
+  { label: 'Todos', meses: disponiveis.value },
+  { label: 'Meses em comum', meses: emComumAnos.value },
+  { label: '1º semestre', meses: [1, 2, 3, 4, 5, 6] },
+  { label: '2º semestre', meses: [7, 8, 9, 10, 11, 12] },
+]);
+const atalhoAtivo = (ms: number[]) => {
+  const alvo = ms.filter(temDado);
+  return (
+    alvo.length > 0 &&
+    alvo.length === incluidos.value.length &&
+    alvo.every((m) => incluidos.value.includes(m))
+  );
+};
 const INDICADORES: { label: string; value: CampoTotalFaturamento }[] = [
   { label: 'Fatura DRE', value: 'dre' },
   { label: 'Faturamento bruto', value: 'bruto' },
@@ -465,27 +504,48 @@ const atalho = (tipo: 'ano' | 'mes') => {
             />
           </div>
         </div>
-        <div v-if="anos.length >= 2 && anoA !== anoB" class="flex flex-wrap items-center gap-2 px-5 pb-3">
-          <span class="text-sm text-muted-foreground">Meses:</span>
-          <USelectMenu
-            v-model="mesesSel"
-            :items="opcoesMesesComp"
-            value-key="value"
-            multiple
-            :search-input="false"
-            size="sm"
-            class="w-64"
-            placeholder="Todos os meses"
-            aria-label="Meses do comparativo"
-          />
-          <UButton
-            v-if="filtrandoMeses"
-            color="neutral"
-            variant="ghost"
-            size="sm"
-            label="Todos os meses"
-            @click="mesesSel = []"
-          />
+        <div v-if="anos.length >= 2 && anoA !== anoB && comp" class="space-y-2 px-5 pb-4">
+          <div class="flex flex-wrap items-center gap-1.5" role="group" aria-label="Meses do comparativo">
+            <span class="mr-1 text-sm text-muted-foreground">Meses:</span>
+            <button
+              v-for="m in 12"
+              :key="m"
+              type="button"
+              :disabled="!temDado(m)"
+              :aria-pressed="incluidos.includes(m)"
+              :title="dicaMes(m)"
+              class="inline-flex items-center gap-1 rounded-md border px-2 py-1 text-xs font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+              :class="
+                incluidos.includes(m)
+                  ? 'border-primary bg-primary-soft text-primary'
+                  : 'text-muted-foreground hover:bg-elevated/50'
+              "
+              @click="alternarMes(m)"
+            >
+              <UIcon
+                :name="incluidos.includes(m) ? 'i-lucide-square-check' : 'i-lucide-square'"
+                class="size-3.5"
+                aria-hidden="true"
+              />
+              {{ NOMES[m - 1] }}<span v-if="soUmAno(m)" aria-hidden="true">*</span>
+            </button>
+          </div>
+          <div class="flex flex-wrap items-center gap-1.5">
+            <span class="mr-1 text-xs text-muted-foreground">Atalhos:</span>
+            <UButton
+              v-for="a in ATALHOS_MESES"
+              :key="a.label"
+              size="xs"
+              :color="atalhoAtivo(a.meses) ? 'primary' : 'neutral'"
+              :variant="atalhoAtivo(a.meses) ? 'soft' : 'ghost'"
+              :label="a.label"
+              :disabled="!a.meses.some(temDado)"
+              @click="definirMeses(a.meses)"
+            />
+            <span v-if="disponiveis.some(soUmAno)" class="ml-auto text-xs text-muted-foreground">
+              * mês com faturamento em só um dos anos
+            </span>
+          </div>
         </div>
 
         <p v-if="anos.length < 2" class="px-5 pb-8 pt-4 text-center text-sm text-muted-foreground">

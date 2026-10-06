@@ -267,6 +267,7 @@ describe('faturamento — anos, mês a mês e comparativo', () => {
       await req('GET', '/api/faturamento/comparativo?anoA=2025&anoB=2026&meses=2', tokenGestor)
     ).json();
     expect(b.mesesDisponiveis).toEqual([1, 2]);
+    expect(b).toMatchObject({ mesesA: [1], mesesB: [1, 2] });
     expect(b.meses.map((m: { mes: number }) => m.mes)).toEqual([2]);
     expect(b.total).toMatchObject({ a: { dre: '0.00' }, b: { dre: '3400.00' } });
     expect(b.emComum).toMatchObject({ meses: [], a: { dre: '0.00' }, b: { dre: '0.00' } });

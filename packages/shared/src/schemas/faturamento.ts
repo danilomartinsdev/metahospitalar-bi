@@ -215,6 +215,9 @@ export interface FaturamentoComparativo {
   anoB: number;
   /** Todos os meses com faturamento em pelo menos um dos anos (opções do seletor de meses). */
   mesesDisponiveis: number[];
+  /** Meses com faturamento em cada ano (para atalhos como "meses em comum"). */
+  mesesA: number[];
+  mesesB: number[];
   /** Meses comparados (os escolhidos, ou todos os disponíveis); `temA`/`temB` dizem em qual há dado. */
   meses: (ComparacaoFaturamento & { mes: number; temA: boolean; temB: boolean })[];
   /** Soma dos meses comparados. */
