@@ -33,18 +33,38 @@ function decodificar(buf: Buffer): string {
   }
 }
 
+/**
+ * Planilha salva pelo Excel guarda datas e valores como números, e o texto exibido depende do formato
+ * da célula (ex.: "10/1/26" em m/d/aa, "71,639.14"). Reescreve o texto a partir do valor:
+ * data → "dd/mm/aaaa", número → decimal com ponto e sem milhar.
+ */
+function normalizarCelulasNumericas(ws: XLSX.WorkSheet): void {
+  for (const linha of ws['!data'] ?? []) {
+    for (const cel of linha ?? []) {
+      if (cel?.t !== 'n' || typeof cel.v !== 'number') continue;
+      const dc = cel.z && XLSX.SSF.is_date(cel.z) ? XLSX.SSF.parse_date_code(cel.v) : null;
+      if (dc) {
+        cel.w = `${String(dc.d).padStart(2, '0')}/${String(dc.m).padStart(2, '0')}/${dc.y}`;
+      } else {
+        cel.w = Number.isInteger(cel.v) ? String(cel.v) : cel.v.toFixed(6);
+      }
+    }
+  }
+}
+
 /** Lê o arquivo (xls, xlsx, csv ou HTML do Focco) e devolve a 1ª aba como matriz de strings. */
 export function lerMatriz(buf: Buffer): { formato: Formato; matriz: unknown[][] } {
   const formato = detectarFormato(buf);
   // raw: true mantém "05/01/26" e "83575,749" como texto (sem conversão para data/float).
   const opts: XLSX.ParsingOptions = { raw: true, cellFormula: false, cellHTML: false, dense: true };
-  const wb =
-    formato === 'xls' || formato === 'xlsx'
-      ? XLSX.read(buf, { ...opts, type: 'buffer' })
-      : XLSX.read(decodificar(buf), { ...opts, type: 'string' });
+  const binario = formato === 'xls' || formato === 'xlsx';
+  const wb = binario
+    ? XLSX.read(buf, { ...opts, type: 'buffer', cellNF: true })
+    : XLSX.read(decodificar(buf), { ...opts, type: 'string' });
 
   const ws = wb.Sheets[wb.SheetNames[0]!];
   if (!ws) throw new ArquivoInvalidoError('A planilha está vazia.');
+  if (binario) normalizarCelulasNumericas(ws);
   const matriz = XLSX.utils.sheet_to_json<unknown[]>(ws, {
     header: 1,
     raw: false,
