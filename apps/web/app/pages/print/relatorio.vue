@@ -152,7 +152,7 @@ const TABELAS = computed(() =>
         <ChartsBaseChart
           altura="210px"
           rotulo="Participação por região"
-          :opcoes="(t) => donutOptions(v!.porRegiao, t)"
+          :opcoes="(t) => donutOptions(v!.porRegiao, t, { impressao: true })"
         />
       </div>
       <div class="rounded-xl border p-4">
@@ -160,7 +160,7 @@ const TABELAS = computed(() =>
         <ChartsBaseChart
           altura="210px"
           rotulo="Participação por segmento"
-          :opcoes="(t) => donutOptions(v!.porSegmento, t)"
+          :opcoes="(t) => donutOptions(v!.porSegmento, t, { impressao: true })"
         />
       </div>
     </section>

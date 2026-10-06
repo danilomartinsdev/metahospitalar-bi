@@ -77,7 +77,15 @@ export function evolucaoOptions(ev: VisaoGeral['evolucao'], t: TemaGrafico): ECh
 }
 
 /** Donut de participação (máx. 6 fatias + "Outros"). */
-export function donutOptions(linhas: LinhaRanking[], t: TemaGrafico): EChartsOption {
+/**
+ * `impressao`: legenda inteira quebrando em linhas (no PDF não há como clicar nas setas da legenda
+ * paginada) e rosca menor para caber.
+ */
+export function donutOptions(
+  linhas: LinhaRanking[],
+  t: TemaGrafico,
+  { impressao = false }: { impressao?: boolean } = {},
+): EChartsOption {
   const principais = linhas.slice(0, 6);
   const resto = linhas.slice(6);
   const dados = principais.map((l) => ({ name: l.rotulo, value: Number(l.total) }));
@@ -105,14 +113,14 @@ export function donutOptions(linhas: LinhaRanking[], t: TemaGrafico): EChartsOpt
       textStyle: { color: t.textoSuave },
       itemWidth: 10,
       itemHeight: 10,
-      type: 'scroll',
+      type: impressao ? 'plain' : 'scroll',
       formatter: (nome: string) => `${nome} ${formatPct(pct.get(nome) ?? null)}`,
     },
     series: [
       {
         type: 'pie',
-        radius: ['55%', '80%'],
-        center: ['50%', '44%'],
+        radius: impressao ? ['45%', '66%'] : ['55%', '80%'],
+        center: ['50%', impressao ? '36%' : '44%'],
         itemStyle: { borderColor: t.fundo, borderWidth: 2 },
         label: { show: false },
         data: dados,

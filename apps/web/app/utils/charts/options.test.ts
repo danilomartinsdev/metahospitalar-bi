@@ -68,4 +68,10 @@ describe('donutOptions — legenda', () => {
     expect(fmt('Privado')).toMatch(/^Privado 53,2\s?%$/);
     expect(fmt('Público')).toMatch(/^Público 46,8\s?%$/);
   });
+
+  it('na tela a legenda é paginada; no PDF mostra todos os itens (sem setas)', () => {
+    const ls = [linha('Sudeste', '6'), linha('Nordeste', '5'), linha('Centro-Oeste', '4'), linha('Sul', '3')];
+    expect((donutOptions(ls, TEMA_CLARO).legend as { type: string }).type).toBe('scroll');
+    expect((donutOptions(ls, TEMA_CLARO, { impressao: true }).legend as { type: string }).type).toBe('plain');
+  });
 });
