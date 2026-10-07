@@ -8,6 +8,7 @@ useTheme();
 <template>
   <UApp :locale="pt_br" :toaster="{ position: 'top-right', duration: 4000 }">
     <NuxtRouteAnnouncer />
+    <LayoutAvisoAmbiente />
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>
