@@ -56,8 +56,16 @@ test('admin cria usuário e recebe a senha provisória uma única vez', async ({
   await dialogo.getByLabel('Nome').fill('Pessoa E2E');
   await dialogo.getByLabel('E-mail').fill(`e2e-${Date.now()}@metahospitalar.com.br`);
   // USelect é um combobox (listbox em portal), não um <select> nativo.
+  // Papel Representante: em vez do escopo, pergunta qual representante é o usuário.
+  await dialogo.getByLabel('Papel').click();
+  await page.getByRole('option', { name: 'Representante' }).click();
+  await expect(dialogo.getByText('Qual representante é este usuário?')).toBeVisible();
+  await expect(dialogo.getByText('Escopo de dados')).toHaveCount(0);
+
   await dialogo.getByLabel('Papel').click();
   await page.getByRole('option', { name: 'Visualizador' }).click();
+  await expect(dialogo.getByText('Qual representante é este usuário?')).toHaveCount(0);
+  await expect(dialogo.getByText('Por representante')).toHaveCount(0);
   await dialogo.getByText('Todos os pedidos').click();
   await dialogo.getByRole('button', { name: 'Salvar' }).click();
 

@@ -46,8 +46,12 @@ watch(aberto, (v) => {
 const ESCOPOS: { v: EscopoTipo; r: string; d: string }[] = [
   { v: 'todos', r: 'Todos os pedidos', d: 'Vê a empresa inteira.' },
   { v: 'regiao', r: 'Por região', d: 'Só pedidos de UFs das regiões escolhidas.' },
-  { v: 'representantes', r: 'Por representante', d: 'Só pedidos dos representantes vinculados.' },
 ];
+
+/** Papel Representante: em vez do escopo, escolhe-se qual código do Focco é este usuário (vê só as vendas dele). */
+const ehRepresentante = computed(
+  () => papeis.data.value?.find((p) => p.id === form.roleId)?.chave === 'representante',
+);
 
 const itensEscopo = ESCOPOS.map((e) => ({ value: e.v, label: e.r, description: e.d }));
 const itensRegiao = REGIOES_ENUM.map((r) => ({ value: r, label: REGIAO_ENUM_ROTULO[r] }));
@@ -57,12 +61,20 @@ const itensRepresentante = computed(() =>
 
 async function enviar() {
   erro.value = null;
+  if (ehRepresentante.value && !form.representanteIds.length) {
+    erro.value = 'Escolha qual representante é este usuário.';
+    return;
+  }
+  if (!ehRepresentante.value && form.escopoTipo === 'representantes') {
+    erro.value = 'Escolha o escopo de dados.';
+    return;
+  }
   const dados = {
     nome: form.nome,
     roleId: form.roleId,
-    escopoTipo: form.escopoTipo,
-    escopoRegioes: form.escopoRegioes,
-    representanteIds: form.representanteIds,
+    ...(ehRepresentante.value
+      ? { escopoTipo: 'representantes', escopoRegioes: [], representanteIds: form.representanteIds }
+      : { escopoTipo: form.escopoTipo, escopoRegioes: form.escopoRegioes, representanteIds: [] }),
     ...(props.usuario ? {} : { email: form.email }),
   };
   try {
@@ -87,7 +99,6 @@ async function enviar() {
     "
   >
     <template #body>
-
       <form id="form-usuario" class="space-y-4" @submit.prevent="enviar">
         <p
           v-if="erro"
@@ -102,7 +113,14 @@ async function enviar() {
         </div>
         <div class="space-y-2">
           <label for="u-email" class="text-sm font-medium">E-mail</label>
-          <UInput id="u-email" v-model="form.email" class="w-full" type="email" required :disabled="!!usuario" />
+          <UInput
+            id="u-email"
+            v-model="form.email"
+            class="w-full"
+            type="email"
+            required
+            :disabled="!!usuario"
+          />
         </div>
         <div class="space-y-2">
           <label for="u-papel" class="text-sm font-medium">Papel</label>
@@ -115,7 +133,25 @@ async function enviar() {
           />
         </div>
 
+        <div v-if="ehRepresentante" class="space-y-2">
+          <label for="u-representante" class="text-sm font-medium">Qual representante é este usuário?</label>
+          <USelectMenu
+            id="u-representante"
+            v-model="form.representanteIds"
+            :items="itensRepresentante"
+            value-key="value"
+            multiple
+            class="w-full"
+            placeholder="Selecione o código do Focco"
+            :search-input="{ placeholder: 'Buscar representante' }"
+          />
+          <p class="text-xs text-muted-foreground">
+            Ele verá só as vendas deste representante, inclusive em Minhas vendas.
+          </p>
+        </div>
+
         <URadioGroup
+          v-else
           v-model="form.escopoTipo"
           legend="Escopo de dados"
           variant="card"
@@ -124,27 +160,12 @@ async function enviar() {
         />
 
         <UCheckboxGroup
-          v-if="form.escopoTipo === 'regiao'"
+          v-if="!ehRepresentante && form.escopoTipo === 'regiao'"
           v-model="form.escopoRegioes"
           legend="Regiões"
           :items="itensRegiao"
           :ui="{ legend: 'text-sm font-medium mb-1', fieldset: 'grid grid-cols-2 gap-2' }"
         />
-
-        <div v-if="form.escopoTipo === 'representantes'" class="space-y-1">
-          <div class="max-h-48 overflow-y-auto rounded-lg border p-2">
-            <UCheckboxGroup
-              v-if="reps.data.value?.length"
-              v-model="form.representanteIds"
-              legend="Representantes vinculados"
-              :items="itensRepresentante"
-              :ui="{ legend: 'text-sm font-medium mb-1' }"
-            />
-            <p v-else class="p-2 text-xs text-muted-foreground">
-              Nenhum representante ainda — importe um relatório.
-            </p>
-          </div>
-        </div>
       </form>
     </template>
 
