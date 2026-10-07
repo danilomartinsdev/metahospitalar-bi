@@ -9,15 +9,12 @@ const escopo = {
   representanteIds: z.array(z.uuid()).max(500).default([]),
 };
 
-const coerenciaEscopo = (u: {
-  escopoTipo?: string;
-  escopoRegioes?: unknown[];
-  representanteIds?: unknown[];
-}) =>
-  (u.escopoTipo !== 'regiao' || (u.escopoRegioes?.length ?? 0) > 0) &&
-  (u.escopoTipo !== 'representantes' || (u.representanteIds?.length ?? 0) > 0);
+// Escopo "representantes" pode ficar sem vínculo (o usuário não vê nenhum pedido até ser ligado a um
+// código em Cadastro de representantes — ver /usuarios/vinculos).
+const coerenciaEscopo = (u: { escopoTipo?: string; escopoRegioes?: unknown[] }) =>
+  u.escopoTipo !== 'regiao' || (u.escopoRegioes?.length ?? 0) > 0;
 const msgEscopo = {
-  error: 'Escolha ao menos uma região ou um representante para o escopo.',
+  error: 'Escolha ao menos uma região para o escopo.',
   path: ['escopoTipo'],
 };
 
@@ -53,6 +50,10 @@ export interface UsuarioAdmin {
   escopoRegioes: (typeof REGIOES_ENUM)[number][];
   representantes: { id: string; nomeExibicao: string }[];
 }
+
+/** Liga um código do Focco a um usuário (Cadastro de representantes); null desliga. */
+export const vinculoRepresentanteSchema = z.object({ usuarioId: z.uuid().nullable() });
+export type VinculoRepresentante = z.infer<typeof vinculoRepresentanteSchema>;
 
 export const papelSalvarSchema = z.object({
   nome: z.string().trim().min(2).max(60),

@@ -21,6 +21,7 @@ export type AcaoAuditada =
   | 'metas.alteradas'
   | 'usuario.criado'
   | 'usuario.alterado'
+  | 'representante.vinculo'
   | 'usuario.senha-redefinida'
   | 'papel.criado'
   | 'papel.alterado'

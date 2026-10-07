@@ -5,6 +5,7 @@ import {
   useAtualizarRepresentante,
   useRepresentantesQuery,
 } from '~/composables/api/useCadastros';
+import { useUsuariosQuery, useVincularRepresentante } from '~/composables/api/useAdmin';
 
 const aviso = useAviso();
 definePageMeta({ titulo: 'Representantes', permissao: 'cadastros.edit' });
@@ -12,6 +13,40 @@ useHead({ title: 'Representantes — BI Metahospitalar' });
 
 const reps = useRepresentantesQuery();
 const atualizar = useAtualizarRepresentante();
+
+// Usuário de cada código: é o que faz "Minhas vendas" (e as demais telas) mostrar só as vendas dele.
+// Ligar usuários exige users.manage (a API valida); sem ela a coluna nem aparece.
+const can = useCan();
+const podeLigar = computed(() => can('users.manage'));
+const usuarios = useUsuariosQuery({ enabled: podeLigar });
+const vincular = useVincularRepresentante();
+const NINGUEM = 'NINGUEM';
+const itensUsuario = computed(() => [
+  { label: 'Ninguém', value: NINGUEM },
+  ...(usuarios.data.value ?? [])
+    .filter((u) => u.ativo && u.papel.chave !== 'admin')
+    .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'))
+    .map((u) => ({ label: `${u.nome} (${u.papel.nome})`, value: u.id })),
+]);
+/** representanteId → usuário ligado (um por código). */
+const usuarioDoCodigo = computed(() => {
+  const m = new Map<string, string>();
+  for (const u of usuarios.data.value ?? [])
+    if (u.escopoTipo === 'representantes') for (const r of u.representantes) m.set(r.id, u.id);
+  return m;
+});
+
+async function ligar(r: Representante, valor: string) {
+  salvando.add(r.id);
+  try {
+    await vincular.mutateAsync({ representanteId: r.id, usuarioId: valor === NINGUEM ? null : valor });
+    aviso.sucesso(valor === NINGUEM ? `${r.codigo} sem usuário.` : `${r.codigo} ligado ao usuário.`);
+  } catch (e) {
+    aviso.erro(e, 'Não foi possível ligar o usuário.');
+  } finally {
+    salvando.delete(r.id);
+  }
+}
 
 /** O USelect não aceita '' como valor: NENHUM representa "sem segmento definido". */
 const NENHUM = 'NENHUM';
@@ -46,10 +81,10 @@ function salvarNome(r: Representante, e: Event) {
 </script>
 
 <template>
-  <div class="mx-auto max-w-5xl space-y-6">
+  <div class="mx-auto max-w-6xl space-y-6">
     <UiExtraPageHeader
       titulo="Representantes"
-      descricao="Representantes vindos do Focco. Ajuste o nome de exibição, o segmento padrão e se estão ativos."
+      descricao="Representantes vindos do Focco. Ajuste o nome de exibição, o segmento padrão, se estão ativos e qual usuário do sistema é cada representante (ele verá só as vendas desse código)."
     />
     <section class="rounded-xl border bg-card">
       <UiExtraEstadoBloco
@@ -66,6 +101,7 @@ function salvarNome(r: Representante, e: Event) {
                 <th class="px-5 py-3 font-medium">Código (Focco)</th>
                 <th class="px-3 py-3 font-medium">Nome de exibição</th>
                 <th class="px-3 py-3 font-medium">Segmento padrão</th>
+                <th v-if="podeLigar" class="px-3 py-3 font-medium">Usuário</th>
                 <th class="px-5 py-3 font-medium">Ativo</th>
               </tr>
             </thead>
@@ -96,6 +132,16 @@ function salvarNome(r: Representante, e: Event) {
                     @update:model-value="
                       (v) => salvar(r, { segmentoPadrao: (v === NENHUM ? null : v) as Segmento | null })
                     "
+                  />
+                </td>
+                <td v-if="podeLigar" class="px-3 py-2">
+                  <USelect
+                    :model-value="usuarioDoCodigo.get(r.id) ?? NINGUEM"
+                    :items="itensUsuario"
+                    :loading="usuarios.isPending.value"
+                    class="w-56"
+                    :aria-label="`Usuário do representante ${r.codigo}`"
+                    @update:model-value="(v) => ligar(r, String(v))"
                   />
                 </td>
                 <td class="px-5 py-2">

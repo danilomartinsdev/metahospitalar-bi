@@ -1,9 +1,11 @@
-import { Body, Controller, Get, HttpCode, Param, ParseUUIDPipe, Patch, Post, Req } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Param, ParseUUIDPipe, Patch, Post, Put, Req } from '@nestjs/common';
 import {
   type UsuarioAtualizar,
   usuarioAtualizarSchema,
   type UsuarioCriar,
   usuarioCriarSchema,
+  type VinculoRepresentante,
+  vinculoRepresentanteSchema,
 } from '@meta-bi/shared';
 import type { FastifyRequest } from 'fastify';
 import { CurrentUser, RequirePermission } from '../../common/auth/decorators.js';
@@ -33,6 +35,19 @@ export class UsuariosController {
     @Req() req: FastifyRequest,
   ) {
     return this.usuarios.criar(d, admin, ctx(req));
+  }
+
+  /** Liga um código do Focco a um usuário (tela Cadastro de representantes). */
+  @RequirePermission('users.manage')
+  @Put('vinculos/:representanteId')
+  @HttpCode(204)
+  async vincular(
+    @Param('representanteId', uuid) representanteId: string,
+    @Body(new ZodPipe(vinculoRepresentanteSchema)) d: VinculoRepresentante,
+    @CurrentUser() admin: UsuarioAutenticado,
+    @Req() req: FastifyRequest,
+  ) {
+    await this.usuarios.vincularRepresentante(representanteId, d.usuarioId, admin, ctx(req));
   }
 
   @RequirePermission('users.manage')

@@ -209,6 +209,60 @@ export class UsuariosService {
     return this.paraApi(u);
   }
 
+  /**
+   * Liga um código do Focco a um usuário (um usuário por código; um usuário pode ter vários códigos).
+   * O usuário ligado passa a ver só os pedidos dos seus códigos (escopo "representantes"). Quem perde o
+   * último código continua nesse escopo e não vê nenhum pedido — nunca ganha acesso à empresa inteira.
+   */
+  async vincularRepresentante(
+    representanteId: string,
+    usuarioId: string | null,
+    admin: UsuarioAutenticado,
+    ctx: ContextoRequisicao,
+  ) {
+    const rep = await this.prisma.representante.findUnique({
+      where: { id: representanteId },
+      select: { codigo: true },
+    });
+    if (!rep) throw Erros.naoEncontrado();
+    if (usuarioId) await this.existe(usuarioId);
+    const antes = (
+      await this.prisma.usuarioRepresentante.findMany({
+        where: { representanteId },
+        select: { usuarioId: true },
+      })
+    ).map((v) => v.usuarioId);
+    const afetados = [...new Set([...antes, ...(usuarioId ? [usuarioId] : [])])];
+    if (afetados.includes(admin.id)) {
+      throw new ApiException(HttpStatus.CONFLICT, 'CONFLICT', 'Você não pode alterar o próprio escopo.');
+    }
+    for (const id of afetados) await this.protegerAdmins(id, null, admin);
+
+    await this.prisma.$transaction(async (tx) => {
+      await tx.usuarioRepresentante.deleteMany({
+        where: { representanteId, ...(usuarioId ? { usuarioId: { not: usuarioId } } : {}) },
+      });
+      if (!usuarioId) return;
+      await tx.usuarioRepresentante.upsert({
+        where: { usuarioId_representanteId: { usuarioId, representanteId } },
+        create: { usuarioId, representanteId },
+        update: {},
+      });
+      await tx.usuario.update({
+        where: { id: usuarioId },
+        data: { escopoTipo: 'REPRESENTANTES', escopoRegioes: [] },
+      });
+    });
+    await this.audit.registrar({
+      acao: 'representante.vinculo',
+      usuarioId: admin.id,
+      entidade: 'Representante',
+      entidadeId: representanteId,
+      detalhes: { codigo: rep.codigo, antes, depois: usuarioId ? [usuarioId] : [] },
+      ctx,
+    });
+  }
+
   /** Admin redefine a senha: gera provisória, exige troca e derruba as sessões do usuário. */
   async redefinirSenha(id: string, admin: UsuarioAutenticado, ctx: ContextoRequisicao) {
     await this.existe(id);

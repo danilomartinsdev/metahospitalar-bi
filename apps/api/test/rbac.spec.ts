@@ -7,7 +7,12 @@ const AMOSTRA = path.resolve(import.meta.dirname, '../../../fixtures/focco/amost
 let ctx: Contexto;
 let admin: string;
 
-const req = (method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE', url: string, token: string, payload?: object) =>
+const req = (
+  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE',
+  url: string,
+  token: string,
+  payload?: object,
+) =>
   ctx.app
     .inject({ method, url, headers: { authorization: `Bearer ${token}` }, ...(payload ? { payload } : {}) })
     .then((r) => ({
@@ -79,16 +84,8 @@ describe('gestão de usuários', () => {
       (await req('POST', '/api/usuarios', admin, { ...base, email: 'admin@meta.com', escopoTipo: 'todos' }))
         .status,
     ).toBe(409);
-    expect(
-      (
-        await req('POST', '/api/usuarios', admin, {
-          ...base,
-          email: 'a@b.com',
-          escopoTipo: 'representantes',
-          representanteIds: [],
-        })
-      ).status,
-    ).toBe(400);
+    // Escopo "representantes" sem código é permitido (não vê nada até ser ligado em Cadastro de
+    // representantes) — ver vinculo-representante.spec.ts.
     expect(
       (await req('POST', '/api/usuarios', admin, { ...base, email: 'a@b.com', escopoTipo: 'regiao' })).status,
     ).toBe(400);

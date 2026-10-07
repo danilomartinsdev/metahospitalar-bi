@@ -46,6 +46,7 @@ const ROTULOS: Record<string, string> = {
   'metas.alteradas': 'Metas alteradas',
   'usuario.criado': 'Usuário criado',
   'usuario.alterado': 'Usuário alterado',
+  'representante.vinculo': 'Representante ligado a usuário',
   'usuario.desativado': 'Usuário desativado',
   'usuario.reativado': 'Usuário reativado',
   'usuario.sessoes-derrubadas': 'Sessões encerradas',

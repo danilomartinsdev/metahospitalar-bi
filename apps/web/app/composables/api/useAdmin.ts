@@ -53,6 +53,20 @@ export function useAcaoUsuario() {
   });
 }
 
+/** Liga um código do Focco a um usuário (Cadastro de representantes); usuarioId null desliga. */
+export function useVincularRepresentante() {
+  const { request } = useApi();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (p: { representanteId: string; usuarioId: string | null }) =>
+      request<null>(`/usuarios/vinculos/${p.representanteId}`, {
+        method: 'PUT',
+        body: { usuarioId: p.usuarioId },
+      }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['usuarios'] }),
+  });
+}
+
 export function usePapeisQuery() {
   const { request } = useApi();
   return useQuery({ queryKey: ['papeis'], queryFn: () => request<PapelAdmin[]>('/papeis') });

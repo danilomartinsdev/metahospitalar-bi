@@ -8,7 +8,6 @@ import {
 } from '@meta-bi/shared';
 import { mensagemErro } from '~/composables/api/useApi';
 import { usePapeisQuery, useSalvarUsuario } from '~/composables/api/useAdmin';
-import { useRepresentantesQuery } from '~/composables/api/useCadastros';
 
 const aviso = useAviso();
 const aberto = defineModel<boolean>('aberto', { required: true });
@@ -16,7 +15,6 @@ const props = defineProps<{ usuario: UsuarioAdmin | null }>();
 const emit = defineEmits<{ criado: [email: string, senha: string] }>();
 
 const papeis = usePapeisQuery();
-const reps = useRepresentantesQuery();
 const salvar = useSalvarUsuario();
 
 const form = reactive({
@@ -25,7 +23,6 @@ const form = reactive({
   roleId: '',
   escopoTipo: 'representantes' as EscopoTipo,
   escopoRegioes: [] as RegiaoEnum[],
-  representanteIds: [] as string[],
 });
 const erro = ref<string | null>(null);
 
@@ -39,30 +36,46 @@ watch(aberto, (v) => {
     roleId: u?.papel.id ?? papeis.data.value?.find((p) => p.chave === 'visualizador')?.id ?? '',
     escopoTipo: u?.escopoTipo ?? 'todos',
     escopoRegioes: [...(u?.escopoRegioes ?? [])],
-    representanteIds: u?.representantes.map((r) => r.id) ?? [],
   });
 });
 
 const ESCOPOS: { v: EscopoTipo; r: string; d: string }[] = [
   { v: 'todos', r: 'Todos os pedidos', d: 'Vê a empresa inteira.' },
   { v: 'regiao', r: 'Por região', d: 'Só pedidos de UFs das regiões escolhidas.' },
-  { v: 'representantes', r: 'Por representante', d: 'Só pedidos dos representantes vinculados.' },
 ];
 
 const itensEscopo = ESCOPOS.map((e) => ({ value: e.v, label: e.r, description: e.d }));
 const itensRegiao = REGIOES_ENUM.map((r) => ({ value: r, label: REGIAO_ENUM_ROTULO[r] }));
-const itensRepresentante = computed(() =>
-  (reps.data.value ?? []).map((r) => ({ value: r.id, label: r.nomeExibicao })),
+
+/**
+ * Representante: o escopo não é escolhido aqui. Ele vê só as vendas dos códigos do Focco ligados a ele
+ * em Administração › Cadastro de representantes (sem código ligado, não vê nenhum pedido).
+ */
+const modoRepresentante = computed(
+  () =>
+    papeis.data.value?.find((p) => p.id === form.roleId)?.chave === 'representante' ||
+    (props.usuario?.escopoTipo === 'representantes' && form.roleId === props.usuario.papel.id),
+);
+const codigosLigados = computed(() =>
+  props.usuario?.escopoTipo === 'representantes' ? props.usuario.representantes : [],
 );
 
 async function enviar() {
   erro.value = null;
+  if (!modoRepresentante.value && form.escopoTipo === 'representantes') {
+    erro.value = 'Escolha o escopo de dados.';
+    return;
+  }
   const dados = {
     nome: form.nome,
     roleId: form.roleId,
-    escopoTipo: form.escopoTipo,
-    escopoRegioes: form.escopoRegioes,
-    representanteIds: form.representanteIds,
+    ...(modoRepresentante.value
+      ? {
+          escopoTipo: 'representantes',
+          escopoRegioes: [],
+          representanteIds: codigosLigados.value.map((r) => r.id),
+        }
+      : { escopoTipo: form.escopoTipo, escopoRegioes: form.escopoRegioes, representanteIds: [] }),
     ...(props.usuario ? {} : { email: form.email }),
   };
   try {
@@ -87,7 +100,6 @@ async function enviar() {
     "
   >
     <template #body>
-
       <form id="form-usuario" class="space-y-4" @submit.prevent="enviar">
         <p
           v-if="erro"
@@ -102,7 +114,14 @@ async function enviar() {
         </div>
         <div class="space-y-2">
           <label for="u-email" class="text-sm font-medium">E-mail</label>
-          <UInput id="u-email" v-model="form.email" class="w-full" type="email" required :disabled="!!usuario" />
+          <UInput
+            id="u-email"
+            v-model="form.email"
+            class="w-full"
+            type="email"
+            required
+            :disabled="!!usuario"
+          />
         </div>
         <div class="space-y-2">
           <label for="u-papel" class="text-sm font-medium">Papel</label>
@@ -115,7 +134,20 @@ async function enviar() {
           />
         </div>
 
+        <div v-if="modoRepresentante" class="space-y-1 rounded-lg border bg-muted/30 p-3 text-sm">
+          <p class="font-medium">Escopo de dados</p>
+          <p class="text-muted-foreground">
+            Vê só as próprias vendas: as dos códigos do Focco ligados a este usuário em
+            <b>Administração › Cadastro de representantes</b>.
+          </p>
+          <p v-if="codigosLigados.length">
+            Ligado a: <b>{{ codigosLigados.map((r) => r.nomeExibicao).join(', ') }}</b>
+          </p>
+          <p v-else class="text-warning">Nenhum código ligado ainda — até lá, não vê nenhum pedido.</p>
+        </div>
+
         <URadioGroup
+          v-else
           v-model="form.escopoTipo"
           legend="Escopo de dados"
           variant="card"
@@ -124,27 +156,12 @@ async function enviar() {
         />
 
         <UCheckboxGroup
-          v-if="form.escopoTipo === 'regiao'"
+          v-if="!modoRepresentante && form.escopoTipo === 'regiao'"
           v-model="form.escopoRegioes"
           legend="Regiões"
           :items="itensRegiao"
           :ui="{ legend: 'text-sm font-medium mb-1', fieldset: 'grid grid-cols-2 gap-2' }"
         />
-
-        <div v-if="form.escopoTipo === 'representantes'" class="space-y-1">
-          <div class="max-h-48 overflow-y-auto rounded-lg border p-2">
-            <UCheckboxGroup
-              v-if="reps.data.value?.length"
-              v-model="form.representanteIds"
-              legend="Representantes vinculados"
-              :items="itensRepresentante"
-              :ui="{ legend: 'text-sm font-medium mb-1' }"
-            />
-            <p v-else class="p-2 text-xs text-muted-foreground">
-              Nenhum representante ainda — importe um relatório.
-            </p>
-          </div>
-        </div>
       </form>
     </template>
 
