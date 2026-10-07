@@ -8,7 +8,7 @@ uma cópia da base de produção antes do merge na `main` e do deploy.
 | Projeto Docker | `meta-bi-prod`                    | `meta-bi-homolog`                                                           |
 | Pasta (clone)  | `C:\Users\Danilo\meta-bi-publico` | `C:\Users\Danilo\meta-bi-homolog`                                           |
 | `.env`         | o da pasta da produção            | o da pasta da homologação (segredos próprios, linha `AMBIENTE=homologacao`) |
-| Acesso         | ngrok (HTTPS)                     | só rede local: `http://<ip-da-máquina>:34837`                               |
+| Acesso         | ngrok (HTTPS)                     | só nesta máquina: `http://localhost:34837` (opcional: rede local)           |
 | E-mail         | SMTP real                         | Mailpit (`http://127.0.0.1:34839`), nada sai                                |
 | Identificação  | —                                 | faixa "Homologação" em todas as telas e `[HOMOLOG]` no título da aba        |
 
@@ -19,10 +19,12 @@ recusa rodar se o `.env` do clone não for o da homologação. Da produção, o 
 ## Primeira vez
 
 ```bash
-pnpm homolog:preparar            # clone + .env da homologação (detecta o IP; ou --ip 10.1.1.138)
+pnpm homolog:preparar            # clone + .env da homologação, em http://localhost:34837
 ```
 
-Liberar a porta na rede local (PowerShell **como administrador**, uma vez):
+Para abrir de outros computadores da rede: apague o `.env` do clone (antes de subir pela primeira vez),
+rode `pnpm homolog:preparar --rede` (detecta o IP; ou `--rede --ip 10.1.1.138`) e libere a porta
+(PowerShell **como administrador**, uma vez):
 
 ```powershell
 netsh advfirewall firewall add rule name="meta-bi-homolog" dir=in action=allow protocol=TCP localport=34837
@@ -60,7 +62,7 @@ pnpm homolog:parar               # para a homologação (a produção não é to
 
 ## Cuidados
 
-- A cópia tem **dados reais de clientes e usuários**. Fica só na rede local; usuários entram com a
+- A cópia tem **dados reais de clientes e usuários**. Fica só nesta máquina (ou na rede local, com `--rede`); usuários entram com a
   mesma senha da produção; e-mails ficam no Mailpit.
 - Os arquivos de importação (volume `storage`) não são copiados: desfazer um lote antigo na
   homologação pode não achar a planilha original.

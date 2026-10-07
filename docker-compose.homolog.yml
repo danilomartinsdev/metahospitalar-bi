@@ -1,12 +1,13 @@
 # Homologação: segunda stack, isolada da produção, na mesma máquina. Só é usada pelo
 # scripts/homologacao.mjs, sempre com projeto próprio (-p meta-bi-homolog) e a partir do clone
 # C:/Users/Danilo/meta-bi-homolog — volumes, rede e containers não se misturam com os da produção.
-# Acesso só pela rede local (HTTP). Ver docs/operacao/homologacao.md.
+# Acesso por HTTP: só nesta máquina (padrão, HTTP_BIND=127.0.0.1) ou na rede local (0.0.0.0).
+# Ver docs/operacao/homologacao.md.
 
 services:
   api:
     environment:
-      # HTTP na rede local (sem TLS): cookies sem Secure, explicitamente permitido.
+      # HTTP (sem TLS): cookies sem Secure, explicitamente permitido.
       COOKIE_SECURE: 'false'
       PERMITIR_HTTP: 'true'
       # Todo e-mail fica no Mailpit: a base é cópia da produção, com e-mails de usuários reais.
@@ -26,7 +27,7 @@ services:
       SITE_ADDRESS: ':80'
     # Só HTTP, na porta da homologação (substitui as portas 80/443 do arquivo de produção).
     ports: !override
-      - '${HTTP_PORT:?defina HTTP_PORT no .env da homologação}:80'
+      - '${HTTP_BIND:-127.0.0.1}:${HTTP_PORT:?defina HTTP_PORT no .env da homologação}:80'
 
   mailpit:
     image: axllent/mailpit:v1.27

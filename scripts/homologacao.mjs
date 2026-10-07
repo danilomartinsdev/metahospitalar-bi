@@ -2,7 +2,8 @@
 // Ambiente de homologação: segunda stack Docker (projeto meta-bi-homolog), isolada da produção.
 // Ver docs/operacao/homologacao.md.
 //
-//   pnpm homolog:preparar [--ip 10.1.1.138]  1ª vez: clone + .env da homologação (segredos novos)
+//   pnpm homolog:preparar [--rede [--ip x]]  1ª vez: clone + .env da homologação (segredos novos);
+//                                            padrão http://localhost:34837, --rede = rede local
 //   pnpm homolog:copiar-prod                 copia o banco da produção (pg_dump só leitura) para a homologação
 //   pnpm homolog:subir <branch>              põe a branch no ar na homologação (migrations rodam sozinhas)
 //   pnpm homolog:status | homolog:parar
@@ -62,6 +63,15 @@ function compose(args, opts = {}) {
   return rodar('docker', [...base, '-f', 'docker-compose.homolog.yml', ...args], { cwd: CLONE, ...opts });
 }
 
+/** Endereço da homologação (WEB_ORIGIN do .env dela; não é segredo). */
+function endereco() {
+  const linha = fs
+    .readFileSync(ENV, 'utf8')
+    .split(/\r?\n/)
+    .find((l) => l.startsWith('WEB_ORIGIN='));
+  return linha?.slice('WEB_ORIGIN='.length) ?? `http://localhost:${HTTP_PORT}`;
+}
+
 function ipDaRede() {
   const i = process.argv.indexOf('--ip');
   if (i > 0 && process.argv[i + 1]) return process.argv[i + 1];
@@ -85,8 +95,9 @@ function preparar() {
   if (fs.existsSync(ENV)) {
     console.log('.env da homologação já existe — não foi alterado. Apague-o para regerar.');
   } else {
-    const ip = ipDaRede();
-    const url = `http://${ip}:${HTTP_PORT}`;
+    // Padrão: só nesta máquina. --rede publica na rede local (exige liberar a porta no firewall).
+    const rede = process.argv.includes('--rede');
+    const url = `http://${rede ? ipDaRede() : 'localhost'}:${HTTP_PORT}`;
     const segredo = (n) => crypto.randomBytes(n).toString('base64url');
     const valores = {
       POSTGRES_PASSWORD: segredo(24),
@@ -99,16 +110,16 @@ function preparar() {
     for (const [k, v] of Object.entries(valores))
       env = env.replace(new RegExp(`^${k}=.*$`, 'm'), `${k}=${v}`);
     env = env.replaceAll('__POSTGRES_PASSWORD__', encodeURIComponent(valores.POSTGRES_PASSWORD));
-    env += `\n# Homologação (gerado por scripts/homologacao.mjs)\n${MARCADOR}\nHTTP_PORT=${HTTP_PORT}\nMAILPIT_PORT=${MAILPIT_PORT}\n`;
+    env += `\n# Homologação (gerado por scripts/homologacao.mjs)\n${MARCADOR}\nHTTP_BIND=${rede ? '0.0.0.0' : '127.0.0.1'}\nHTTP_PORT=${HTTP_PORT}\nMAILPIT_PORT=${MAILPIT_PORT}\n`;
     fs.writeFileSync(ENV, env, { mode: 0o600 });
     console.log(`.env da homologação criado (segredos novos; endereço ${url}).`);
   }
   console.log(`
 Próximos passos:
-  1. Liberar a porta na rede local (PowerShell como administrador, uma vez):
-     netsh advfirewall firewall add rule name="meta-bi-homolog" dir=in action=allow protocol=TCP localport=${HTTP_PORT}
-  2. pnpm homolog:subir main
-  3. pnpm homolog:copiar-prod`);
+  1. pnpm homolog:subir main
+  2. pnpm homolog:copiar-prod
+  (Só com --rede: liberar a porta no firewall, no PowerShell como administrador, uma vez:
+   netsh advfirewall firewall add rule name="meta-bi-homolog" dir=in action=allow protocol=TCP localport=${HTTP_PORT})`);
 }
 
 function subir() {
@@ -122,7 +133,7 @@ function subir() {
   rodar('git', ['checkout', '--detach', `origin/${branch}`], { cwd: CLONE });
   compose(['up', '-d', '--build', '--wait']);
   const rev = saida('git', ['log', '-1', '--format=%h %s'], { cwd: CLONE });
-  console.log(`\n✔ Homologação no ar com ${branch} (${rev}) em http://<ip-da-rede>:${HTTP_PORT}`);
+  console.log(`\n✔ Homologação no ar com ${branch} (${rev}) em ${endereco()}`);
 }
 
 function copiarProd() {
