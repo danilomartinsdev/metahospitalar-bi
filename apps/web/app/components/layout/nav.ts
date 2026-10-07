@@ -1,7 +1,7 @@
 import type { Permission } from '@meta-bi/shared';
-import { MINHAS_VENDAS, type RestricaoEscopo } from '~/utils/navegacao';
+import { MINHAS_VENDAS } from '~/utils/navegacao';
 
-export interface NavItem extends RestricaoEscopo {
+export interface NavItem {
   label: string;
   to: string;
   /** Nome do ícone (i-lucide-*), renderizado com UIcon. */
@@ -37,7 +37,6 @@ export const NAV: NavGroup[] = [
         to: '/dashboard/gestores',
         icon: 'i-lucide-trophy',
         permissao: 'dashboard.view',
-        ocultarEscopo: ['representantes'],
       },
       {
         label: 'Estados',
@@ -50,7 +49,6 @@ export const NAV: NavGroup[] = [
         to: '/dashboard/regioes',
         icon: 'i-lucide-map',
         permissao: 'dashboard.view',
-        ocultarEscopo: ['representantes'],
       },
       {
         label: 'Clientes',

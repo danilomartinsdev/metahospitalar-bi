@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useAuthStore } from '~/stores/auth';
-import { paginaInicial, visivelNoEscopo } from '~/utils/navegacao';
+import { paginaInicial } from '~/utils/navegacao';
 import { NAV } from './nav';
 
 defineProps<{ recolhida?: boolean }>();
@@ -9,13 +9,12 @@ const emit = defineEmits<{ navegou: [] }>();
 const can = useCan();
 const route = useRoute();
 const auth = useAuthStore();
-const escopo = computed(() => auth.usuario?.escopoTipo);
 const inicio = computed(() => paginaInicial(auth.usuario));
 
 const grupos = computed(() =>
   NAV.map((g) => ({
     ...g,
-    itens: g.itens.filter((i) => can(i.permissao) && visivelNoEscopo(i, escopo.value)),
+    itens: g.itens.filter((i) => can(i.permissao)),
   })).filter((g) => g.itens.length),
 );
 

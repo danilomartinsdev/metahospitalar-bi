@@ -1,5 +1,5 @@
 import { useAuthStore } from '~/stores/auth';
-import { paginaInicial, visivelNoEscopo } from '~/utils/navegacao';
+import { paginaInicial } from '~/utils/navegacao';
 
 const PUBLICAS = new Set(['/login', '/esqueci-senha', '/redefinir-senha']);
 
@@ -26,16 +26,11 @@ export default defineNuxtRouteMiddleware(async (to) => {
 
   const exigida = to.meta.permissao;
   if (exigida && !auth.permissoes.has(exigida)) return navigateTo('/403');
-
-  // Tela feita para outro escopo (ex.: Minhas vendas para a gestão) → página inicial do usuário.
-  if (!visivelNoEscopo(to.meta, auth.usuario?.escopoTipo)) return navigateTo(inicio);
 });
 
 declare module '#app' {
   interface PageMeta {
     permissao?: import('@meta-bi/shared').Permission;
-    somenteEscopo?: readonly import('@meta-bi/shared').EscopoTipo[];
-    ocultarEscopo?: readonly import('@meta-bi/shared').EscopoTipo[];
     titulo?: string;
   }
 }

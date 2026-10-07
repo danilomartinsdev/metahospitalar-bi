@@ -26,16 +26,10 @@ test.describe('cada papel vê só o que pode', () => {
     await entrar(page, USUARIOS.representante, /^Olá/);
     await expect(page).toHaveURL(/\/minhas-vendas$/);
     const itens = await itensDoMenu(page);
-    expect(itens).toEqual(expect.arrayContaining(['Minhas vendas', 'Visão geral', 'Pedidos']));
-    for (const proibido of [
-      'Representantes',
-      'Regiões',
-      'Importações',
-      'Usuários',
-      'Papéis',
-      'Auditoria',
-      'Metas',
-    ]) {
+    expect(itens).toEqual(
+      expect.arrayContaining(['Minhas vendas', 'Visão geral', 'Representantes', 'Regiões', 'Pedidos']),
+    );
+    for (const proibido of ['Importações', 'Usuários', 'Papéis', 'Auditoria', 'Metas']) {
       expect(itens).not.toContain(proibido);
     }
     await page.goto('/admin/usuarios');
@@ -43,14 +37,14 @@ test.describe('cada papel vê só o que pode', () => {
     await expect(page.getByRole('heading', { name: 'Você não tem acesso a esta página' })).toBeVisible();
   });
 
-  test('admin vê administração completa; Minhas vendas não é para ele', async ({ page }) => {
+  test('admin vê administração completa e continua na Visão geral', async ({ page }) => {
     await entrar(page, USUARIOS.admin);
     const itens = await itensDoMenu(page);
     expect(itens).toEqual(
       expect.arrayContaining(['Importações', 'Metas', 'Usuários', 'Papéis', 'Auditoria']),
     );
-    expect(itens).not.toContain('Minhas vendas');
-    await page.goto('/minhas-vendas');
+    // Admin tem todas as permissões: vê o item (com os números da empresa), mas não cai nele no login.
+    expect(itens).toContain('Minhas vendas');
     await expect(page).toHaveURL(/\/dashboard$/);
   });
 });
