@@ -113,6 +113,8 @@ Depois de restaurar: os usuários de exemplo do desenvolvimento (`admin@`, `gest
 
 ## Atualizar para uma versão nova
 
+Antes, valide a branch na homologação, sobre uma cópia da base de produção: [homologacao.md](homologacao.md).
+
 ```bash
 cd metahospitalar-bi
 git pull
