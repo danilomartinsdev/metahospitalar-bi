@@ -19,6 +19,7 @@
 | Permissão       | Admin | Gestor comercial | Representante | Visualizador |
 | --------------- | :---: | :--------------: | :-----------: | :----------: |
 | dashboard.view  |   ✔   |        ✔         |       ✔       |      ✔       |
+| minhas-vendas.view | ✔ |                  |       ✔       |              |
 | pedidos.view    |   ✔   |        ✔         |       ✔       |      ✔       |
 | import.run      |   ✔   |        ✔         |               |              |
 | import.rollback |   ✔   |        ✔         |               |              |
@@ -51,8 +52,10 @@ Visualizador = configurável.
   (prévia, confirmar, lotes, rollback), metas (ler e salvar) e faturamento (ver e importar — é um número da
   empresa inteira, sem representante). A prévia pertence a quem a enviou.
 
-- **Menu e página inicial por escopo são só UI** (`utils/navegacao.ts`): representante cai em
-  /minhas-vendas e não vê Representantes/Regiões no menu; nada disso protege dado — o filtro é o do
+- **Minhas vendas, menu e página inicial são só UI** (`utils/navegacao.ts`): /minhas-vendas exige
+  `minhas-vendas.view` e some para o escopo "todos" (o Admin tem a permissão, mas fica na Visão geral);
+  quem pode vê-la cai nela após o login. Representante não vê Representantes/Regiões no menu. Nada disso
+  protege dado — os números vêm dos endpoints de dashboard (`dashboard.view`) filtrados pelo
   `ScopedPedidosRepository`.
 
 ## Proteção contra escalonamento de privilégio (Fase 4)
