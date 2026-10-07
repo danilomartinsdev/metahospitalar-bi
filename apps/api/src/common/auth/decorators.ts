@@ -11,8 +11,11 @@ export const ALLOW_PENDING_PASSWORD = 'auth:allow-pending-password';
 /** Rota sem autenticação (login, refresh, esqueci a senha...). Use com parcimônia. */
 export const Public = () => SetMetadata(IS_PUBLIC, true);
 
-/** Exige a permissão. Toda rota não pública precisa disto OU de @AuthenticatedOnly. */
-export const RequirePermission = (permissao: Permission) => SetMetadata(PERMISSION, permissao);
+/**
+ * Exige a permissão (com várias, basta uma). Toda rota não pública precisa disto OU de @AuthenticatedOnly.
+ */
+export const RequirePermission = (...permissoes: [Permission, ...Permission[]]) =>
+  SetMetadata(PERMISSION, permissoes);
 
 /** Rota que só exige estar logado (ex.: /auth/me). Explícito para não ser esquecido. */
 export const AuthenticatedOnly = () => SetMetadata(AUTHENTICATED_ONLY, true);

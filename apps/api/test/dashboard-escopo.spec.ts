@@ -105,3 +105,47 @@ describe('escopo de dados (RBAC) nos dashboards e pedidos', () => {
     expect((await get('/api/dashboard/ranking/clientes-vip', tokenGestor)).status).toBe(400);
   });
 });
+
+describe('papel só com "Ver Minhas vendas" (sem Ver dashboards / Ver pedidos)', () => {
+  const periodo = 'de=2026-01&ate=2026-12';
+
+  async function usuarioComPapel(email: string, permissoes: string[]) {
+    const role = await ctx.prisma.role.create({
+      data: {
+        chave: `teste-${email}`,
+        nome: email,
+        permissoes: { create: permissoes.map((permissao) => ({ permissao })) },
+      },
+    });
+    const u = await criarUsuario(ctx.prisma, { email });
+    await ctx.prisma.usuario.update({
+      where: { id: u.id },
+      data: { roleId: role.id, escopoTipo: 'REPRESENTANTES' },
+    });
+    await ctx.prisma.usuarioRepresentante.create({ data: { usuarioId: u.id, representanteId: repId } });
+    return (await login(ctx.app, email)).body.accessToken as string;
+  }
+
+  it('vê os próprios números (os mesmos do representante) e nada dos outros', async () => {
+    const t = await usuarioComPapel('so-mv@meta.com', ['minhas-vendas.view']);
+    const proprio = await get(`/api/dashboard/visao-geral?${periodo}`, t);
+    expect(proprio.status).toBe(200);
+    expect(proprio.body.kpis.total.valor).toBe(
+      (await get(`/api/dashboard/visao-geral?${periodo}`, tokenRep)).body.kpis.total.valor,
+    );
+    expect(
+      (await get(`/api/dashboard/ranking/gestores?${periodo}`, t)).body.linhas.map(
+        (l: { chave: string }) => l.chave,
+      ),
+    ).toEqual([repId]);
+    expect((await get(`/api/pedidos?${periodo}&gestor=${outroRepId}`, t)).body.meta.total).toBe(0);
+    expect((await get('/api/dashboard/meses', t)).status).toBe(200);
+    expect((await get('/api/metas?ano=2026', t)).status).toBe(403);
+  });
+
+  it('sem nenhuma das permissões de vendas, as consultas são 403', async () => {
+    const t = await usuarioComPapel('sem-vendas@meta.com', ['audit.view']);
+    expect((await get(`/api/dashboard/visao-geral?${periodo}`, t)).status).toBe(403);
+    expect((await get(`/api/pedidos?${periodo}`, t)).status).toBe(403);
+  });
+});

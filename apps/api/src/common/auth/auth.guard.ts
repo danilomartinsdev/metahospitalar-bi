@@ -43,9 +43,9 @@ export class AuthGuard implements CanActivate {
       throw Erros.trocaSenhaObrigatoria();
     }
 
-    const permissao = this.reflector.getAllAndOverride<Permission | undefined>(PERMISSION, alvos);
-    if (permissao) {
-      if (!usuario.permissoes.includes(permissao)) throw Erros.semPermissao();
+    const permissoes = this.reflector.getAllAndOverride<Permission[] | undefined>(PERMISSION, alvos);
+    if (permissoes?.length) {
+      if (!permissoes.some((p) => usuario.permissoes.includes(p))) throw Erros.semPermissao();
       return true;
     }
     if (this.reflector.getAllAndOverride<boolean>(AUTHENTICATED_ONLY, alvos)) return true;

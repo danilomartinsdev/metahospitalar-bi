@@ -18,6 +18,8 @@ definePageMeta({ titulo: 'Minhas vendas', permissao: 'minhas-vendas.view' });
 useHead({ title: 'Minhas vendas — BI Metahospitalar' });
 
 const auth = useAuthStore();
+// Os links "Ver todos" levam a telas com permissão própria; quem só tem Minhas vendas não os vê.
+const can = useCan();
 const { filtros, definir } = useFiltros();
 const qs = computed(() => {
   const p = new URLSearchParams();
@@ -211,6 +213,7 @@ const COR: Record<string, string> = {
         <div class="flex items-center justify-between p-5 pb-3">
           <h3 class="text-sm font-medium text-muted-foreground">Top 10 clientes</h3>
           <NuxtLink
+            v-if="can('dashboard.view')"
             :to="{ path: '/dashboard/clientes', query: linkPeriodo }"
             class="text-xs font-medium text-primary hover:underline"
           >
@@ -251,6 +254,7 @@ const COR: Record<string, string> = {
         <div class="flex items-center justify-between">
           <h3 class="text-sm font-medium text-muted-foreground">Vendas por estado</h3>
           <NuxtLink
+            v-if="can('dashboard.view')"
             :to="{ path: '/dashboard/estados', query: linkPeriodo }"
             class="text-xs font-medium text-primary hover:underline"
           >
@@ -278,6 +282,7 @@ const COR: Record<string, string> = {
       <div class="flex items-center justify-between p-5 pb-3">
         <h3 class="text-sm font-medium text-muted-foreground">Pedidos recentes</h3>
         <NuxtLink
+          v-if="can('pedidos.view')"
           :to="{ path: '/pedidos', query: linkPeriodo }"
           class="text-xs font-medium text-primary hover:underline"
         >
