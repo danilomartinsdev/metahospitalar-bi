@@ -51,6 +51,10 @@ Visualizador = configurável.
   (prévia, confirmar, lotes, rollback), metas (ler e salvar) e faturamento (ver e importar — é um número da
   empresa inteira, sem representante). A prévia pertence a quem a enviou.
 
+- **Menu e página inicial por escopo são só UI** (`utils/navegacao.ts`): representante cai em
+  /minhas-vendas e não vê Representantes/Regiões no menu; nada disso protege dado — o filtro é o do
+  `ScopedPedidosRepository`.
+
 ## Proteção contra escalonamento de privilégio (Fase 4)
 
 - Ninguém altera o próprio papel, o próprio escopo nem as permissões do papel que usa.

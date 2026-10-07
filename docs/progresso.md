@@ -21,6 +21,7 @@ Período e busca ficaram na barra de filtros de cada tela (não na topbar).
 ## Pendências
 
 - [x] **Migração UI → Nuxt UI v4** (fase-4b-ui, ADR 0007): fases 0–8 feitas (tema, shell, primitivos/overlays/toasts, tabelas/paginação/selects, formulários de auth com UForm, telas de admin com UCheckbox/USwitch/URadioGroup, filtro por usuário e detalhe na auditoria, validação/alterações pendentes em metas; dashboards com atingimento acumulado da meta, comparativo acumulado em gráfico, sparkline de % Público, atalhos de período, aviso de busca ativa e top 3 destacado nos rankings — inspirados no dashboard HTML de referência); 8 (2026-10-06): removidos components/ui, components.json, shadcn-nuxt, reka-ui (direto), vue-sonner, tw-animate-css, cva/clsx/tailwind-merge e os pacotes lucide — ícones só via UIcon (i-lucide-*, bundle local). Exportação CSV da referência não entra: a spec prevê Excel (export.xlsx) em fase própria.
+- [x] **Minhas vendas** (2026-10-07, `fase-5-minhas-vendas`): tela `/minhas-vendas` para o representante (KPIs, meta do mês/acumulada, evolução, top clientes, por estado, pedidos recentes). Só frontend, reaproveita os endpoints com escopo. Representante cai nela após o login; menu esconde Representantes e Regiões para ele (as rotas seguem acessíveis, com dados já filtrados). Gestão que abre a URL vai para a Visão geral.
 - [ ] Tela de override de segmento por cliente (Fase 4, ainda não feita).
 - [ ] **Exportação** Excel (pedidos, rankings, clientes) e PDF executivo (ADR 0004): funcionando (menu "Exportar" nas análises) e **PDF de faturamento** (botão "Exportar PDF" na tela de Faturamento: período, tabela do ano e comparativo com meses/indicador da tela; exige faturamento.view + escopo "todos"). Token de impressão no banco (`TokenImpressao`), de uso único e preso ao tipo de relatório; testes de token, 401/403 e parâmetros. Falta: atualizar docs/arquitetura/api.md; revisor-rbac.
 - [ ] **Histórico manual** de faturamento mensal: tela Administração › Histórico e cálculo prontos (total vendido, evolução, atingimento, acumulado e PDF). Falta: testes (unitário do total com manual + integração 403/escopo) e docs/dados/metricas-kpis.md.
@@ -34,6 +35,8 @@ Período e busca ficaram na barra de filtros de cada tela (não na topbar).
 - [ ] Primeira execução da CI no GitHub.
 
 ## Decisões tomadas
+
+- **Tela do representante (2026-10-07):** só usuários com escopo "representantes vinculados" veem "Minhas vendas", que vira a página inicial deles; demais papéis continuam na Visão geral. Conteúdo: KPIs, meta (mês e acumulado), evolução, top clientes, vendas por estado, pedidos recentes. Menu esconde os rankings de Representantes e Regiões para o representante.
 
 - **Reimportação de faturamento (2026-10-06):** a prévia lista os meses da planilha, com o que já existe no sistema em cada um, e o usuário **escolhe quais importar** (todos marcados por padrão). Cada mês escolhido é substituído por completo; os demais não mudam (antes: o ano inteiro era substituído). Importar outubro não apaga jan–set; reimportar outubro atualizado troca outubro inteiro, sem duplicar.
 
