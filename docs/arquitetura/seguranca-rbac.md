@@ -53,8 +53,9 @@ Visualizador = configurável.
   empresa inteira, sem representante). A prévia pertence a quem a enviou.
 
 - **Minhas vendas, menu e página inicial são só UI** (`utils/navegacao.ts`): /minhas-vendas exige
-  `minhas-vendas.view` e some para o escopo "todos" (o Admin tem a permissão, mas fica na Visão geral);
-  quem pode vê-la cai nela após o login. Representante não vê Representantes/Regiões no menu. Nada disso
+  `minhas-vendas.view` — só a permissão, marcada em Papéis, decide se a tela aparece (o escopo decide quais
+  pedidos ela mostra). O Admin tem a permissão por regra: vê o item, mas a página inicial dele é a Visão geral;
+  quem pode vê-la cai nela após o login. Nada disso
   protege dado — os números vêm dos endpoints de dashboard (`dashboard.view`) filtrados pelo
   `ScopedPedidosRepository`.
 
