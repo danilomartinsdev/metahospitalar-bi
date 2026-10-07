@@ -8,8 +8,8 @@ uma cópia da base de produção antes do merge na `main` e do deploy.
 | Projeto Docker | `meta-bi-prod`                    | `meta-bi-homolog`                                                           |
 | Pasta (clone)  | `C:\Users\Danilo\meta-bi-publico` | `C:\Users\Danilo\meta-bi-homolog`                                           |
 | `.env`         | o da pasta da produção            | o da pasta da homologação (segredos próprios, linha `AMBIENTE=homologacao`) |
-| Acesso         | ngrok (HTTPS)                     | só nesta máquina: `http://localhost:34837` (opcional: rede local)           |
-| E-mail         | SMTP real                         | Mailpit (`http://127.0.0.1:34839`), nada sai                                |
+| Acesso         | ngrok (HTTPS)                     | só nesta máquina: `http://localhost:4337` (opcional: rede local)            |
+| E-mail         | SMTP real                         | Mailpit (`http://127.0.0.1:4339`), nada sai                                 |
 | Identificação  | —                                 | faixa "Homologação" em todas as telas e `[HOMOLOG]` no título da aba        |
 
 Volumes, rede e containers são separados (`meta-bi-homolog_*`). Tudo é feito pelo
@@ -19,7 +19,7 @@ recusa rodar se o `.env` do clone não for o da homologação. Da produção, o 
 ## Primeira vez
 
 ```bash
-pnpm homolog:preparar            # clone + .env da homologação, em http://localhost:34837
+pnpm homolog:preparar            # clone + .env da homologação, em http://localhost:4337
 ```
 
 Para abrir de outros computadores da rede: apague o `.env` do clone (antes de subir pela primeira vez),
@@ -27,7 +27,7 @@ rode `pnpm homolog:preparar --rede` (detecta o IP; ou `--rede --ip 10.1.1.138`) 
 (PowerShell **como administrador**, uma vez):
 
 ```powershell
-netsh advfirewall firewall add rule name="meta-bi-homolog" dir=in action=allow protocol=TCP localport=34837
+netsh advfirewall firewall add rule name="meta-bi-homolog" dir=in action=allow protocol=TCP localport=4337
 ```
 
 ## Testar uma branch
