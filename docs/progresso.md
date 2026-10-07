@@ -33,7 +33,7 @@ Período e busca ficaram na barra de filtros de cada tela (não na topbar).
 - [ ] Default branch do GitHub ainda é `fase-0-contexto` (trocar para `main` em Settings ou autenticar o `gh`).
 - [ ] Subir a stack de produção (`docker-compose.prod.yml`) de ponta a ponta — imagens já compilam (Fase 6).
 - [ ] Primeira execução da CI no GitHub.
-- [ ] **Ambiente de homologação** separado da produção (2026-10-07): a stack `meta-bi-prod` (ngrok) é produção de verdade — nada de usuários/dados de teste nela. Testes manuais e validação de deploy passam a ir para a homologação antes.
+- [ ] **Ambiente de homologação** (2026-10-07, `infra-homologacao`): stack `meta-bi-homolog` isolada da produção (clone e `.env` próprios, rede local na porta 34837, Mailpit, faixa "Homologação"), com cópia da produção via `pnpm homolog:copiar-prod` — ver docs/operacao/homologacao.md. Falta a primeira subida, feita pelo usuário (`homolog:preparar`, firewall, `homolog:subir`, `homolog:copiar-prod`). Nada de usuários/dados de teste na produção.
 
 ## Decisões tomadas
 
