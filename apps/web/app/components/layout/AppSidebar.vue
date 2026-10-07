@@ -90,5 +90,20 @@ function ativo(to: string) {
         </ul>
       </div>
     </div>
+
+    <div class="shrink-0 border-t border-sidebar-border px-3 py-3">
+      <UTooltip text="Sair" :content="{ side: 'right' }" :delay-duration="0" :disabled="!recolhida">
+        <button
+          type="button"
+          class="flex h-10 w-full items-center gap-3 rounded-lg px-3 text-sm text-sidebar-foreground/85 transition-colors hover:bg-sidebar-active"
+          :class="recolhida && 'justify-center px-0'"
+          :aria-label="recolhida ? 'Sair' : undefined"
+          @click="auth.logout()"
+        >
+          <UIcon name="i-lucide-log-out" class="size-[18px] shrink-0" aria-hidden="true" />
+          <span v-if="!recolhida" class="flex-1 truncate text-left">Sair</span>
+        </button>
+      </UTooltip>
+    </div>
   </nav>
 </template>
