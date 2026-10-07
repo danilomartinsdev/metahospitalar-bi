@@ -11,17 +11,19 @@ import { barrasRankingOptions, evolucaoOptions } from '~/utils/charts/options';
 import { atingimentoDoMes } from '~/utils/minhas-vendas';
 import { periodoPorExtenso, variacoesKpi } from '~/utils/periodo';
 
-// Os dados já vêm filtrados pelo escopo no backend; aqui só o período.
+// Os dados já vêm filtrados pelo escopo no backend (só os representantes ligados ao usuário); aqui ele
+// escolhe o período e, se tiver mais de um representante, quais mostrar (a API intersecta com o escopo).
 // Aparece por permissão (Administração › Papéis), como em MINHAS_VENDAS (utils/navegacao).
 definePageMeta({ titulo: 'Minhas vendas', permissao: 'minhas-vendas.view' });
 useHead({ title: 'Minhas vendas — BI Metahospitalar' });
 
 const auth = useAuthStore();
-const { filtros } = useFiltros();
+const { filtros, definir } = useFiltros();
 const qs = computed(() => {
   const p = new URLSearchParams();
   if (filtros.value.de) p.set('de', filtros.value.de);
   if (filtros.value.ate) p.set('ate', filtros.value.ate);
+  if (filtros.value.gestor.length) p.set('gestor', filtros.value.gestor.join(','));
   return p.toString();
 });
 const qsPedidos = computed(() => {
@@ -42,11 +44,25 @@ const reps = useRepresentantesQuery();
 const v = computed(() => q.data.value);
 const carregando = computed(() => q.isPending.value);
 const primeiroNome = computed(() => auth.usuario?.nome.split(' ')[0] ?? '');
-const codigos = computed(() => (reps.data.value ?? []).map((r) => r.nomeExibicao).join(', '));
+/** Representantes ligados ao usuário (a API devolve só esses) e os que ele escolheu mostrar. */
+const opcoesRep = computed(() =>
+  (reps.data.value ?? []).map((r) => ({ valor: r.id, rotulo: r.nomeExibicao })),
+);
+const codigos = computed(() => {
+  const sel = filtros.value.gestor;
+  return opcoesRep.value
+    .filter((o) => !sel.length || sel.includes(o.valor))
+    .map((o) => o.rotulo)
+    .join(', ');
+});
 const rotuloPeriodo = computed(() =>
   v.value ? periodoPorExtenso(v.value.periodo.de, v.value.periodo.ate) : '',
 );
-const linkPeriodo = computed(() => ({ de: filtros.value.de, ate: filtros.value.ate }));
+const linkPeriodo = computed(() => ({
+  de: filtros.value.de,
+  ate: filtros.value.ate,
+  ...(filtros.value.gestor.length ? { gestor: filtros.value.gestor.join(',') } : {}),
+}));
 
 const serie = (k: 'total' | 'qtd' | 'ticket') => v.value?.kpis[k].serie.map((s) => Number(s.valor)) ?? [];
 const variacoes = (k: 'total' | 'qtd' | 'ticket') =>
@@ -93,7 +109,15 @@ const COR: Record<string, string> = {
       <DashboardExportarMenu />
     </div>
 
-    <DashboardFilterBar :periodo="v?.periodo" somente-periodo />
+    <DashboardFilterBar :periodo="v?.periodo" somente-periodo>
+      <DashboardMultiFiltro
+        v-if="opcoesRep.length > 1"
+        rotulo="Representante"
+        :opcoes="opcoesRep"
+        :selecionados="filtros.gestor"
+        @alterar="(v) => definir({ gestor: v })"
+      />
+    </DashboardFilterBar>
 
     <UiExtraEstadoBloco v-if="q.error.value" :erro="q.error.value" @tentar-de-novo="q.refetch()" />
     <template v-else>

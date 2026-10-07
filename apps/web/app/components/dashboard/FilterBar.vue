@@ -107,6 +107,13 @@ const opcoes = computed(() => ({
       />
     </div>
 
+    <!-- Com somentePeriodo, a tela pode pôr filtros próprios aqui (ex.: representantes em Minhas vendas). -->
+    <div
+      v-if="somentePeriodo && $slots.default"
+      class="flex flex-1 flex-wrap items-center gap-2 lg:justify-end"
+    >
+      <slot />
+    </div>
     <div v-if="!somentePeriodo" class="flex flex-1 flex-wrap items-center gap-2 lg:justify-end">
       <DashboardMultiFiltro
         rotulo="Região"
