@@ -19,6 +19,7 @@
 | Permissão       | Admin | Gestor comercial | Representante | Visualizador |
 | --------------- | :---: | :--------------: | :-----------: | :----------: |
 | dashboard.view  |   ✔   |        ✔         |       ✔       |      ✔       |
+| minhas-vendas.view |  |                  |       ✔       |              |
 | pedidos.view    |   ✔   |        ✔         |       ✔       |      ✔       |
 | import.run      |   ✔   |        ✔         |               |              |
 | import.rollback |   ✔   |        ✔         |               |              |
@@ -50,6 +51,10 @@ Visualizador = configurável.
 - **Ações que valem para a base inteira exigem escopo "todos"**, além da permissão: importação
   (prévia, confirmar, lotes, rollback), metas (ler e salvar) e faturamento (ver e importar — é um número da
   empresa inteira, sem representante). A prévia pertence a quem a enviou.
+
+- **Minhas vendas** (2026-10-07): a tela aparece só para quem tem `minhas-vendas.view` — checkbox em
+  Papéis, marcado só no Representante. É a única permissão fora das "todas" do Admin (`PERMISSOES_ADMIN`).
+  Quem tem a permissão cai nela após o login. Os números seguem o escopo do usuário no backend.
 
 ## Proteção contra escalonamento de privilégio (Fase 4)
 

@@ -35,6 +35,8 @@ Período e busca ficaram na barra de filtros de cada tela (não na topbar).
 
 ## Decisões tomadas
 
+- **Minhas vendas (2026-10-07):** aparece só para representante, por checkbox em Papéis (`minhas-vendas.view`, marcada só no papel Representante; o Admin não recebe). Montada sobre a versão da produção (`062dfff`); o cadastro de usuário continua como na produção (escopo "Por representante" define quais vendas ele vê). A simplificação "papel decide as vendas" ficou guardada em stash, não aplicada.
+
 - **Reimportação de faturamento (2026-10-06):** a prévia lista os meses da planilha, com o que já existe no sistema em cada um, e o usuário **escolhe quais importar** (todos marcados por padrão). Cada mês escolhido é substituído por completo; os demais não mudam (antes: o ano inteiro era substituído). Importar outubro não apaga jan–set; reimportar outubro atualizado troca outubro inteiro, sem duplicar.
 
 - **Histórico manual para comparativo (2026-10-05):** o usuário cadastra o **faturamento total da empresa por mês** de anos anteriores. O valor manual só vale em meses **sem nenhum pedido importado** (pedidos importados têm prioridade). Consequência (segurança/coerência): como é um total da empresa, só entra nos números para quem tem escopo "todos" e sem filtros de região/UF/representante/segmento/status/busca — mesmo critério das metas. Tela: Administração › Histórico (permissão metas.edit).
