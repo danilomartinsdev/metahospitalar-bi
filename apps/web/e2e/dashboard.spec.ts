@@ -11,14 +11,16 @@ async function entrar(page: Page) {
   });
 }
 
-test('visão geral: atalhos de período, busca ativa e acumulado por segmento', async ({ page }, info) => {
+test('visão geral: atalhos de período, busca ativa e comparativo com o ano anterior', async ({
+  page,
+}, info) => {
   test.skip(info.project.name !== 'desktop', 'só no desktop');
   test.setTimeout(120_000);
   const erros: string[] = [];
   page.on('pageerror', (e) => erros.push(e.message));
   await entrar(page);
 
-  await expect(page.getByRole('heading', { name: /Acumulado do ano por segmento/ })).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Comparativo com o ano anterior/ })).toBeVisible();
   await expect(page.getByText(/Sem meta para o período|Meta acumulada/)).toBeVisible();
 
   // Sem pedidos no banco de teste não há meses: os atalhos de período não aparecem.
