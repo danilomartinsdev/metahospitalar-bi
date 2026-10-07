@@ -36,4 +36,4 @@ services:
       - no-new-privileges:true
     # Interface web só nesta máquina.
     ports:
-      - '127.0.0.1:${MAILPIT_PORT:-34839}:8025'
+      - '127.0.0.1:${MAILPIT_PORT:-4339}:8025'

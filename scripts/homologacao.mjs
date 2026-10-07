@@ -3,7 +3,7 @@
 // Ver docs/operacao/homologacao.md.
 //
 //   pnpm homolog:preparar [--rede [--ip x]]  1ª vez: clone + .env da homologação (segredos novos);
-//                                            padrão http://localhost:34837, --rede = rede local
+//                                            padrão http://localhost:4337, --rede = rede local
 //   pnpm homolog:copiar-prod                 copia o banco da produção (pg_dump só leitura) para a homologação
 //   pnpm homolog:subir <branch>              põe a branch no ar na homologação (migrations rodam sozinhas)
 //   pnpm homolog:status | homolog:parar
@@ -22,8 +22,8 @@ const BACKUPS = 'C:/Users/Danilo/meta-bi-backups';
 const PROJETO = 'meta-bi-homolog';
 const PROD_POSTGRES = 'meta-bi-prod-postgres-1';
 const MARCADOR = 'AMBIENTE=homologacao';
-const HTTP_PORT = 34837;
-const MAILPIT_PORT = 34839;
+const HTTP_PORT = 4337;
+const MAILPIT_PORT = 4339;
 const ENV = path.posix.join(CLONE, '.env');
 
 function falhar(msg) {
