@@ -32,6 +32,7 @@ Período e busca ficaram na barra de filtros de cada tela (não na topbar).
 - [ ] Default branch do GitHub ainda é `fase-0-contexto` (trocar para `main` em Settings ou autenticar o `gh`).
 - [ ] Subir a stack de produção (`docker-compose.prod.yml`) de ponta a ponta — imagens já compilam (Fase 6).
 - [ ] Primeira execução da CI no GitHub.
+- [x] **Ambiente de homologação** (2026-10-07): stack `meta-bi-homolog` isolada da produção, em http://localhost:4337 (Mailpit em :4339), faixa "Homologação", cópia da produção via `pnpm homolog:copiar-prod` — ver docs/operacao/homologacao.md. Fluxo: validar na homologação, depois produção.
 
 ## Decisões tomadas
 
