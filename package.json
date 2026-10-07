@@ -23,6 +23,11 @@
     "db:reset": "docker compose down -v && docker compose up -d --wait postgres mailpit",
     "db:logs": "docker compose logs -f postgres",
     "secrets:check": "node scripts/check-secrets.mjs --all",
+    "homolog:preparar": "node scripts/homologacao.mjs preparar",
+    "homolog:subir": "node scripts/homologacao.mjs subir",
+    "homolog:copiar-prod": "node scripts/homologacao.mjs copiar-prod",
+    "homolog:status": "node scripts/homologacao.mjs status",
+    "homolog:parar": "node scripts/homologacao.mjs parar",
     "hooks:test": "node --test .claude/hooks/*.test.mjs",
     "prepare": "git config core.hooksPath .githooks"
   },

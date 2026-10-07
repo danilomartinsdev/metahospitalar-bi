@@ -9,6 +9,8 @@ export default defineNuxtConfig({
   // Permite um segundo servidor (E2E) rodar junto com o de dev sem disputar a pasta .nuxt.
   buildDir: process.env.NUXT_BUILD_DIR ?? '.nuxt',
   devtools: { enabled: false },
+  // Rótulo do ambiente (ex.: "homologacao"), lido de NUXT_PUBLIC_AMBIENTE no build; vazio em produção.
+  runtimeConfig: { public: { ambiente: '' } },
   modules: ['@nuxt/ui', '@pinia/nuxt'],
   colorMode: { storageKey: 'meta-bi-tema', classSuffix: '' },
   // Ícones usados no código (i-lucide-*) entram no bundle: nada de buscar na API do Iconify em produção
