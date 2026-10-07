@@ -1,30 +1,41 @@
 import { expect, type Page, test } from '@playwright/test';
 import { USUARIOS } from './global-setup';
 
-async function entrar(page: Page, email: string) {
+async function entrar(page: Page, email: string, titulo: string | RegExp = 'Visão geral') {
   await page.goto('/login');
   await page.getByLabel('E-mail').fill(email);
   await page.getByLabel('Senha', { exact: true }).fill(process.env.E2E_SENHA!);
   await page.getByRole('button', { name: 'Entrar' }).click();
-  await expect(page.getByRole('heading', { name: 'Visão geral', level: 2 })).toBeVisible();
+  await expect(page.getByRole('heading', { name: titulo, level: 2 })).toBeVisible();
 }
 
 async function itensDoMenu(page: Page) {
   const menu = page.getByRole('button', { name: 'Abrir menu' });
   if (await menu.isVisible()) await menu.click();
   const nav = page.getByRole('navigation', { name: 'Navegação principal' }).last();
-  await nav.getByRole('link', { name: /Visão geral/ }).waitFor();
+  await nav.getByRole('link', { name: /Pedidos/ }).waitFor();
   const textos = await nav.getByRole('link').allInnerTexts();
   await page.keyboard.press('Escape');
   return textos.map((t) => t.trim());
 }
 
 test.describe('cada papel vê só o que pode', () => {
-  test('representante: análise sim, administração não; URL direta leva ao 403', async ({ page }) => {
-    await entrar(page, USUARIOS.representante);
+  test('representante: cai em Minhas vendas; análise sim, administração não; URL direta leva ao 403', async ({
+    page,
+  }) => {
+    await entrar(page, USUARIOS.representante, /^Olá/);
+    await expect(page).toHaveURL(/\/minhas-vendas$/);
     const itens = await itensDoMenu(page);
-    expect(itens).toEqual(expect.arrayContaining(['Visão geral', 'Pedidos']));
-    for (const proibido of ['Importações', 'Usuários', 'Papéis', 'Auditoria', 'Metas']) {
+    expect(itens).toEqual(expect.arrayContaining(['Minhas vendas', 'Visão geral', 'Pedidos']));
+    for (const proibido of [
+      'Representantes',
+      'Regiões',
+      'Importações',
+      'Usuários',
+      'Papéis',
+      'Auditoria',
+      'Metas',
+    ]) {
       expect(itens).not.toContain(proibido);
     }
     await page.goto('/admin/usuarios');
@@ -32,12 +43,15 @@ test.describe('cada papel vê só o que pode', () => {
     await expect(page.getByRole('heading', { name: 'Você não tem acesso a esta página' })).toBeVisible();
   });
 
-  test('admin vê administração completa', async ({ page }) => {
+  test('admin vê administração completa; Minhas vendas não é para ele', async ({ page }) => {
     await entrar(page, USUARIOS.admin);
     const itens = await itensDoMenu(page);
     expect(itens).toEqual(
       expect.arrayContaining(['Importações', 'Metas', 'Usuários', 'Papéis', 'Auditoria']),
     );
+    expect(itens).not.toContain('Minhas vendas');
+    await page.goto('/minhas-vendas');
+    await expect(page).toHaveURL(/\/dashboard$/);
   });
 });
 

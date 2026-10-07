@@ -3,6 +3,7 @@ import { loginSchema } from '@meta-bi/shared';
 import type { FormSubmitEvent } from '@nuxt/ui';
 import type { z } from 'zod';
 import { useAuthStore } from '~/stores/auth';
+import { paginaInicial } from '~/utils/navegacao';
 
 definePageMeta({ layout: 'auth' });
 useHead({ title: 'Entrar — BI Metahospitalar' });
@@ -27,7 +28,9 @@ async function entrar({ data: dados }: FormSubmitEvent<z.output<typeof loginSche
   try {
     const usuario = await auth.login(dados);
     const destino =
-      typeof route.query.r === 'string' && route.query.r.startsWith('/') ? route.query.r : '/dashboard';
+      typeof route.query.r === 'string' && route.query.r.startsWith('/')
+        ? route.query.r
+        : paginaInicial(usuario.escopoTipo);
     await navigateTo(usuario.trocarSenha ? '/trocar-senha' : destino);
   } catch (e: unknown) {
     const code = (e as { data?: { code?: string } }).data?.code;

@@ -5,6 +5,7 @@ import type { FormSubmitEvent } from '@nuxt/ui';
 import type { z } from 'zod';
 import { useApi } from '~/composables/api/useApi';
 import { useAuthStore } from '~/stores/auth';
+import { paginaInicial } from '~/utils/navegacao';
 
 const aviso = useAviso();
 const auth = useAuthStore();
@@ -23,7 +24,7 @@ async function salvar({ data: dados }: FormSubmitEvent<z.output<typeof trocarSen
     const r = await request<AuthResposta>('/auth/trocar-senha', { method: 'POST', body: dados });
     auth.aplicar(r);
     aviso.sucesso('Senha alterada.');
-    await navigateTo('/dashboard');
+    await navigateTo(paginaInicial(r.usuario.escopoTipo));
   } catch (e: unknown) {
     const code = (e as { code?: string }).code;
     erro.value =
