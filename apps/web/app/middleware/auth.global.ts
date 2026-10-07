@@ -1,4 +1,5 @@
 import { useAuthStore } from '~/stores/auth';
+import { paginaInicial } from '~/utils/navegacao';
 
 const PUBLICAS = new Set(['/login', '/esqueci-senha', '/redefinir-senha']);
 
@@ -17,7 +18,8 @@ export default defineNuxtRouteMiddleware(async (to) => {
       : navigateTo({ path: '/login', query: to.fullPath !== '/' ? { r: to.fullPath } : {} });
   }
 
-  if (publica) return navigateTo('/dashboard');
+  const inicio = paginaInicial(auth.usuario);
+  if (publica) return navigateTo(inicio);
 
   // Troca de senha obrigatória (primeiro acesso ou senha redefinida pelo admin).
   if (auth.usuario?.trocarSenha && to.path !== '/trocar-senha') return navigateTo('/trocar-senha');

@@ -1,5 +1,8 @@
 <script setup lang="ts">
-await navigateTo('/dashboard', { replace: true });
+import { useAuthStore } from '~/stores/auth';
+import { paginaInicial } from '~/utils/navegacao';
+
+await navigateTo(paginaInicial(useAuthStore().usuario), { replace: true });
 </script>
 
 <template>

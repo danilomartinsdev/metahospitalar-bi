@@ -1,4 +1,5 @@
 import type { Permission } from '@meta-bi/shared';
+import { MINHAS_VENDAS } from '~/utils/navegacao';
 
 export interface NavItem {
   label: string;
@@ -20,6 +21,12 @@ export const NAV: NavGroup[] = [
     titulo: 'Análise',
     itens: [
       {
+        label: 'Minhas vendas',
+        to: '/minhas-vendas',
+        icon: 'i-lucide-circle-user-round',
+        ...MINHAS_VENDAS,
+      },
+      {
         label: 'Visão geral',
         to: '/dashboard',
         icon: 'i-lucide-layout-dashboard',
@@ -37,7 +44,12 @@ export const NAV: NavGroup[] = [
         icon: 'i-lucide-map-pinned',
         permissao: 'dashboard.view',
       },
-      { label: 'Regiões', to: '/dashboard/regioes', icon: 'i-lucide-map', permissao: 'dashboard.view' },
+      {
+        label: 'Regiões',
+        to: '/dashboard/regioes',
+        icon: 'i-lucide-map',
+        permissao: 'dashboard.view',
+      },
       {
         label: 'Clientes',
         to: '/dashboard/clientes',

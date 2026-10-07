@@ -1,12 +1,12 @@
 import { expect, type Page, test } from '@playwright/test';
 import { USUARIOS } from './global-setup';
 
-async function entrar(page: Page, email: string) {
+async function entrar(page: Page, email: string, titulo: string | RegExp = 'Visão geral') {
   await page.goto('/login');
   await page.getByLabel('E-mail').fill(email);
   await page.getByLabel('Senha', { exact: true }).fill(process.env.E2E_SENHA!);
   await page.getByRole('button', { name: 'Entrar' }).click();
-  await expect(page.getByRole('heading', { name: 'Visão geral', level: 2 })).toBeVisible();
+  await expect(page.getByRole('heading', { name: titulo, level: 2 })).toBeVisible();
 }
 
 async function itensDoMenu(page: Page) {
@@ -20,10 +20,11 @@ async function itensDoMenu(page: Page) {
 }
 
 test.describe('cada papel vê só o que pode', () => {
-  test('representante: análise sim, administração não; URL direta leva ao 403', async ({ page }) => {
-    await entrar(page, USUARIOS.representante);
+  test('representante: cai em Minhas vendas; administração não; URL direta leva ao 403', async ({ page }) => {
+    await entrar(page, USUARIOS.representante, /^Olá/);
+    await expect(page).toHaveURL(/\/minhas-vendas$/);
     const itens = await itensDoMenu(page);
-    expect(itens).toEqual(expect.arrayContaining(['Visão geral', 'Pedidos']));
+    expect(itens).toEqual(expect.arrayContaining(['Minhas vendas', 'Visão geral', 'Pedidos']));
     for (const proibido of ['Importações', 'Usuários', 'Papéis', 'Auditoria', 'Metas']) {
       expect(itens).not.toContain(proibido);
     }
@@ -38,6 +39,10 @@ test.describe('cada papel vê só o que pode', () => {
     expect(itens).toEqual(
       expect.arrayContaining(['Importações', 'Metas', 'Usuários', 'Papéis', 'Auditoria']),
     );
+    // Minhas vendas é só de quem tem o checkbox (padrão: papel Representante); o Admin não recebe.
+    expect(itens).not.toContain('Minhas vendas');
+    await page.goto('/minhas-vendas');
+    await expect(page).toHaveURL(/\/403$/);
   });
 });
 

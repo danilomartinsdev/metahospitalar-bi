@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useAuthStore } from '~/stores/auth';
+import { paginaInicial } from '~/utils/navegacao';
 import { NAV } from './nav';
 
 defineProps<{ recolhida?: boolean }>();
@@ -6,9 +8,14 @@ const emit = defineEmits<{ navegou: [] }>();
 
 const can = useCan();
 const route = useRoute();
+const auth = useAuthStore();
+const inicio = computed(() => paginaInicial(auth.usuario));
 
 const grupos = computed(() =>
-  NAV.map((g) => ({ ...g, itens: g.itens.filter((i) => can(i.permissao)) })).filter((g) => g.itens.length),
+  NAV.map((g) => ({
+    ...g,
+    itens: g.itens.filter((i) => can(i.permissao)),
+  })).filter((g) => g.itens.length),
 );
 
 function ativo(to: string) {
@@ -22,7 +29,7 @@ function ativo(to: string) {
     class="flex h-full w-full flex-col bg-sidebar text-sidebar-foreground"
   >
     <NuxtLink
-      to="/dashboard"
+      :to="inicio"
       class="flex h-16 shrink-0 items-center justify-center gap-3 border-b border-sidebar-border"
       :class="recolhida ? 'px-2' : 'px-4'"
       @click="emit('navegou')"

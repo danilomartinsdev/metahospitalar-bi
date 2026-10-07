@@ -15,7 +15,7 @@ import {
 import {
   type PapelAdmin,
   type PapelSalvar,
-  PERMISSIONS,
+  PERMISSOES_ADMIN,
   type Permission,
   papelSalvarSchema,
 } from '@meta-bi/shared';
@@ -104,8 +104,8 @@ export class PapeisController {
     if (role.chave === 'admin' || concedeAdministrativa) {
       exigirAdmin(u, 'Só um Admin pode alterar o papel Admin ou conceder permissões administrativas.');
     }
-    const permissoes = role.chave === 'admin' ? [...PERMISSIONS] : [...new Set(d.permissoes)];
-    if (role.chave === 'admin' && d.permissoes.length !== PERMISSIONS.length) {
+    const permissoes = role.chave === 'admin' ? [...PERMISSOES_ADMIN] : [...new Set(d.permissoes)];
+    if (role.chave === 'admin' && d.permissoes.length !== PERMISSOES_ADMIN.length) {
       throw new ApiException(HttpStatus.CONFLICT, 'CONFLICT', 'O papel Admin mantém todas as permissões.');
     }
     const antes = role.permissoes.map((p) => p.permissao).sort();

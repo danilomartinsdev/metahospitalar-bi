@@ -5,7 +5,12 @@ import { useRepresentantesQuery, useStatusQuery } from '~/composables/api/useCad
 import { useMesesQuery } from '~/composables/api/useDashboard';
 
 /** Período exibido quando a URL não define um (vem da API: início do ano até o último mês com dados). */
-const props = defineProps<{ periodo?: { de: string; ate: string }; semPeriodo?: boolean }>();
+/** somentePeriodo: esconde região/UF/representante/segmento/status/busca (ex.: Minhas vendas). */
+const props = defineProps<{
+  periodo?: { de: string; ate: string };
+  semPeriodo?: boolean;
+  somentePeriodo?: boolean;
+}>();
 
 const { filtros, ativos, definir, limpar } = useFiltros();
 const meses = useMesesQuery();
@@ -102,7 +107,7 @@ const opcoes = computed(() => ({
       />
     </div>
 
-    <div class="flex flex-1 flex-wrap items-center gap-2 lg:justify-end">
+    <div v-if="!somentePeriodo" class="flex flex-1 flex-wrap items-center gap-2 lg:justify-end">
       <DashboardMultiFiltro
         rotulo="Região"
         :opcoes="opcoes.regiao"
