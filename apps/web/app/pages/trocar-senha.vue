@@ -24,7 +24,7 @@ async function salvar({ data: dados }: FormSubmitEvent<z.output<typeof trocarSen
     const r = await request<AuthResposta>('/auth/trocar-senha', { method: 'POST', body: dados });
     auth.aplicar(r);
     aviso.sucesso('Senha alterada.');
-    await navigateTo(paginaInicial(r.usuario.escopoTipo));
+    await navigateTo(paginaInicial(r.usuario));
   } catch (e: unknown) {
     const code = (e as { code?: string }).code;
     erro.value =

@@ -30,7 +30,7 @@ async function entrar({ data: dados }: FormSubmitEvent<z.output<typeof loginSche
     const destino =
       typeof route.query.r === 'string' && route.query.r.startsWith('/')
         ? route.query.r
-        : paginaInicial(usuario.escopoTipo);
+        : paginaInicial(usuario);
     await navigateTo(usuario.trocarSenha ? '/trocar-senha' : destino);
   } catch (e: unknown) {
     const code = (e as { data?: { code?: string } }).data?.code;

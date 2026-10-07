@@ -11,8 +11,9 @@ import { barrasRankingOptions, evolucaoOptions } from '~/utils/charts/options';
 import { atingimentoDoMes } from '~/utils/minhas-vendas';
 import { periodoPorExtenso, variacoesKpi } from '~/utils/periodo';
 
-// Tela do representante. Os dados já vêm filtrados pelo escopo no backend; aqui só o período.
-definePageMeta({ titulo: 'Minhas vendas', permissao: 'dashboard.view', somenteEscopo: ['representantes'] });
+// Os dados já vêm filtrados pelo escopo no backend; aqui só o período.
+// Mesma regra de MINHAS_VENDAS (utils/navegacao): permissão em Papéis e fora do escopo "todos".
+definePageMeta({ titulo: 'Minhas vendas', permissao: 'minhas-vendas.view', ocultarEscopo: ['todos'] });
 useHead({ title: 'Minhas vendas — BI Metahospitalar' });
 
 const auth = useAuthStore();

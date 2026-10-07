@@ -1,6 +1,7 @@
 /** Permissões granulares do sistema. Fonte única para api, web e seed. */
 export const PERMISSIONS = [
   'dashboard.view',
+  'minhas-vendas.view',
   'pedidos.view',
   'import.run',
   'import.rollback',
@@ -18,6 +19,7 @@ export type Permission = (typeof PERMISSIONS)[number];
 
 export const PERMISSION_LABELS: Record<Permission, string> = {
   'dashboard.view': 'Ver dashboards',
+  'minhas-vendas.view': 'Ver Minhas vendas',
   'pedidos.view': 'Ver pedidos',
   'import.run': 'Importar relatório',
   'import.rollback': 'Desfazer importação',
@@ -53,7 +55,7 @@ export const DEFAULT_ROLES: Record<RoleKey, { nome: string; permissoes: readonly
   },
   representante: {
     nome: 'Representante',
-    permissoes: ['dashboard.view', 'pedidos.view', 'export.xlsx', 'export.pdf'],
+    permissoes: ['dashboard.view', 'minhas-vendas.view', 'pedidos.view', 'export.xlsx', 'export.pdf'],
   },
   visualizador: { nome: 'Visualizador', permissoes: ['dashboard.view', 'pedidos.view'] },
 };

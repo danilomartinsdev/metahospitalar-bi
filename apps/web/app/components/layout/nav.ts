@@ -1,5 +1,5 @@
 import type { Permission } from '@meta-bi/shared';
-import type { RestricaoEscopo } from '~/utils/navegacao';
+import { MINHAS_VENDAS, type RestricaoEscopo } from '~/utils/navegacao';
 
 export interface NavItem extends RestricaoEscopo {
   label: string;
@@ -24,8 +24,7 @@ export const NAV: NavGroup[] = [
         label: 'Minhas vendas',
         to: '/minhas-vendas',
         icon: 'i-lucide-circle-user-round',
-        permissao: 'dashboard.view',
-        somenteEscopo: ['representantes'],
+        ...MINHAS_VENDAS,
       },
       {
         label: 'Visão geral',

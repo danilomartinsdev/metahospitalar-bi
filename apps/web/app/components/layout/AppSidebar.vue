@@ -10,7 +10,7 @@ const can = useCan();
 const route = useRoute();
 const auth = useAuthStore();
 const escopo = computed(() => auth.usuario?.escopoTipo);
-const inicio = computed(() => paginaInicial(escopo.value));
+const inicio = computed(() => paginaInicial(auth.usuario));
 
 const grupos = computed(() =>
   NAV.map((g) => ({

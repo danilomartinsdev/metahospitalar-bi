@@ -18,7 +18,7 @@ export default defineNuxtRouteMiddleware(async (to) => {
       : navigateTo({ path: '/login', query: to.fullPath !== '/' ? { r: to.fullPath } : {} });
   }
 
-  const inicio = paginaInicial(auth.usuario?.escopoTipo);
+  const inicio = paginaInicial(auth.usuario);
   if (publica) return navigateTo(inicio);
 
   // Troca de senha obrigatória (primeiro acesso ou senha redefinida pelo admin).

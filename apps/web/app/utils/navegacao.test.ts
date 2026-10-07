@@ -2,11 +2,24 @@ import { describe, expect, it } from 'vitest';
 import { paginaInicial, visivelNoEscopo } from './navegacao';
 
 describe('paginaInicial', () => {
-  it('representante vai para Minhas vendas; demais para a Visão geral', () => {
-    expect(paginaInicial('representantes')).toBe('/minhas-vendas');
-    expect(paginaInicial('todos')).toBe('/dashboard');
-    expect(paginaInicial('regiao')).toBe('/dashboard');
-    expect(paginaInicial(undefined)).toBe('/dashboard');
+  it('com a permissão e escopo restrito vai para Minhas vendas', () => {
+    expect(paginaInicial({ escopoTipo: 'representantes', permissoes: ['minhas-vendas.view'] })).toBe(
+      '/minhas-vendas',
+    );
+    expect(paginaInicial({ escopoTipo: 'regiao', permissoes: ['minhas-vendas.view'] })).toBe(
+      '/minhas-vendas',
+    );
+  });
+
+  it('sem a permissão vai para a Visão geral, mesmo sendo representante', () => {
+    expect(paginaInicial({ escopoTipo: 'representantes', permissoes: ['dashboard.view'] })).toBe(
+      '/dashboard',
+    );
+  });
+
+  it('escopo "todos" (ex.: Admin, que tem todas as permissões) vai para a Visão geral', () => {
+    expect(paginaInicial({ escopoTipo: 'todos', permissoes: ['minhas-vendas.view'] })).toBe('/dashboard');
+    expect(paginaInicial(null)).toBe('/dashboard');
   });
 });
 
