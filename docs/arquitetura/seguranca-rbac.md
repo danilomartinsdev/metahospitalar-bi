@@ -39,6 +39,12 @@ Visualizador = configurável.
 ## Escopo de dados
 
 - Tipos: `todos`, `regiao` (lista de regiões), `representantes` (vínculos do usuário).
+- **Vínculo usuário ↔ código do Focco** (2026-10-07): feito em Administração › Cadastro de
+  representantes (`PUT /usuarios/vinculos/:representanteId`, exige `users.manage`), não no cadastro de
+  usuário — lá, papel Representante não escolhe escopo. Um usuário por código; um usuário pode ter vários
+  códigos. Ligar põe o usuário no escopo `representantes`; quem perde o último código continua nele e
+  **não vê nenhum pedido** (nunca passa a ver a empresa toda). Ninguém liga/desliga a si mesmo; só Admin
+  mexe no vínculo de um Admin; auditado como `representante.vinculo`.
 - Aplicado **apenas no backend** pelo `ScopedPedidosRepository`, que recebe o usuário da
   requisição e adiciona o `where` de escopo a toda consulta de pedidos (listas, agregações,
   rankings, exportações, impressão).

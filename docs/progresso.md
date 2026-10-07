@@ -37,6 +37,8 @@ Período e busca ficaram na barra de filtros de cada tela (não na topbar).
 
 ## Decisões tomadas
 
+- **Vínculo do representante (2026-10-07):** o cadastro de usuário não tem mais "Por representante". Papéis decide se o menu Minhas vendas aparece; o código do Focco de cada usuário é escolhido em Administração › Cadastro de representantes (coluna Usuário), e é isso que faz Minhas vendas (e as outras telas) mostrar só as vendas dele. Representante sem código ligado não vê nenhum pedido.
+
 - **Tela do representante (2026-10-07, revisto no mesmo dia):** "Minhas vendas" aparece **só por permissão** (`minhas-vendas.view`, marcada em Administração › Papéis) — o escopo não decide se a tela aparece, só quais pedidos ela mostra. Vira a página inicial de quem tem a permissão (exceto o Admin); demais papéis continuam na Visão geral. Conteúdo: KPIs, meta (mês e acumulado), evolução, top clientes, vendas por estado, pedidos recentes. Menu só por permissão: os rankings de Representantes e Regiões aparecem para o representante (com os dados dele).
 
 - **Reimportação de faturamento (2026-10-06):** a prévia lista os meses da planilha, com o que já existe no sistema em cada um, e o usuário **escolhe quais importar** (todos marcados por padrão). Cada mês escolhido é substituído por completo; os demais não mudam (antes: o ano inteiro era substituído). Importar outubro não apaga jan–set; reimportar outubro atualizado troca outubro inteiro, sem duplicar.

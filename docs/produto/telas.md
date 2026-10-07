@@ -32,10 +32,10 @@ Toda tabela tem botão "Exportar Excel" (export.xlsx); dashboards têm "Exportar
 |---|---|---|
 | /admin/importacoes | Upload (arrastar e soltar), prévia, confirmação, histórico de lotes, rollback | import.run / import.rollback |
 | /admin/metas | Metas mensais total e por representante | metas.edit |
-| /admin/representantes | Cadastro (nome de exibição, segmento, ativo) | cadastros.edit |
+| /admin/representantes | Cadastro (nome de exibição, segmento, ativo) e **usuário de cada código** (com users.manage) — é o que limita o representante às próprias vendas | cadastros.edit (+ users.manage para ligar usuário) |
 | /admin/clientes | Override de segmento por cliente | cadastros.edit |
 | /admin/status-pdv | Significado dos status e se contam no total | cadastros.edit |
-| /admin/usuarios | Usuários, papel, escopo, vínculos, desativar, derrubar sessões | users.manage |
+| /admin/usuarios | Usuários, papel, escopo (Todos / Por região; papel Representante não escolhe — vem do Cadastro de representantes), desativar, derrubar sessões | users.manage |
 | /admin/papeis | Papéis e permissões editáveis | users.manage |
 | /admin/auditoria | Log de auditoria filtrável | audit.view |
 
